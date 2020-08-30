@@ -10,19 +10,12 @@ library and the Node.js framework.
 This project involves several dependencies managed by npm. Get npm by following
 this link: https://www.npmjs.com/get-npm
 
-Within the root folder of the project, initialize the Node project and install the discord
-libary.
+Within the root folder of the project, install the dependencies
 
-    $ npm init
+    $ npm install
 
 Create your config.json file from the config.json.tpl file and populate the token fields.
 More information in the Authentication section.
-
-Install the dependencies
-
-    $ npm install discord.js@12.2.0
-    $ npm install giphy-js-sdk-core@1.0.6
-    $ npm install pokedex-promise-v2@^3.2.0
 
 ## Authentication
 
