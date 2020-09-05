@@ -2,7 +2,7 @@
 module.exports = {
     name: 'Kill Interval',
     description: 'Ay! Cammm onnn dooooood...',
-    execute(client, args) {
+    execute(asdf, asdfasdf, client, memberId) {
         const guildNameToKick = `Test Server 2`
         const usernameToKick = args;
         const channelName = `test-channel`
@@ -64,5 +64,27 @@ module.exports = {
 
 
 
+    },
+
+    execute(message, memberId, client) {
+        // Fetch the user to kill
+        message.mentions.members.first().fetch()
+            .then((guildMember) => {
+                message.channel.send('Time to die buddy');
+                return guildMember.kick();
+            })
+            .then(() => {
+                message.channel.send('Get out of here');
+            })
+            .catch((error) => {
+                const MISSING_PERMISSIONS = 50013;
+                if (error.code == MISSING_PERMISSIONS) {
+                    console.log(`Can't kick that guy, removing from intervals`);
+                    const interval = client.activeIntervals.get(memberId);
+                    client.activeIntervals.delete(memberId);
+                    client.clearInterval(interval);
+                }
+                console.log(`Error: ${error}`);
+            });
     }
 }

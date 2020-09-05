@@ -7,16 +7,17 @@ module.exports = {
             console.log('UsageError: revive expects exactly 1 argument.');
             return;
         }
-        console.log('Reviving inside commands...');
+        console.log('Reviving, removing from intervals...');
 
         const client = message.client;
         if (!client.activeIntervals.has(args[0])) {
-            console.log(`Can't revive a member who isn't being killed.`);
+            message.channel.send(`Can't revive a member who isn't being killed.`);
             return;
         }
         const interval = client.activeIntervals.get(args[0]);
         client.activeIntervals.delete(args[0]);
         client.clearInterval(interval);
+        console.log('Removed interval.');
         console.log(client.activeIntervals);
     }
 }
