@@ -2,9 +2,9 @@
 module.exports = {
     name: 'Kick Imran',
     description: 'Ay! Cammm onnn dooooood...',
-    execute(client) {
+    execute(client, args) {
         const guildNameToKick = `Test Server 2`
-        const usernameToKick = `BonkDev`;
+        const usernameToKick = args;
         const channelName = `test-channel`
 
         // Find the proper guild
