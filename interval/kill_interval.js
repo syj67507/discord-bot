@@ -70,21 +70,22 @@ module.exports = {
         // Fetch the user to kill
         message.mentions.members.first().fetch()
             .then((guildMember) => {
-                message.channel.send('Time to die buddy');
+                message.channel.send('You are not welcome here.');
                 return guildMember.kick();
             })
-            .then(() => {
-                message.channel.send('Get out of here');
+            .then((kickedGM) => {
+                message.channel.send(`${memberId} has been killed!`);
             })
             .catch((error) => {
+                // Can't kill due to permissions
+                console.log(`Error: ${error}`);
                 const MISSING_PERMISSIONS = 50013;
                 if (error.code == MISSING_PERMISSIONS) {
-                    console.log(`Can't kick that guy, removing from intervals`);
+                    console.log(`Removing from intervals`);
                     const interval = client.activeIntervals.get(memberId);
                     client.activeIntervals.delete(memberId);
                     client.clearInterval(interval);
                 }
-                console.log(`Error: ${error}`);
             });
     }
 }
