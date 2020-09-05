@@ -3,15 +3,19 @@ module.exports = {
     name: 'kill',
     description: 'Ay! Cammm onnn dooooood...',
     execute(message, args) {
+        message.channel.send(args.length);
         const client = message.client; // used for interval management
-
         // validates user to be killed
-        if (args.length != 1) {
-            message.channel.send('UsageError: kill expects exactly 1 argument.');
+        if (args.length < 1 || args.length > 2 ) {
+            message.channel.send('UsageError: kill <@> <seconds>');
             return;
         }
+        if (args.length == 2 && args[1] < 10) {
+            message.channel.send('I don\'t have that much energy, I\'m going to kill every 10 seconds');
+            args[1] = 10
+        }
         if (message.mentions.members.size == 0) {
-            message.channel.send(`I can't find ${args}, maybe he's already dead...`);
+            message.channel.send(`I can't find ${args[0]}, maybe he's already dead...`);
             return;
         }
         if (client.activeIntervals.has(args[0])) {
@@ -25,7 +29,7 @@ module.exports = {
             .then((guildMember) => {
                 const interval = client.setInterval(
                     client.intervals.get('Kill Interval').execute,
-                    3000, // time
+                    1000*args[1], // time
                     message,
                     args[0], // mention used for error handling
                     client

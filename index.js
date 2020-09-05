@@ -32,7 +32,7 @@ client.on('message', message => {
     if ((message.content.startsWith(prefix) == false) || message.author.bot) {
         return;
     }
-    const args = message.content.slice(prefix.length).split(' ');
+    const args = message.content.slice(prefix.length).split(/[ ]+/);
     const command = args.shift().toLowerCase();
     // message.channel.send(`Command: ${command}\nArgs: ${args}`);
 
