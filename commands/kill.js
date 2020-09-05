@@ -15,7 +15,7 @@ module.exports = {
             return;
         }
         const interval = client.setInterval(
-            client.intervals.get('Kick Imran').execute,
+            client.intervals.get('Kill Interval').execute,
             3000,
             client,
             args[0] // holds the user to kick

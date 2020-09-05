@@ -1,6 +1,6 @@
 "use strict";
 module.exports = {
-    name: 'Kick Imran',
+    name: 'Kill Interval',
     description: 'Ay! Cammm onnn dooooood...',
     execute(client, args) {
         const guildNameToKick = `Test Server 2`
