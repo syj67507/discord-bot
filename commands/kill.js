@@ -3,15 +3,17 @@ module.exports = {
     name: 'kill',
     description: 'Ay! Cammm onnn dooooood...',
     execute(message, args) {
-        message.channel.send(args.length);
         const client = message.client; // used for interval management
+
         // validates user to be killed
-        if (args.length < 1 || args.length > 2 ) {
-            message.channel.send('UsageError: kill <@> <seconds>');
+        if (args.length != 2 ) {
+            message.channel.send([
+                'UsageError: kill <@> <seconds>',
+                '10 seconds is the lowest you can set for <seconds>'
+            ]);
             return;
         }
-        if (args.length == 2 && args[1] < 10) {
-            message.channel.send('I don\'t have that much energy, I\'m going to kill every 10 seconds');
+        if (args[1] < 10) {
             args[1] = 10
         }
         if (message.mentions.members.size == 0) {
