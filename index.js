@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 // Setup...
 const { prefix, token } = require('./config.json');
 const Discord = require('discord.js');
@@ -13,24 +13,18 @@ for (const file of commandFiles) {
 }
 
 const intervalFiles = fs.readdirSync('./interval').filter(file => file.endsWith('.js'));
-client.intervals = new Discord.Collection()
+client.intervals = new Discord.Collection();
 for (const file of intervalFiles) {
     const interval = require(`./interval/${file}`);
-    client.intervals.set(interval.name, interval)
+    client.intervals.set(interval.name, interval);
 }
+client.activeIntervals = new Discord.Collection();
 
 // Logging in bot...
 client.once('ready', () => {
-    console.log('Setting interval functions...');
-    // final parameter client is passed into execute function
-    setInterval(client.intervals.get('Kick Imran').execute, 5000, client)
-    console.log('Interval functions are set.');
     console.log('Ready!');
 });
-client.login(token)
-
-
-
+client.login(token);
 
 // On a message sent...
 client.on('message', message => {
@@ -38,7 +32,7 @@ client.on('message', message => {
     if ((message.content.startsWith(prefix) == false) || message.author.bot) {
         return;
     }
-    const args = message.content.slice(prefix.length).split(' ');
+    const args = message.content.slice(prefix.length).split(/[ ]+/);
     const command = args.shift().toLowerCase();
     // message.channel.send(`Command: ${command}\nArgs: ${args}`);
 
@@ -47,11 +41,12 @@ client.on('message', message => {
             client.commands.get(command).execute(message, args);
         }
         catch (error) {
+            console.log(error);
             message.channel.send('I\'m sorry but I am having issues running that command :(');
         }
     }
     else {
-        // message.reply('I\'m sorry but I don\'t have that command :(');
+        message.reply('I\'m sorry but I don\'t have that command :(');
     }
 
 });
