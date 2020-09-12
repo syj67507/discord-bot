@@ -11,7 +11,8 @@ module.exports = {
         }
 
         // Let the bot join the channel
-        message.member.voice.channel.join()
+        const channel = message.member.voice.channel;
+        channel.join()
             .then((connection) => {
                 // Start yelling on successful join
                 console.log('Joined the channel');
@@ -20,11 +21,9 @@ module.exports = {
                 // Use dispatcher to identify the end of the clip
                 dispatcher.on('speaking', (speaking) => {
                     if (!speaking) {
-                        message.member.voice.channel.leave();
+                        channel.leave();
                     }
                 });
             });
-        // catching errors will be handled in index.js
-
     },
 };
