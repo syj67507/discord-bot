@@ -1,0 +1,4 @@
+PREFIX="!"
+TOKEN=""
+GIF_TOKEN=""
+

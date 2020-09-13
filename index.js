@@ -1,6 +1,8 @@
 'use strict';
 // Setup...
-const { prefix, token } = require('./config.json');
+require('dotenv').config();
+const prefix = process.env.PREFIX;
+const token = process.env.TOKEN;
 const Discord = require('discord.js');
 const client = new Discord.Client();
 

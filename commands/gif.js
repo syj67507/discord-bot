@@ -2,9 +2,10 @@ module.exports = {
     name: 'gif',
     description: 'We love GIFS!',
     execute(message, args) {
-        const config = require('../config.json'); // holds API token
+        require('dotenv').config();
+        const gifToken = process.env.GIF_TOKEN;
         const GphApiClient = require('giphy-js-sdk-core');
-        const gifClient = GphApiClient(config.gifToken);
+        const gifClient = GphApiClient(gifToken);
 
         if (args.length == 0) {
             return message.channel.send('You didn\'t search anything!');
