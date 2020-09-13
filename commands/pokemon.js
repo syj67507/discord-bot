@@ -2,6 +2,8 @@ module.exports = {
     name: 'pokemon',
     description: 'Pokemon Trivia!',
     async execute(message, args) {
+        message.channel.send('Currently under maintenance, sorry...');
+        return;
         const Pokedex = require('pokedex-promise-v2');
         const pokeClient = new Pokedex();
         // Returns an object representing the random pokemon
