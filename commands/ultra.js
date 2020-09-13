@@ -1,6 +1,6 @@
 module.exports = {
-    name: 'prominence-burn',
-    description: 'Prominence Burn!!!',
+    name: 'ultra',
+    description: 'PLUS ULTRA PROMINENCE BURN',
     execute(message, args) {
         const ytdl = require('ytdl-core');
 
