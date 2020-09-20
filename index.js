@@ -40,10 +40,17 @@ client.on('message', message => {
 
     if (client.commands.has(command)) {
         try {
-            client.commands.get(command).execute(message, args);
+            client.commands.get(command).execute(message, args)
+                .then((r) => {
+                    console.log('success' + r);
+                })
+                .catch(() => {
+                    console.log('error');
+                });
         }
         catch (error) {
-            console.log(error);
+            // console.log(error);
+            console.log('there was an error in running');
             message.channel.send('I\'m sorry but I am having issues running that command :(');
         }
     }
