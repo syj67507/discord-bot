@@ -1,3 +1,4 @@
+const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
 
 module.exports = {
@@ -11,7 +12,7 @@ module.exports = {
         const client = message.client;
         if (!client.activeIntervals.has(args[0])) {
             message.channel.send('Can\'t revive a member who isn\'t being killed.');
-            return;
+            throw new ExecutionError('User not being killed.');
         }
 
         console.log('Reviving, removing from intervals...');

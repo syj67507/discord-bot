@@ -1,3 +1,4 @@
+const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
 
 module.exports = {
@@ -18,8 +19,8 @@ module.exports = {
 
         const response = await gifClient.search('gifs', { 'q': args.join(' ') });
         if (response.pagination.count == 0) {
-            message.channel.send('Sorry... we couldn\'t find you anything... :cry:');
-            return;
+            message.channel.send('We couldn\'t find you anything... :cry:');
+            throw new ExecutionError('Giphy client return no results');
         }
         const randomIndex = Math.floor(Math.random() * response.data.length);
         message.channel.send('Here is a gif! Have fun!', {

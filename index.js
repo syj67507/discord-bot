@@ -49,7 +49,7 @@ client.on('message', message => {
             .catch((error) => {
                 console.log('Error caught in execution');
                 console.log(error.name + ': ' + error.message);
-                message.channel.send('I\'m sorry but I am having issues running that command :(');
+                message.channel.send('Sorry about that... :(');
             });
     }
     else {
