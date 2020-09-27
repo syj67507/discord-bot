@@ -39,13 +39,18 @@ client.on('message', message => {
     // message.channel.send(`Command: ${command}\nArgs: ${args}`);
 
     if (client.commands.has(command)) {
-        try {
-            client.commands.get(command).execute(message, args);
-        }
-        catch (error) {
-            console.log(error);
-            message.channel.send('I\'m sorry but I am having issues running that command :(');
-        }
+        client.commands.get(command).execute(message, args)
+            .then((response) => {
+                console.log('Command executed');
+                if (response != null) {
+                    console.log(response);
+                }
+            })
+            .catch((error) => {
+                console.log('Error caught in execution');
+                console.log(error.name + ': ' + error.message);
+                message.channel.send('Sorry about that... :(');
+            });
     }
     else {
         message.reply('I\'m sorry but I don\'t have that command :(');

@@ -1,4 +1,3 @@
-"use strict";
 module.exports = {
     name: 'Kill Interval',
     description: 'Ay! Cammm onnn dooooood...',
@@ -17,11 +16,11 @@ module.exports = {
                 console.log(`Error: ${error}`);
                 const MISSING_PERMISSIONS = 50013;
                 if (error.code == MISSING_PERMISSIONS) {
-                    console.log(`Removing from intervals`);
+                    console.log('Removing from intervals');
                     const interval = client.activeIntervals.get(memberId);
                     client.activeIntervals.delete(memberId);
                     client.clearInterval(interval);
                 }
             });
-    }
-}
+    },
+};

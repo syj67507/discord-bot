@@ -1,16 +1,18 @@
-"use strict";
+const ExecutionError = require('../custom_errors/execution_error');
+const UsageError = require('../custom_errors/usage_error');
+
 module.exports = {
     name: 'revive',
     description: 'Ay! Cammm onnn dooooood... back in the game!!',
-    execute(message, args) {
+    async execute(message, args) {
         if (args.length != 1) {
             console.log('UsageError: revive expects exactly 1 argument.');
-            return;
+            throw new UsageError('User mention not specified');
         }
         const client = message.client;
         if (!client.activeIntervals.has(args[0])) {
-            message.channel.send(`Can't revive a member who isn't being killed.`);
-            return;
+            message.channel.send('Can\'t revive a member who isn\'t being killed.');
+            throw new ExecutionError('User not being killed.');
         }
 
         console.log('Reviving, removing from intervals...');
@@ -19,5 +21,5 @@ module.exports = {
         client.clearInterval(interval);
         console.log('Removed interval.');
         console.log(client.activeIntervals);
-    }
-}
+    },
+};

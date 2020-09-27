@@ -1,24 +1,31 @@
+const ExecutionError = require('../custom_errors/execution_error');
+const UsageError = require('../custom_errors/usage_error');
+
 module.exports = {
     name: 'gif',
     description: 'We love GIFS!',
-    execute(message, args) {
+    async execute(message, args) {
+
+        // Set up Giphy client
         require('dotenv').config();
         const gifToken = process.env.GIF_TOKEN;
         const GphApiClient = require('giphy-js-sdk-core');
         const gifClient = GphApiClient(gifToken);
 
         if (args.length == 0) {
-            return message.channel.send('You didn\'t search anything!');
+            message.channel.send('You didn\'t search anything!');
+            throw new UsageError('No search parameter defined');
         }
-        gifClient.search('gifs', {"q": args.join(' ')})
-            .then((response) => {
-                if (response.pagination.count == 0) {
-                    return message.channel.send('Sorry... we couldn\'t find you anything... :cry:');
-                }
-                let randomIndex = Math.floor(Math.random() * response.data.length);
-                message.channel.send('Here is a gif! Have fun!', {
-                    files: [response.data[randomIndex].images.fixed_height.url]
-                });
-            });
-    }
-}
+
+        const response = await gifClient.search('gifs', { 'q': args.join(' ') });
+        if (response.pagination.count == 0) {
+            message.channel.send('We couldn\'t find you anything... :cry:');
+            throw new ExecutionError('Giphy client return no results');
+        }
+        const randomIndex = Math.floor(Math.random() * response.data.length);
+        message.channel.send('Here is a gif! Have fun!', {
+            files: [response.data[randomIndex].images.fixed_height.url],
+        });
+
+    },
+};
