@@ -1,11 +1,15 @@
 const { loggers } = require('winston');
 const logger = require('../logger.js');
+const ExecutionError = require('../custom_errors/execution_error');
+const UsageError = require('../custom_errors/usage_error');
 
 module.exports = {
     name: 'gif',
     description: 'We love GIFS!',
-    execute(message, args) {
-        const logger = require('../logger.js');
+    async execute(message, args) {
+
+        // Set up Giphy client
+
         require('dotenv').config();
         const gifToken = process.env.GIF_TOKEN;
         const GphApiClient = require('giphy-js-sdk-core');
@@ -13,19 +17,21 @@ module.exports = {
 
         if (args.length == 0) {
             logger.error('UsageError: No search arguments provided.');
-            return message.channel.send('You didn\'t search anything!');
+            message.channel.send('You didn\'t search anything!');
+            throw new UsageError('No search parameter defined');
         }
-        gifClient.search('gifs', {"q": args.join(' ')})
-            .then((response) => {
-                if (response.pagination.count == 0) {
-                    logger.warn('No images found with search arguments.');
-                    return message.channel.send('Sorry... we couldn\'t find you anything... :cry:');
-                }
-                let randomIndex = Math.floor(Math.random() * response.data.length);
-                message.channel.send('Here is a gif! Have fun!', {
-                    files: [response.data[randomIndex].images.fixed_height.url]
-                });
-                logger.info('Image retrieved from API and sent to channel.');
-            });
-    }
-}
+
+        const response = await gifClient.search('gifs', { 'q': args.join(' ') });
+        if (response.pagination.count == 0) {
+            logger.warn('No images found with search arguments.');
+            message.channel.send('We couldn\'t find you anything... :cry:');
+            throw new ExecutionError('Giphy client return no results');
+        }
+        const randomIndex = Math.floor(Math.random() * response.data.length);
+        message.channel.send('Here is a gif! Have fun!', {
+            files: [response.data[randomIndex].images.fixed_height.url],
+        });
+        logger.info('Image retrieved from API and sent to channel.');
+
+    },
+};

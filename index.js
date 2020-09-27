@@ -42,14 +42,19 @@ client.on('message', message => {
 
     if (client.commands.has(command)) {
         logger.info(`Command Found. Command: ${command}, Args: ${args}`);
-        try {
-            logger.info('Executing command...');
-            client.commands.get(command).execute(message, args);
-        }
-        catch (error) {
-            logger.error(`Command unsuccessful. Error: ${error}`);
-            message.channel.send('I\'m sorry but I am having issues running that command :(');
-        }
+        client.commands.get(command).execute(message, args)
+            .then((response) => {
+                console.log('Command executed');
+                if (response != null) {
+                    console.log(response);
+                }
+            })
+            .catch((error) => {
+                logger.error(`Command unsuccessful. Error: ${error}`);
+                console.log('Error caught in execution');
+                console.log(error.name + ': ' + error.message);
+                message.channel.send('Sorry about that... :(');
+            });
     }
     else {
         logger.warn(`Command not found: ${command}`);
