@@ -43,7 +43,8 @@ client.on('message', message => {
             .then((r) => {
                 if (r == null) {
                     console.log('command return value: null');
-                } else {
+                }
+                else {
                     console.log('command return value: ' + r);
                 }
                 console.log('success');
