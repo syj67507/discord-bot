@@ -1,4 +1,3 @@
-const { loggers } = require('winston');
 const logger = require('../logger.js');
 const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
@@ -16,14 +15,12 @@ module.exports = {
         const gifClient = GphApiClient(gifToken);
 
         if (args.length == 0) {
-            logger.error('UsageError: No search arguments provided.');
             message.channel.send('You didn\'t search anything!');
-            throw new UsageError('No search parameter defined');
+            throw new UsageError('No search arguments provided');
         }
 
         const response = await gifClient.search('gifs', { 'q': args.join(' ') });
         if (response.pagination.count == 0) {
-            logger.warn('No images found with search arguments.');
             message.channel.send('We couldn\'t find you anything... :cry:');
             throw new ExecutionError('Giphy client return no results');
         }

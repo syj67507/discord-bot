@@ -25,10 +25,10 @@ client.activeIntervals = new Discord.Collection();
 
 // Logging in bot...
 client.once('ready', () => {
-    logger.info('Logging in...');
+    logger.info('CLIENT: Logging in...');
 });
 client.login(token);
-logger.info('Success. Logged in.');
+logger.info('CLIENT: Log in successful');
 
 // On a message sent...
 client.on('message', message => {
@@ -41,23 +41,22 @@ client.on('message', message => {
     // message.channel.send(`Command: ${command}\nArgs: ${args}`);
 
     if (client.commands.has(command)) {
-        logger.info(`Command Found. Command: ${command}, Args: ${args}`);
+        logger.info(`COMMAND ${command.toUpperCase()}: command found`);
         client.commands.get(command).execute(message, args)
             .then((response) => {
-                console.log('Command executed');
+                logger.info(`COMMAND ${command.toUpperCase()}: command executed`);
                 if (response != null) {
                     console.log(response);
                 }
             })
             .catch((error) => {
-                logger.error(`Command unsuccessful. Error: ${error}`);
-                console.log('Error caught in execution');
-                console.log(error.name + ': ' + error.message);
+                logger.error(`COMMAND ${command.toUpperCase()}: ${error.name}: ${error.message}`);
+                logger.error(`COMMAND ${command.toUpperCase()}: execution unsuccessful`);
                 message.channel.send('Sorry about that... :(');
             });
     }
     else {
-        logger.warn(`Command not found: ${command}`);
+        logger.warn(`COMMAND ${command.toUpperCase}: not found`);
         message.reply('I\'m sorry but I don\'t have that command :(');
     }
 
