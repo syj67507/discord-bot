@@ -13,4 +13,9 @@ const logger = winston.createLogger({
     ],
 });
 
-module.exports = logger;
+function format(prefix, message) {
+    return prefix.toUpperCase() + ': ' + message;
+}
+
+module.exports.logger = logger;
+module.exports.format = format;

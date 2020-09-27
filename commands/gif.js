@@ -1,4 +1,4 @@
-const logger = require('../logger.js');
+const logger = require('../logger.js').logger;
 const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
 

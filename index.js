@@ -5,7 +5,8 @@ const prefix = process.env.PREFIX;
 const token = process.env.TOKEN;
 const Discord = require('discord.js');
 const client = new Discord.Client();
-const logger = require('./logger.js');
+const logger = require('./logger.js').logger;
+const format = require('./logger.js').format;
 
 const fs = require('fs');
 client.commands = new Discord.Collection();
@@ -25,10 +26,10 @@ client.activeIntervals = new Discord.Collection();
 
 // Logging in bot...
 client.once('ready', () => {
-    logger.info('CLIENT: Logging in...');
+    logger.info(format('client', 'Logging in...'));
 });
 client.login(token);
-logger.info('CLIENT: Log in successful');
+logger.info(format('client', 'Log in successful'));
 
 // On a message sent...
 client.on('message', message => {
@@ -41,22 +42,24 @@ client.on('message', message => {
     // message.channel.send(`Command: ${command}\nArgs: ${args}`);
 
     if (client.commands.has(command)) {
-        logger.info(`COMMAND ${command.toUpperCase()}: command found`);
+        logger.info(format(command, 'Command found'));
         client.commands.get(command).execute(message, args)
             .then((response) => {
-                logger.info(`COMMAND ${command.toUpperCase()}: command executed`);
+
+                logger.info(format(command, 'Command executed'));
                 if (response != null) {
                     console.log(response);
                 }
+
             })
             .catch((error) => {
-                logger.error(`COMMAND ${command.toUpperCase()}: ${error.name}: ${error.message}`);
-                logger.error(`COMMAND ${command.toUpperCase()}: execution unsuccessful`);
+                logger.error(format(command, `${error.name}: ${error.message}`));
+                logger.error(format(command, 'Execution unsuccessful'));
                 message.channel.send('Sorry about that... :(');
             });
     }
     else {
-        logger.warn(`COMMAND ${command.toUpperCase}: not found`);
+        logger.warn(format(command, 'Command not found'));
         message.reply('I\'m sorry but I don\'t have that command :(');
     }
 
