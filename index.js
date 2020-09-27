@@ -51,7 +51,7 @@ client.on('message', message => {
             .catch((error) => {
                 console.log(error.name + ': ' + error.message);
                 console.log('In the then catch error statement');
-                message.channel.send('I\'m sorry but I am having issues running that command :(');
+                // message.channel.send('I\'m sorry but I am having issues running that command :(');
             });
     }
     else {
