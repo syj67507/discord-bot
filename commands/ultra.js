@@ -2,7 +2,7 @@ module.exports = {
     name: 'ultra',
     description: 'PLUS ULTRA PROMINENCE BURN',
     async execute(message, args) {
-        let err = null;
+
         const ytdl = require('ytdl-core');
 
         // Validation checks
@@ -13,25 +13,17 @@ module.exports = {
 
         // Let the bot join the channel
         const channel = message.member.voice.channel;
-        await channel.join()
-            .then((connection) => {
-                
-                // Start yelling on successful join
-                console.log('Joined the channel');
-                const dispatcher = connection.play(ytdl('https://www.youtube.com/watch?v=vaGzR9E9mPU'));
+        const connection = await channel.join();
 
-                return 25;
+        // Start yelling on successful join
+        console.log('Joined the channel');
+        const dispatcher = connection.play(ytdl('https://www.youtube.com/watch?v=vaGzR9E9mPU'));
 
-                // Use dispatcher to identify the end of the clip
-                dispatcher.on('speaking', (speaking) => {
-                    if (!speaking) {
-                        channel.leave();
-                    }
-                });
-                
-            }).catch((error) => {
-                throw error;
-            });
-        // return 23;
+        // Use dispatcher to identify the end of the clip
+        dispatcher.on('speaking', (speaking) => {
+            if (!speaking) {
+                channel.leave();
+            }
+        });
     },
 };
