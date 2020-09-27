@@ -3,7 +3,7 @@ const UsageError = require('../custom_errors/usage_error');
 module.exports = {
     name: 'revive',
     description: 'Ay! Cammm onnn dooooood... back in the game!!',
-    execute(message, args) {
+    async execute(message, args) {
         if (args.length != 1) {
             console.log('UsageError: revive expects exactly 1 argument.');
             throw new UsageError('User mention not specified');

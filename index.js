@@ -40,19 +40,16 @@ client.on('message', message => {
 
     if (client.commands.has(command)) {
         client.commands.get(command).execute(message, args)
-            .then((r) => {
-                if (r == null) {
-                    console.log('command return value: null');
+            .then((response) => {
+                console.log('Command executed');
+                if (response != null) {
+                    console.log(response);
                 }
-                else {
-                    console.log('command return value: ' + r);
-                }
-                console.log('success');
             })
             .catch((error) => {
+                console.log('Error caught in execution');
                 console.log(error.name + ': ' + error.message);
-                console.log('In the then catch error statement');
-                // message.channel.send('I\'m sorry but I am having issues running that command :(');
+                message.channel.send('I\'m sorry but I am having issues running that command :(');
             });
     }
     else {

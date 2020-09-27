@@ -1,3 +1,5 @@
+const UsageError = require('../custom_errors/usage_error.js');
+
 module.exports = {
     name: 'ultra',
     description: 'PLUS ULTRA PROMINENCE BURN',
@@ -8,7 +10,7 @@ module.exports = {
         // Validation checks
         if (message.member.voice.channel == null) {
             message.channel.send('You must join a voice channel.');
-            return;
+            throw new UsageError('Client cannot join a null value voice channel');
         }
 
         // Let the bot join the channel

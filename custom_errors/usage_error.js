@@ -1,4 +1,5 @@
 class UsageError extends Error {
+
     constructor(...params) {
         super(...params);
         if (Error.captureStackTrace) {
@@ -6,6 +7,7 @@ class UsageError extends Error {
         }
         this.name = 'UsageError';
     }
+
 }
 
 module.exports = UsageError;
