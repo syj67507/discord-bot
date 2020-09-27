@@ -42,25 +42,37 @@ client.on('message', message => {
     // message.channel.send(`Command: ${command}\nArgs: ${args}`);
 
     if (client.commands.has(command)) {
+
         logger.info(format(command, 'Command found'));
         client.commands.get(command).execute(message, args)
             .then((response) => {
 
+                // Log information on success
                 logger.info(format(command, 'Command executed'));
                 if (response != null) {
                     console.log(response);
                 }
-
             })
             .catch((error) => {
-                logger.error(format(command, `${error.name}: ${error.message}`));
-                logger.error(format(command, 'Execution unsuccessful'));
+
+                // Catch the error and appropriate log it
+                if (error.name == 'ExecutionError' || error.name == 'UsageError') {
+                    logger.warn(format(command, `${error.name}: ${error.message}`));
+                    logger.warn(format(command, 'Execution unsuccessful due to usage.'));
+                }
+                else {
+                    logger.error(format(command, `${error.name}: ${error.message}`));
+                    logger.error(format(command, 'Execution ran into unexpected errors.'));
+                }
                 message.channel.send('Sorry about that... :(');
             });
     }
     else {
+
+        // Log warning when not found
         logger.warn(format(command, 'Command not found'));
         message.reply('I\'m sorry but I don\'t have that command :(');
+
     }
 
 });
