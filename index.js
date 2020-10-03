@@ -5,6 +5,8 @@ const prefix = process.env.PREFIX;
 const token = process.env.TOKEN;
 const Discord = require('discord.js');
 const client = new Discord.Client();
+const logger = require('./logger.js').logger;
+const format = require('./logger.js').format;
 
 const fs = require('fs');
 client.commands = new Discord.Collection();
@@ -24,9 +26,10 @@ client.activeIntervals = new Discord.Collection();
 
 // Logging in bot...
 client.once('ready', () => {
-    console.log('Ready!');
+    logger.info(format('client', 'Logging in...'));
 });
 client.login(token);
+logger.info(format('client', 'Log in successful'));
 
 // On a message sent...
 client.on('message', message => {
@@ -36,24 +39,43 @@ client.on('message', message => {
     }
     const args = message.content.slice(prefix.length).split(/[ ]+/);
     const command = args.shift().toLowerCase();
-    // message.channel.send(`Command: ${command}\nArgs: ${args}`);
+
+    // logging
+    logger.debug(format('client', `Command: ${command}`));
+    logger.debug(format('client', `Args: ${args}`));
 
     if (client.commands.has(command)) {
+
+        logger.info(format(command, 'Command found'));
         client.commands.get(command).execute(message, args)
             .then((response) => {
-                console.log('Command executed');
+
+                // Log information on success
+                logger.info(format(command, 'Command executed'));
                 if (response != null) {
                     console.log(response);
                 }
             })
             .catch((error) => {
-                console.log('Error caught in execution');
-                console.log(error.name + ': ' + error.message);
+
+                // Catch the error and appropriate log it
+                if (error.name == 'ExecutionError' || error.name == 'UsageError') {
+                    logger.error(format(command, `${error.name}: ${error.message}`));
+                    logger.error(format(command, 'Execution unsuccessful due to usage.'));
+                }
+                else {
+                    logger.error(format(command, `${error.name}: ${error.message}`));
+                    logger.error(format(command, 'Execution ran into unexpected errors.'));
+                }
                 message.channel.send('Sorry about that... :(');
             });
     }
     else {
+
+        // Log warning when not found
+        logger.warn(format(command, 'Command not found'));
         message.reply('I\'m sorry but I don\'t have that command :(');
+
     }
 
 });

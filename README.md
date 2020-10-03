@@ -34,3 +34,9 @@ Run the application using the following command:
     $ node .
 
 Stop the application by terminating the process. On bash: `CTRL-C`.
+
+## Logging
+
+Logs are implemented using the `winston` library. The logs are set to output to the console. When deployed to Heroku, the application logs will hold all of the console outputs. The documentation for the `winston` library can be seen in the following link.
+
+https://www.npmjs.com/package/winston
