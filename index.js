@@ -39,12 +39,14 @@ client.on('message', message => {
     }
     const args = message.content.slice(prefix.length).split(/[ ]+/);
     const command = args.shift().toLowerCase();
-    // message.channel.send(`Command: ${command}\nArgs: ${args}`);
+
+    // logging
+    logger.debug(format(command, `Command: ${command}`));
+    logger.debug(format(command, `Args: ${args}`));
 
     if (client.commands.has(command)) {
 
         logger.info(format(command, 'Command found'));
-        logger.debug(format(command, 'DEBUG'));
         client.commands.get(command).execute(message, args)
             .then((response) => {
 
