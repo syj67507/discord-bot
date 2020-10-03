@@ -2,7 +2,7 @@
 // project to use.
 const winston = require('winston');
 const logger = winston.createLogger({
-    level: 'info',
+    level: 'debug',
     format: winston.format.combine(
         winston.format.colorize(),
         // winston.format.timestamp(),

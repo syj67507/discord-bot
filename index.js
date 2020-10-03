@@ -44,6 +44,7 @@ client.on('message', message => {
     if (client.commands.has(command)) {
 
         logger.info(format(command, 'Command found'));
+        logger.debug(format(command, 'DEBUG'));
         client.commands.get(command).execute(message, args)
             .then((response) => {
 
@@ -58,7 +59,7 @@ client.on('message', message => {
                 // Catch the error and appropriate log it
                 if (error.name == 'ExecutionError' || error.name == 'UsageError') {
                     logger.warn(format(command, `${error.name}: ${error.message}`));
-                    logger.warn(format(command, 'Execution unsuccessful due to usage.'));
+                    logger.error(format(command, 'Execution unsuccessful due to usage.'));
                 }
                 else {
                     logger.error(format(command, `${error.name}: ${error.message}`));
