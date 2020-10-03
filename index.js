@@ -41,8 +41,8 @@ client.on('message', message => {
     const command = args.shift().toLowerCase();
 
     // logging
-    logger.debug(format(command, `Command: ${command}`));
-    logger.debug(format(command, `Args: ${args}`));
+    logger.debug(format('client', `Command: ${command}`));
+    logger.debug(format('client', `Args: ${args}`));
 
     if (client.commands.has(command)) {
 
