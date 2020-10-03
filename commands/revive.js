@@ -8,9 +8,8 @@ module.exports = {
     async execute(message, args) {
 
         // Validating arguments
-        logger.info(format('revive', 'revive.js - Validating arguments'));
+        logger.debug(format('revive', 'revive.js - Validating arguments'));
         if (args.length != 1) {
-            console.log('UsageError: revive expects exactly 1 argument.');
             throw new UsageError('User mention not specified');
         }
         const client = message.client;
@@ -18,14 +17,14 @@ module.exports = {
             message.channel.send('Can\'t revive a member who isn\'t being killed.');
             throw new ExecutionError('User not being killed.');
         }
-        logger.info(format('revive', 'revive.js - Arguments validated'));
+        logger.debug(format('revive', 'revive.js - Arguments validated'));
 
-        logger.info(format('revive', 'revive.js - Reviving, removing from intervals...'));
+        logger.debug(format('revive', 'revive.js - Reviving, removing from intervals...'));
         const interval = client.activeIntervals.get(args[0]);
         logger.debug(format('revive', `revive.js - interval: ${interval}`));
         client.activeIntervals.delete(args[0]);
         client.clearInterval(interval);
-        logger.info(format('revive', 'revive.js - Removed interval.'));
+        logger.debug(format('revive', 'revive.js - Removed interval.'));
         logger.debug(format('revive', `revive.js - client.activeIntervals: ${client.activeIntervals}`));
     },
 };

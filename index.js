@@ -60,7 +60,7 @@ client.on('message', message => {
 
                 // Catch the error and appropriate log it
                 if (error.name == 'ExecutionError' || error.name == 'UsageError') {
-                    logger.warn(format(command, `${error.name}: ${error.message}`));
+                    logger.error(format(command, `${error.name}: ${error.message}`));
                     logger.error(format(command, 'Execution unsuccessful due to usage.'));
                 }
                 else {

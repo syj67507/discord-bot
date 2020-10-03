@@ -11,7 +11,7 @@ module.exports = {
         const client = message.client;
 
         // validates user to be killed
-        logger.info(format('kill', 'kill.js - Validating arguments'));
+        logger.debug(format('kill', 'kill.js - Validating arguments'));
         if (args.length != 2) {
             message.channel.send([
                 'UsageError: kill <@> <seconds>',
@@ -31,18 +31,18 @@ module.exports = {
             message.channel.send(`I'm already killing ${args[0]}, give me time to prepare...`);
             throw new UsageError('User already specified. User must be revived.');
         }
-        logger.info(format('kill', 'kill.js - Argument validated.'));
+        logger.debug(format('kill', 'kill.js - Argument validated.'));
 
         // finds user to kill and sets up reiterating interval
-        logger.info(format('kill', 'kill.js - Initiating...'));
+        logger.debug(format('kill', 'kill.js - Initiating...'));
         await message.channel.send(`Mr. Zurkon is here to kill: ${args[0]} :dagger:`);
         const guildMember = await message.mentions.members.first().fetch();
         if (`<@!${guildMember.user.id}>` != args[0]) {
             throw new ExecutionError('Fetching guild member does not match user mention');
         }
-        logger.info(format('kill', 'kill.js - Verified mentioned user'));
+        logger.debug(format('kill', 'kill.js - Verified mentioned user'));
         logger.debug(format('kill.js', `Mentioned User Id: ${guildMember.user.id}`));
-        logger.info(format('kill', 'kill.js - Setting interval'));
+        logger.debug(format('kill', 'kill.js - Setting interval'));
         const interval = client.setInterval(
             client.intervals.get('Kill Interval').execute,
             1000 * args[1], // time

@@ -13,7 +13,7 @@ module.exports = {
         const gifToken = process.env.GIF_TOKEN;
         const GphApiClient = require('giphy-js-sdk-core');
         const gifClient = GphApiClient(gifToken);
-        logger.info(format('gif', 'Created Giphy Client'));
+        logger.debug(format('gif', 'Created Giphy Client'));
 
 
         if (args.length == 0) {
@@ -29,12 +29,12 @@ module.exports = {
             throw new ExecutionError('Giphy client return no results');
         }
         const randomIndex = Math.floor(Math.random() * response.data.length);
-        logger.info(format('gif', 'Sending image to channel...'));
+        logger.debug(format('gif', 'Sending image to channel...'));
         logger.debug(format('gif', response.data[randomIndex].images.fixed_height.url));
         message.channel.send('Here is a gif! Have fun!', {
             files: [response.data[randomIndex].images.fixed_height.url],
         });
-        logger.info('Image retrieved from API and sent to channel.');
+        logger.debug('Image retrieved from API and sent to channel.');
 
     },
 };

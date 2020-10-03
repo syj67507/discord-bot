@@ -1,4 +1,4 @@
-const { logger, format } = require("../logger");
+const { logger, format } = require('../logger');
 
 module.exports = {
     name: 'Kill Interval',
@@ -14,7 +14,7 @@ module.exports = {
             })
             .then((kickedGM) => {
                 message.channel.send(`${memberId} has been killed!`);
-                logger.info(format('kill', `kill_interval.js - Kicked user ${memberId}`));
+                logger.debug(format('kill', `kill_interval.js - Kicked user ${memberId}`));
             })
             .catch((error) => {
                 // Can't kill due to permissions
@@ -27,8 +27,8 @@ module.exports = {
                     client.activeIntervals.delete(memberId);
                     client.clearInterval(interval);
                     logger.debug(format(
-                        'kill', 
-                        `kill_interval.js - Removed - activeIntervals: ${client.activeIntervals}`
+                        'kill',
+                        `kill_interval.js - Removed - activeIntervals: ${client.activeIntervals}`,
                     ));
                 }
             });
