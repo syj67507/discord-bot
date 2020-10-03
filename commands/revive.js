@@ -1,10 +1,14 @@
 const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
+const { logger, format } = require('../logger');
 
 module.exports = {
     name: 'revive',
     description: 'Ay! Cammm onnn dooooood... back in the game!!',
     async execute(message, args) {
+
+        // Validating arguments
+        logger.info(format('revive', 'revive.js - Validating arguments'));
         if (args.length != 1) {
             console.log('UsageError: revive expects exactly 1 argument.');
             throw new UsageError('User mention not specified');
@@ -14,12 +18,14 @@ module.exports = {
             message.channel.send('Can\'t revive a member who isn\'t being killed.');
             throw new ExecutionError('User not being killed.');
         }
+        logger.info(format('revive', 'revive.js - Arguments validated'));
 
-        console.log('Reviving, removing from intervals...');
+        logger.info(format('revive', 'revive.js - Reviving, removing from intervals...'));
         const interval = client.activeIntervals.get(args[0]);
+        logger.debug(format('revive', `revive.js - interval: ${interval}`));
         client.activeIntervals.delete(args[0]);
         client.clearInterval(interval);
-        console.log('Removed interval.');
-        console.log(client.activeIntervals);
+        logger.info(format('revive', 'revive.js - Removed interval.'));
+        logger.debug(format('revive', `revive.js - client.activeIntervals: ${client.activeIntervals}`));
     },
 };
