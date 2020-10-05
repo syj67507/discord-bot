@@ -35,7 +35,7 @@ module.exports = {
 
         // finds user to kill and sets up reiterating interval
         logger.debug(format('kill', 'kill.js - Initiating...'));
-        await message.channel.send(`Mr. Zurkon is here to kill: ${args[0]} :dagger:`);
+        await message.channel.send(`Imran Rahman is coming to kill you dood... ${args[0]} :dagger:`);
         const guildMember = await message.mentions.members.first().fetch();
         if (`<@!${guildMember.user.id}>` != args[0]) {
             throw new ExecutionError('Fetching guild member does not match user mention');
