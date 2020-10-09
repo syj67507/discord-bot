@@ -2,7 +2,11 @@ const Discord = require('discord.js');
 
 module.exports = {
     name: 'help',
-    description: 'Need more intel...',
+    description: 'Provides a description for each command and how to use them',
+    usage: `
+    ${process.env.PREFIX}help
+    ${process.env.PREFIX}help <command>...
+    `,
     async execute(message, args) {
 
         // Setting up embed message to be sent
@@ -18,17 +22,21 @@ module.exports = {
 
         // Add fields to embedded
         let description;
+        let usage;
         for (const command of commands) {
             if (message.client.commands.has(command)) {
                 description = message.client.commands.get(command).description;
+                usage = message.client.commands.get(command).usage;
             }
             else {
                 description = 'Does not exist';
+                usage = '';
             }
             const fieldTitle = `${process.env.PREFIX}${command}`;
             const fieldValue = description;
             result.addField(fieldTitle, fieldValue);
         }
+        result.addField(this.name, this.usage);
 
         message.channel.send(result);
 
