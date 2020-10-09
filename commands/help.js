@@ -12,7 +12,7 @@ module.exports = {
 
         // Setting up embed message to be sent
         const result = new Discord.MessageEmbed()
-            .setTitle('Help!')
+            .setTitle('Help!!')
             .setDescription('Here is a description of the commands and how to use them');
 
         // Get the commands to help
