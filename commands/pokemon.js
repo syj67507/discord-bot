@@ -1,9 +1,10 @@
 module.exports = {
     name: 'pokemon',
     description: 'Pokemon Trivia Game!',
-    usage: `
-    ${process.env.PREFIX}pokemon
-    `,
+    usage:
+        `
+        ${process.env.PREFIX}pokemon
+        `,
     async execute(message, args) {
         message.channel.send('Currently under maintenance, sorry...');
         return;

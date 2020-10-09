@@ -4,9 +4,10 @@ const format = require('../logger.js').format;
 module.exports = {
     name: 'joke',
     description: 'Sends a dad joke!',
-    usage: `
-    ${process.env.PREFIX}joke
-    `,
+    usage:
+        `
+        ${process.env.PREFIX}joke
+        `,
     async execute(message, args) {
 
         logger.debug(format('joke', 'Making a request...'));

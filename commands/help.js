@@ -3,10 +3,11 @@ const Discord = require('discord.js');
 module.exports = {
     name: 'help',
     description: 'Provides a description for each command and how to use them',
-    usage: `
-    ${process.env.PREFIX}help
-    ${process.env.PREFIX}help <command>...
-    `,
+    usage:
+        `
+        ${process.env.PREFIX}help
+        ${process.env.PREFIX}help <command>...
+        `,
     async execute(message, args) {
 
         // Setting up embed message to be sent
@@ -33,10 +34,9 @@ module.exports = {
                 usage = '';
             }
             const fieldTitle = `${process.env.PREFIX}${command}`;
-            const fieldValue = `${description} ${usage}`;
+            const fieldValue = `${description}${usage}`;
             result.addField(fieldTitle, fieldValue);
         }
-
 
         message.channel.send(result);
 

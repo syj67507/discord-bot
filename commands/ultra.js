@@ -4,10 +4,11 @@ const { logger, format } = require('../logger.js');
 module.exports = {
     name: 'ultra',
     description: 'Plays the clip...',
-    usage: `
-    Must be in a voice channel to use the command
-    ${process.env.PREFIX}ultra
-    `,
+    usage:
+        `
+        Must be in a voice channel to use the command
+        ${process.env.PREFIX}ultra
+        `,
     async execute(message, args) {
 
         const ytdl = require('ytdl-core');
