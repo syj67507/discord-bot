@@ -33,10 +33,10 @@ module.exports = {
                 usage = '';
             }
             const fieldTitle = `${process.env.PREFIX}${command}`;
-            const fieldValue = description;
+            const fieldValue = `${description} ${usage}`;
             result.addField(fieldTitle, fieldValue);
         }
-        result.addField(this.name, this.usage);
+
 
         message.channel.send(result);
 

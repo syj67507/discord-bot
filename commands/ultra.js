@@ -5,7 +5,7 @@ module.exports = {
     name: 'ultra',
     description: 'Plays the clip...',
     usage: `
-    Join a voice channel first
+    Must be in a voice channel to use the command
     ${process.env.PREFIX}ultra
     `,
     async execute(message, args) {
