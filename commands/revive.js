@@ -4,7 +4,11 @@ const { logger, format } = require('../logger');
 
 module.exports = {
     name: 'revive',
-    description: 'Ay! Cammm onnn dooooood... back in the game!!',
+    description: 'Reverses the kill command on the specified user',
+    usage:
+        `
+        ${process.env.PREFIX}revive <@userMention>
+        `,
     async execute(message, args) {
 
         // Validating arguments

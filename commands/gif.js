@@ -5,7 +5,11 @@ const UsageError = require('../custom_errors/usage_error');
 
 module.exports = {
     name: 'gif',
-    description: 'We love GIFS!',
+    description: 'Gives back a gif based on your search term',
+    usage:
+        `
+        ${process.env.PREFIX}gif <search term>
+        `,
     async execute(message, args) {
 
         // Set up Giphy client

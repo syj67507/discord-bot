@@ -4,7 +4,11 @@ const { logger, format } = require('../logger');
 
 module.exports = {
     name: 'kill',
-    description: 'Ay! Cammm onnn dooooood...',
+    description: 'Kicks a member from voice chat every set number of seconds',
+    usage:
+        `
+        ${process.env.PREFIX}kill <@userMention> <seconds>
+        `,
     async execute(message, args) {
 
         // used for interval management
