@@ -7,3 +7,4 @@ class Message {
         this.channel = new Channel();
     }
 }
+module.exports = Message;
