@@ -31,6 +31,15 @@ function validate(message, args) {
 
 }
 
+// Sets the interval to kill for each member
+function initIntervals(mentions, activeIntervals) {
+    for (const mention of mentions.keys()) {
+        const guildMember = mentions.get(mention);
+        console.log('Setting interval: ', guildMember.user.username);
+        activeIntervals.set(mention, 'a');
+    }
+}
+
 module.exports = {
     name: 'kill',
     description: 'Kicks a member from voice chat every set number of seconds',
@@ -40,8 +49,8 @@ module.exports = {
         `,
     async execute(message, args) {
         const v = validate(message, args);
-        console.log(`time: ${v.time}`);
-        console.log(`mentions: ${v.mentions}`);
+        initIntervals(v.mentions, message.client.activeIntervals);
+        console.log(message.client.activeIntervals, v.time);
         // // used for interval management
         // const client = message.client;
 
