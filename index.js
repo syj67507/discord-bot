@@ -26,10 +26,9 @@ client.activeIntervals = new Discord.Collection();
 
 // Logging in bot...
 client.once('ready', () => {
-    logger.info(format('client', 'Logging in...'));
+    logger.info(format('client', 'Log in successful'));
 });
 client.login(token);
-logger.info(format('client', 'Log in successful'));
 
 // On a message sent...
 client.on('message', message => {
