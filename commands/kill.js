@@ -25,19 +25,36 @@ function validate(message, args) {
     }
 
     return {
-        time: time,
+        time: time * 1000,
         mentions: message.mentions.members,
     };
 
 }
 
 // Sets the interval to kill for each member
-function initIntervals(mentions, activeIntervals) {
+function initIntervals(mentions, time, client) {
     for (const mention of mentions.keys()) {
         const guildMember = mentions.get(mention);
         console.log('Setting interval: ', guildMember.user.username);
-        activeIntervals.set(mention, 'a');
+        const interval = client.setInterval(kick, time, guildMember);
+        client.activeIntervals.set(mention, interval);
     }
+}
+
+// Kicks the given user/guild member from voice chat
+// Warning: will not work on users/guild members with higher permission
+function kick(guildMember) {
+    console.log('inside kick()');
+    guildMember.fetch()
+        .then((res) => {
+            return res.voice.setChannel(null);
+        })
+        .then((res) => {
+            console.log('kicked');
+        })
+        .catch((err) => {
+            console.log(err);
+        });
 }
 
 module.exports = {
@@ -48,54 +65,9 @@ module.exports = {
         ${process.env.PREFIX}kill <@userMention> <seconds>
         `,
     async execute(message, args) {
+
         const v = validate(message, args);
-        initIntervals(v.mentions, message.client.activeIntervals);
-        console.log(message.client.activeIntervals, v.time);
-        // // used for interval management
-        // const client = message.client;
-
-        // // validates user to be killed
-        // logger.debug(format('kill', 'kill.js - Validating arguments'));
-        // if (args.length != 2) {
-        //     message.channel.send([
-        //         'UsageError: kill <@> <seconds>',
-        //         '60 seconds is the lowest you can set for <seconds>',
-        //     ]);
-        //     throw new UsageError('<seconds> argument not defined');
-        // }
-        // if (args[1] < 60) {
-        //     logger.warn(format('kill', 'kill.js - Amount of time is too small, setting to default'));
-        //     args[1] = 60;
-        // }
-        // if (message.mentions.members.size == 0) {
-        //     message.channel.send(`I can't find ${args[0]}, maybe he's already dead...`);
-        //     throw new ExecutionError('Unable to find the user within the guild');
-        // }
-        // if (client.activeIntervals.has(args[0])) {
-        //     message.channel.send(`I'm already killing ${args[0]}, give me time to prepare...`);
-        //     throw new UsageError('User already specified. User must be revived.');
-        // }
-        // logger.debug(format('kill', 'kill.js - Argument validated.'));
-
-        // // finds user to kill and sets up reiterating interval
-        // logger.debug(format('kill', 'kill.js - Initiating...'));
-        // await message.channel.send(`Imran Rahman is coming to kill you dood... ${args[0]} :dagger:`);
-        // const guildMember = await message.mentions.members.first().fetch();
-        // if (`<@!${guildMember.user.id}>` != args[0]) {
-        //     throw new ExecutionError('Fetching guild member does not match user mention');
-        // }
-        // logger.debug(format('kill', 'kill.js - Verified mentioned user'));
-        // logger.debug(format('kill.js', `Mentioned User Id: ${guildMember.user.id}`));
-        // logger.debug(format('kill', 'kill.js - Setting interval'));
-        // const interval = client.setInterval(
-        //     client.intervals.get('Kill Interval').execute,
-        //     1000 * args[1], // time
-        //     message,
-        //     args[0], // mention used for error handling
-        //     client,
-        // );
-        // client.activeIntervals.set(args[0], interval);
-        // logger.debug(format('kill.js', `Added to intervals: ${client.activeIntervals}`));
+        initIntervals(v.mentions, v.time, message.client);
 
     },
 };
