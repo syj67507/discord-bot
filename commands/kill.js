@@ -103,7 +103,17 @@ function kick(guildMember, message) {
             }
         })
         .catch((err) => {
-            logger.error(format('kill', err));
+            logger.error(format('killerr', err));
+            logger.debug(format('kill', `Removing interval on ${guildMember.user.id}`));
+            message.channel.send(
+                `I'm having trouble killing <@${guildMember.user.id}>, removing him from the list`
+            );
+
+            const interval = message.client.activeIntervals.get(guildMember.user.id);
+            message.client.clearInterval(interval);
+            message.client.activeIntervals.delete(guildMember.user.id);
+
+            logger.debug(format('kill', `Active Intervals: ${message.client.activeIntervals.keyArray()}`));
         });
 
 }
