@@ -1,61 +1,5 @@
-const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
 const { logger, format } = require('../logger');
-
-// Validates the incoming arguments
-// Returns a collection of the guildMembers
-function validate(message, args) {
-
-    let time = 10;
-
-    // check if args are not empty
-    if (args.length < 1) {
-        throw new UsageError('Did not mention anybody');
-    }
-
-    // pull the last argument and check if its a number and set the time
-    const userTime = parseInt(args[args.length - 1]);
-    if (!isNaN((userTime)) && (time < userTime)) {
-        time = userTime;
-    }
-
-    // check if there are user mentioned
-    if (message.mentions.members.size < 0) {
-        throw new UsageError('Did not mention anybody');
-    }
-
-    return {
-        time: time * 1000,
-        mentions: message.mentions.members,
-    };
-
-}
-
-// Sets the interval to kill for each member
-function initIntervals(mentions, time, client) {
-    for (const mention of mentions.keys()) {
-        const guildMember = mentions.get(mention);
-        console.log('Setting interval: ', guildMember.user.username);
-        const interval = client.setInterval(kick, time, guildMember);
-        client.activeIntervals.set(mention, interval);
-    }
-}
-
-// Kicks the given user/guild member from voice chat
-// Warning: will not work on users/guild members with higher permission
-function kick(guildMember) {
-    console.log('inside kick()');
-    guildMember.fetch()
-        .then((res) => {
-            return res.voice.setChannel(null);
-        })
-        .then((res) => {
-            console.log('kicked');
-        })
-        .catch((err) => {
-            console.log(err);
-        });
-}
 
 module.exports = {
     name: 'kill',
@@ -66,8 +10,76 @@ module.exports = {
         `,
     async execute(message, args) {
 
-        const v = validate(message, args);
-        initIntervals(v.mentions, v.time, message.client);
+        const input = processInput(message, args);
+        initIntervals(message, input.mentions, input.time);
 
     },
 };
+
+/**
+ * Processes the incoming message that initiated the command.
+ *
+ * @param {Discord.Message} message The incoming message.
+ * @param {Array}           args    The arguments of the command.
+ *
+ * @returns {number}                The amount of time in milliseconds.
+ * @returns {Discord.Collection}    Members mentioned in the incoming message.
+ */
+function processInput(message, args) {
+
+    // There must be at least one argument
+    if (args.length < 1) {
+        throw new UsageError('Did not mention anybody');
+    }
+
+    // Mentions must be specified
+    if (message.mentions.members.size < 0) {
+        throw new UsageError('Did not mention anybody');
+    }
+
+    // Pulling time if specified
+    let time = 10;
+    const userTime = parseInt(args[args.length - 1]);
+    if (!isNaN((userTime)) && (time < userTime)) {
+        time = userTime;
+    }
+
+    return {
+        time: time * 1000,
+        mentions: message.mentions.members,
+    };
+
+}
+
+/**
+ * Sets the interval to kill for each member on the client.
+ *
+ * @param {Discord.Message}     message     The incoming message.
+ * @param {Discord.Collection}  mentions    The user mentions to kill.
+ * @param {number}              time        The time in millseconds for how often to kill.
+ */
+function initIntervals(message, mentions, time) {
+    for (const mention of mentions.keys()) {
+        const guildMember = mentions.get(mention);
+        const interval = message.client.setInterval(kick, time, guildMember);
+        message.client.activeIntervals.set(mention, interval);
+    }
+}
+
+/**
+ * Kicks a user from voice chat.
+ *
+ * @param {Discord.GuildMember} guildMember The user/guild member to kick.
+ */
+function kick(guildMember) {
+    guildMember.fetch()
+        .then((res) => {
+            return res.voice.setChannel(null);
+        })
+        .then(() => {
+            console.log('kicked');
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+}
