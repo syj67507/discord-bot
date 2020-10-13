@@ -6,12 +6,16 @@ module.exports = {
     description: 'Kicks a member from voice chat every set number of seconds',
     usage:
         `
-        ${process.env.PREFIX}kill <@userMention> <seconds>
+        ${process.env.PREFIX}kill <@user> <seconds>
         `,
     async execute(message, args) {
 
         const input = processInput(message, args);
+        logger.debug(format('kill', `Time: ${input.time}`));
+        logger.debug(format('kill', `Mentions: ${input.mentions}`));
+
         initIntervals(message, input.mentions, input.time);
+        logger.debug(format('kill', `Active Intervals: ${message.client.activeIntervals}`));
 
     },
 };
@@ -33,15 +37,18 @@ function processInput(message, args) {
     }
 
     // Mentions must be specified
-    if (message.mentions.members.size < 0) {
+    if (message.mentions.members.size < 1) {
         throw new UsageError('Did not mention anybody');
     }
 
     // Pulling time if specified
     let time = 10;
     const userTime = parseInt(args[args.length - 1]);
-    if (!isNaN((userTime)) && (time < userTime)) {
+    if (!isNaN((userTime)) && (time <= userTime)) {
         time = userTime;
+    }
+    else {
+        logger.debug(format('kill', `Specified time not specified/invalid, defaulting to ${time}`));
     }
 
     return {
@@ -60,9 +67,13 @@ function processInput(message, args) {
  */
 function initIntervals(message, mentions, time) {
     for (const mention of mentions.keys()) {
+
         const guildMember = mentions.get(mention);
+        logger.debug(format('kill', `GuildMember ID: ${guildMember.user.id}`));
+
         const interval = message.client.setInterval(kick, time, guildMember);
         message.client.activeIntervals.set(mention, interval);
+
     }
 }
 
@@ -72,14 +83,21 @@ function initIntervals(message, mentions, time) {
  * @param {Discord.GuildMember} guildMember The user/guild member to kick.
  */
 function kick(guildMember) {
+
+    let previousChannel;
+
     guildMember.fetch()
         .then((res) => {
+            previousChannel = res.voice.channel;
             return res.voice.setChannel(null);
         })
-        .then(() => {
-            console.log('kicked');
+        .then((res) => {
+            if (previousChannel !== null) {
+                logger.debug(format('kill', `Guild member id kicked: ${res.user.id}`));
+            }
         })
         .catch((err) => {
-            console.log(err);
+            logger.error(format('kill', err));
         });
+
 }

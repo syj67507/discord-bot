@@ -16,12 +16,6 @@ for (const file of commandFiles) {
     client.commands.set(command.name, command);
 }
 
-const intervalFiles = fs.readdirSync('./interval').filter(file => file.endsWith('.js'));
-client.intervals = new Discord.Collection();
-for (const file of intervalFiles) {
-    const interval = require(`./interval/${file}`);
-    client.intervals.set(interval.name, interval);
-}
 client.activeIntervals = new Discord.Collection();
 
 // Logging in bot...
