@@ -7,12 +7,16 @@ module.exports = {
     usage:
         `
         ${process.env.PREFIX}kill <@user> <seconds>
+        Note: <seconds> cannot be less than 10
         `,
     async execute(message, args) {
 
         const input = processInput(message, args);
         logger.debug(format('kill', `Time: ${input.time}`));
         logger.debug(format('kill', `Mentions: ${input.mentions}`));
+        message.channel.send(
+            'Hunting...'
+        );
 
         initIntervals(message, input.mentions, input.time);
         logger.debug(format('kill', `Active Intervals: ${message.client.activeIntervals}`));
@@ -61,9 +65,9 @@ function processInput(message, args) {
 /**
  * Sets the interval to kill for each member on the client.
  *
- * @param {Discord.Message}     message     The incoming message.
- * @param {Discord.Collection}  mentions    The user mentions to kill.
- * @param {number}              time        The time in millseconds for how often to kill.
+ * @param   {Discord.Message}     message     The incoming message.
+ * @param   {Discord.Collection}  mentions    The user mentions to kill.
+ * @param   {number}              time        The time in millseconds for how often to kill.
  */
 function initIntervals(message, mentions, time) {
     for (const mention of mentions.keys()) {
@@ -71,8 +75,8 @@ function initIntervals(message, mentions, time) {
         const guildMember = mentions.get(mention);
         logger.debug(format('kill', `GuildMember ID: ${guildMember.user.id}`));
 
-        const interval = message.client.setInterval(kick, time, guildMember);
-        message.client.activeIntervals.set(mention, interval);
+        const interval = message.client.setInterval(kick, time, guildMember, message);
+        message.client.activeIntervals.set(guildMember.user.id, interval);
 
     }
 }
@@ -81,8 +85,9 @@ function initIntervals(message, mentions, time) {
  * Kicks a user from voice chat.
  *
  * @param {Discord.GuildMember} guildMember The user/guild member to kick.
+ * @param {Discord.Message}     message     The incoming message.
  */
-function kick(guildMember) {
+function kick(guildMember, message) {
 
     let previousChannel;
 
@@ -93,7 +98,8 @@ function kick(guildMember) {
         })
         .then((res) => {
             if (previousChannel !== null) {
-                logger.debug(format('kill', `Guild member id kicked: ${res.user.id}`));
+                logger.debug(format('kill', `GuildMember ID kicked: ${res.user.id}`));
+                message.channel.send('I have brain damage.');
             }
         })
         .catch((err) => {
