@@ -75,8 +75,13 @@ function initIntervals(message, mentions, time) {
         const guildMember = mentions.get(mention);
         logger.debug(format('kill', `GuildMember ID: ${guildMember.user.id}`));
 
-        const interval = message.client.setInterval(kick, time, guildMember, message);
-        message.client.activeIntervals.set(guildMember.user.id, interval);
+        if (message.client.activeIntervals.has(guildMember.user.id)) {
+            message.channel.send(`<@${guildMember.user.id}> is already on the list.`);
+        }
+        else {
+            const interval = message.client.setInterval(kick, time, guildMember, message);
+            message.client.activeIntervals.set(guildMember.user.id, interval);
+        }
 
     }
 }
