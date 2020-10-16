@@ -1,119 +1,25 @@
-const Discord = require('discord.js');
+const { MockDiscord, MockMessage } = require('./mocks/MockDiscord.js');
+const kill = require('../commands/kill.js').execute;
 const UsageError = require('../custom_errors/usage_error.js');
 
-// a counter so that all the ids are unique
-let count = 0;
-
-class Guild extends Discord.Guild {
-    constructor(client) {
-        super(client, {
-            // you don't need all of these but I just put them in to show you all the properties that Discord.js uses
-            id: count++,
-            name: '',
-            icon: null,
-            splash: null,
-            owner_id: '',
-            region: '',
-            afk_channel_id: null,
-            afk_timeout: 0,
-            verification_level: 0,
-            default_message_notifications: 0,
-            explicit_content_filter: 0,
-            roles: [],
-            emojis: [],
-            features: [],
-            mfa_level: 0,
-            application_id: null,
-            system_channel_id: null,
-        });
-        this.client.guilds.cache.set(this.id, this);
-    }
-}
-
-class TextChannel extends Discord.TextChannel {
-    constructor(guild) {
-        super(guild, {
-            id: count++,
-            type: 0,
-        });
-        this.client.channels.cache.set(this.id, this);
-    }
-
-    // you can modify this for other things like attachments and embeds if you need
-    send(content) {
-        return this.client.actions.MessageCreate.handle({
-            id: count++,
-            type: 0,
-            channel_id: this.id,
-            content,
-            author: {
-                id: 'bot id',
-                username: 'bot username',
-                discriminator: '1234',
-                bot: true,
-            },
-            pinned: false,
-            tts: false,
-            nonce: '',
-            embeds: [],
-            attachments: [],
-            timestamp: Date.now(),
-            edited_timestamp: null,
-            mentions: [],
-            mention_roles: [],
-            mention_everyone: false,
-        });
-    }
-}
-
-class Message extends Discord.Message {
-    constructor(content, channel, author) {
-        super(
-            channel.client,
-            {
-                id: count++,
-                type: 0,
-                channel_id: channel.id,
-                content,
-                author,
-                pinned: false,
-                tts: false,
-                nonce: '',
-                embeds: [],
-                attachments: [],
-                timestamp: Date.now(),
-                edited_timestamp: null,
-                mentions: [],
-                mention_roles: [],
-                mention_everyone: false,
-            },
-            channel
-        );
-    }
-}
-
-const kill = require('../commands/kill.js').execute;
-
-// the user that executes the commands
-const user = { id: count++, username: 'username', discriminator: '1234' };
-const client = new Discord.Client();
-const guild = new Guild(client);
-const channel = new TextChannel(guild);
+// setting up the Discord mock
+const mock = new MockDiscord();
+const user = { id: 9, username: 'username', discriminator: '1234' };
 
 afterAll(() => {
-    client.destroy();
+    mock.client.destroy();
 });
 
 test('Testing command call with no arguments', () => {
     const msg = `${process.env.PREFIX}kill`;
-    expect(kill(new Message(msg, channel, user), [])).rejects.toThrow(
+    expect(kill(new MockMessage(msg, mock.channel, user), [])).rejects.toThrow(
         UsageError
     );
 });
 
 test('Testing command call with no mentions', () => {
     const msg = `${process.env.PREFIX}kill 10`;
-    expect(kill(new Message(msg, channel, user), [])).rejects.toThrow(
+    expect(kill(new MockMessage(msg, mock.channel, user), [])).rejects.toThrow(
         UsageError
     );
 });
