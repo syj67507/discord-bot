@@ -3,6 +3,19 @@ const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
 const { logger, format } = require('../logger');
 
+module.exports = {
+    name: 'revive',
+    description: 'Reverses the kill command on the specified user',
+    usage: `
+        ${process.env.PREFIX}revive <@userMention>
+        `,
+    async execute(message, args) {
+        message.channel.send('revive');
+        const members = processInput(message, args);
+        destroyIntervals(message, members);
+    },
+};
+
 /**
  * Processes the incoming message that initiated the command.
  * If there are mentions, it will return those mentions. If not,
@@ -47,23 +60,9 @@ function destroyIntervals(message, members) {
             const interval = message.client.activeIntervals.get(memberId);
             message.client.clearInterval(interval);
             message.client.activeIntervals.delete(memberId);
-        }
-        // Notify if the member is not being killed
-        else {
+        } else {
+            // Notify if the member is not being killed
             message.channel.send(`<@${memberId}> is not on the hit list.`);
         }
     }
 }
-
-module.exports = {
-    name: 'revive',
-    description: 'Reverses the kill command on the specified user',
-    usage: `
-        ${process.env.PREFIX}revive <@userMention>
-        `,
-    async execute(message, args) {
-        message.channel.send('revive');
-        const members = processInput(message, args);
-        destroyIntervals(message, members);
-    },
-};
