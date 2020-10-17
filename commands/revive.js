@@ -8,8 +8,21 @@ module.exports = {
         ${process.env.PREFIX}revive <@userMention>
         `,
     async execute(message, args) {
+        logger.debug(
+            format(
+                'revive',
+                `Active Intervals: ${message.client.activeIntervals}`
+            )
+        );
         const members = processInput(message, args);
+        logger.debug(format('revive', `Members: ${members}`));
         destroyIntervals(message, members);
+        logger.debug(
+            format(
+                'revive',
+                `Active Intervals: ${message.client.activeIntervals}`
+            )
+        );
     },
 };
 
@@ -31,6 +44,7 @@ function processInput(message, args) {
 
     // Return 'all' of the ids
     if (args.length === 1 && args[0] === 'all') {
+        logger.debug(format('revive', 'Retrieving all members...'));
         return message.client.activeIntervals.keyArray();
     }
 
@@ -39,6 +53,7 @@ function processInput(message, args) {
         throw new UsageError('Did not mention anybody');
     }
 
+    logger.debug(format('revive', 'Retrieving mentioned members...'));
     return message.mentions.members.keyArray();
 }
 
@@ -57,9 +72,11 @@ function destroyIntervals(message, members) {
             message.client.clearInterval(interval);
             message.client.activeIntervals.delete(memberId);
             message.channel.send(`<@${memberId}> revived.`);
+            logger.debug(format('revive', `Revived: ${memberId}`));
         } else {
             // Notify if the member is not being killed
             message.channel.send(`<@${memberId}> is not on the hit list.`);
+            logger.debug(format('revive', `Revive failed: ${memberId}`));
         }
     }
 }
