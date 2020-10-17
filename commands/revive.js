@@ -1,34 +1,83 @@
-const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
 const { logger, format } = require('../logger');
 
 module.exports = {
     name: 'revive',
     description: 'Reverses the kill command on the specified user',
-    usage:
-        `
+    usage: `
         ${process.env.PREFIX}revive <@userMention>
+        ${process.env.PREFIX}revive all
         `,
     async execute(message, args) {
-
-        // Validating arguments
-        logger.debug(format('revive', 'revive.js - Validating arguments'));
-        if (args.length != 1) {
-            throw new UsageError('User mention not specified');
-        }
-        const client = message.client;
-        if (!client.activeIntervals.has(args[0])) {
-            message.channel.send('Can\'t revive a member who isn\'t being killed.');
-            throw new ExecutionError('User not being killed.');
-        }
-        logger.debug(format('revive', 'revive.js - Arguments validated'));
-
-        logger.debug(format('revive', 'revive.js - Reviving, removing from intervals...'));
-        const interval = client.activeIntervals.get(args[0]);
-        logger.debug(format('revive', `revive.js - interval: ${interval}`));
-        client.activeIntervals.delete(args[0]);
-        client.clearInterval(interval);
-        logger.debug(format('revive', 'revive.js - Removed interval.'));
-        logger.debug(format('revive', `revive.js - client.activeIntervals: ${client.activeIntervals}`));
+        logger.debug(
+            format(
+                'revive',
+                `Active Intervals: ${message.client.activeIntervals}`
+            )
+        );
+        const members = processInput(message, args);
+        logger.debug(format('revive', `Members: ${members}`));
+        destroyIntervals(message, members);
+        logger.debug(
+            format(
+                'revive',
+                `Active Intervals: ${message.client.activeIntervals}`
+            )
+        );
     },
 };
+
+/**
+ * Processes the incoming message that initiated the command.
+ * If there are mentions, it will return those mentions. If not,
+ * it will return null.
+ *
+ * @param {Discord.Message} message The incoming message.
+ * @param {Array}           args    The arguments of the command.
+ *
+ * @returns {Discord.Collection}    The explicitly mentioned users, otherwise null
+ */
+function processInput(message, args) {
+    // There must be at least one argument
+    if (args.length < 1) {
+        throw new UsageError('Did not mention anybody');
+    }
+
+    // Return 'all' of the ids
+    if (args.length === 1 && args[0] === 'all') {
+        logger.debug(format('revive', 'Retrieving all members...'));
+        return message.client.activeIntervals.keyArray();
+    }
+
+    // Check for mentioned users
+    if (message.mentions.members.size < 1) {
+        throw new UsageError('Did not mention anybody');
+    }
+
+    logger.debug(format('revive', 'Retrieving mentioned members...'));
+    return message.mentions.members.keyArray();
+}
+
+/**
+ * Destroys the intervals that are set from the kill command for the given
+ * members.
+ *
+ * @param {Discord.Message} message Message that invoked this command.
+ * @param {Array}           members Array of the members to revive.
+ */
+function destroyIntervals(message, members) {
+    for (const memberId of members) {
+        // Clear the intervals for each provided member
+        if (message.client.activeIntervals.has(memberId)) {
+            const interval = message.client.activeIntervals.get(memberId);
+            message.client.clearInterval(interval);
+            message.client.activeIntervals.delete(memberId);
+            message.channel.send(`<@${memberId}> revived.`);
+            logger.debug(format('revive', `Revived: ${memberId}`));
+        } else {
+            // Notify if the member is not being killed
+            message.channel.send(`<@${memberId}> is not on the hit list.`);
+            logger.debug(format('revive', `Revive failed: ${memberId}`));
+        }
+    }
+}
