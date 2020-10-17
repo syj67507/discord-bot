@@ -6,6 +6,7 @@ module.exports = {
     description: 'Reverses the kill command on the specified user',
     usage: `
         ${process.env.PREFIX}revive <@userMention>
+        ${process.env.PREFIX}revive all
         `,
     async execute(message, args) {
         logger.debug(
