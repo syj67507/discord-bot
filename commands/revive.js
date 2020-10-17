@@ -1,5 +1,3 @@
-const { Collection } = require('discord.js');
-const ExecutionError = require('../custom_errors/execution_error');
 const UsageError = require('../custom_errors/usage_error');
 const { logger, format } = require('../logger');
 
@@ -10,7 +8,6 @@ module.exports = {
         ${process.env.PREFIX}revive <@userMention>
         `,
     async execute(message, args) {
-        message.channel.send('revive');
         const members = processInput(message, args);
         destroyIntervals(message, members);
     },
@@ -27,7 +24,6 @@ module.exports = {
  * @returns {Discord.Collection}    The explicitly mentioned users, otherwise null
  */
 function processInput(message, args) {
-    message.channel.send('processInput');
     // There must be at least one argument
     if (args.length < 1) {
         throw new UsageError('Did not mention anybody');
@@ -60,6 +56,7 @@ function destroyIntervals(message, members) {
             const interval = message.client.activeIntervals.get(memberId);
             message.client.clearInterval(interval);
             message.client.activeIntervals.delete(memberId);
+            message.channel.send(`<@${memberId}> revived.`);
         } else {
             // Notify if the member is not being killed
             message.channel.send(`<@${memberId}> is not on the hit list.`);
