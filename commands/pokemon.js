@@ -1,13 +1,19 @@
 const Pokedex = require("pokedex-promise-v2");
+const UsageError = require("../custom_errors/usage_error");
 const { logger, format } = require("../logger");
 
 module.exports = {
     name: "pokemon",
     description: "Pokemon Trivia Game!",
     usage: `
-        ${process.env.PREFIX}pokemon
+        ${process.env.PREFIX}pokemon type
         `,
     async execute(message, args) {
+        if (args[0] !== "type") {
+            message.channel.send("Check usage");
+            throw new UsageError("Did not specify type as an argument");
+        }
+
         logger.debug(format("pokemon", "Fetching random pokemon..."));
         const pkmnInfo = await fetchRandomPokemon();
 
