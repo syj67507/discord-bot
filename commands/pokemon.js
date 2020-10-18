@@ -18,7 +18,16 @@ module.exports = {
         logger.debug(format("pokemon", `Answer: ${answer}`));
 
         logger.debug(format("pokemon", "Awaiting user's guess..."));
-        const guess = await retrieveGuess(message);
+        // Retrieve guess
+        function filter(incMsg) {
+            return incMsg.author === message.author;
+        }
+        const answerTimeout = {
+            time: 30000,
+            max: 1,
+        };
+        let guess = await message.channel.awaitMessages(filter, answerTimeout);
+        guess = processGuess(guess);
         logger.debug(format("pokemon", `Guess: ${guess}`));
 
         logger.debug(format("pokemon", "Processing answer..."));
@@ -72,22 +81,13 @@ function makeTypeQuestion(pkmnInfo) {
 }
 
 /**
- * Retrieves the guess for the question that was asked.
+ * Processes the guess for the question that was asked.
  *
- * @param {Discord.Message} message The message that invoked this command.
+ * @param {Discord.Collection} guess The guess of the user.
  *
- * @returns {Array}                 An array that represents what the user guessed.
+ * @returns {Array}                  An array that represents what the user guessed.
  */
-async function retrieveGuess(message) {
-    // Await and process answer
-    function filter(incMsg) {
-        return incMsg.author === message.author;
-    }
-    const answerTimeout = {
-        time: 30000,
-        max: 1,
-    };
-    let guess = await message.channel.awaitMessages(filter, answerTimeout);
+function processGuess(guess) {
     if (guess.first() === undefined) {
         return null;
     }
