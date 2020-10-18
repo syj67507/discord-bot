@@ -44,6 +44,11 @@ module.exports = {
             message.channel.send(msg);
         }
     },
+    test: {
+        processGuess,
+        verifyAnswer,
+        fetchRandomPokemon,
+    },
 };
 
 /**
