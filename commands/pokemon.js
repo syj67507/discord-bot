@@ -1,120 +1,125 @@
+const Pokedex = require("pokedex-promise-v2");
+const UsageError = require("../custom_errors/usage_error");
+const { logger, format } = require("../logger");
+
 module.exports = {
-    name: 'pokemon',
-    description: 'Pokemon Trivia Game!',
-    usage:
-        `
-        ${process.env.PREFIX}pokemon
+    name: "pokemon",
+    description: "Pokemon Trivia Game!",
+    usage: `
+        ${process.env.PREFIX}pokemon type
         `,
     async execute(message, args) {
-        message.channel.send('Currently under maintenance, sorry...');
-        return;
-        const Pokedex = require('pokedex-promise-v2');
-        const pokeClient = new Pokedex();
-        // Returns an object representing the random pokemon
-        if (args.length == 1 && args[0] === 'type') {
-            pokeClient.getPokemonsList()
-                .then((res) => {
-                    // Get info for question
-                    let apiUrl = 'https://pokeapi.co';
-                    randomIndex = Math.floor(Math.random() * res.count);
-                    randomPokemon = res.results[randomIndex].name;
-                    pokeClient.getPokemonByName(randomPokemon, (res, err) => {
-                        pokemonName = res.name.substring(0,1).toUpperCase() + res.name.substring(1);
-                        pokemonPic = res.sprites.front_default;
-                        pokemonType = [];
-                        res.types.forEach((type) => {
-                            pokemonType.push(type.type.name);
-                        });
-
-                        // Ask the question
-                        let question = `What is ${pokemonName}'s typing?`;
-                        message.channel.send(question, {files: [pokemonPic]});
-                        // message.channel.send('Answer: ' + pokemonType);
-
-                        getAnswer();
-                        async function getAnswer() {
-                            try {
-                                // Get an answer
-                                let filter = m => m.content.startsWith('!answer');
-                                let answerTimeout = {
-                                    time: 30000,
-                                    max: 1,
-                                    errors: ['time']
-                                }
-                                let response = await message.channel.awaitMessages(filter, answerTimeout);
-                                let answer = response.first().content.split(' ');
-                                answer.shift();
-
-                                // Process the answer
-                                let correct = true;
-                                if (answer.length != pokemonType.length) {
-                                    correct = false;
-                                }
-                                for (const type of pokemonType) {
-                                    if (!answer.includes(type)) {
-                                        correct = false;
-                                    }
-                                }
-                                if (correct) {
-                                    message.channel.send('Congratulations! You got it right!');
-                                }
-                                else {
-                                    message.channel.send('Sorry, you didn\'t get it right :(\n' +
-                                                         'The correct answer is ' + pokemonType);
-                                }
-
-                            }
-                            catch (err) {
-                                message.channel.send('You didn\'t answer in time :slight_frown:');
-                                message.channel.send('The answer was ' + pokemonType);
-                            }
-                        }
-                    })
-                    .catch((err) => {
-                        message.channel.send('Sorry... there was an error trying to catch a pokemon question :(');
-                    });
-                })
-                .catch((err) => {
-                    message.channel.send('Sorry... there was an error trying to catch a pokemon question :(');
-                });
+        if (args[0] !== "type") {
+            message.channel.send("Check usage");
+            throw new UsageError("Did not specify type as an argument");
         }
-        else if (args.length == 1 && args[0] === 'gen') {
-            pokeClient.getGenerationsList()
-                .then((res) => {
-                    // Get info for question
-                    let numGen = res.count;
-                    let rIndex = Math.floor(Math.random() * numGen);
-                    let rGen = res.results[rIndex].name;
-                    pokeClient.getGenerationByName(rGen)
-                        .then((res) => {
-                            res = res.pokemon_species;
-                            rPkmn = res[Math.floor(Math.random() * res.length)];
-                            console.log(rPkmn, rGen);
 
-                            // Ask the question
-                            message.channel.send(`When generation was ${rPkmn.name} introduced?`);
+        logger.debug(format("pokemon", "Fetching random pokemon..."));
+        const pkmnInfo = await fetchRandomPokemon();
 
-                            getAnswer();
-                            async function getAnswer() {
-                                const filter = m => m.content.startsWith('!a');
-                                let answer = await message.channel.awaitMessages(filter, {
-                                    max: 4,
-                                    time: 60000,
-                                    errors: ['time']
-                                });
-                            }
+        logger.debug(format("pokemon", "Making question..."));
+        const { question, files, answer } = makeTypeQuestion(pkmnInfo, message);
+        message.channel.send(question, { files: files });
 
-                        })
-                        .catch((err) => {
-                            message.channel.send('Sorry... there was an error trying to get the pokemon generation list :(');
-                        });
-                })
-                .catch((err) => {
-                    message.channel.send('Sorry... there was an error trying to get a random Pokemon generation :(');
-                });
+        logger.debug(format("pokemon", `Answer: ${answer}`));
+
+        logger.debug(format("pokemon", "Awaiting user's guess..."));
+        // Retrieve guess
+        function filter(incMsg) {
+            return incMsg.author === message.author;
         }
-        else {
-            message.channel.send('You didn\'t give me a category :slight_frown:');
+        const answerTimeout = {
+            time: 30000,
+            max: 1,
+        };
+        let guess = await message.channel.awaitMessages(filter, answerTimeout);
+        guess = processGuess(guess);
+        logger.debug(format("pokemon", `Guess: ${guess}`));
+
+        logger.debug(format("pokemon", "Processing answer..."));
+        if (guess === null) {
+            message.reply("I didn't get an answer.");
+        } else {
+            const msg = verifyAnswer(guess, answer);
+            message.channel.send(msg);
+        }
+    },
+    test: {
+        processGuess,
+        verifyAnswer,
+        fetchRandomPokemon,
+    },
+};
+
+/**
+ * Fetches a random pokemon from the PokeAPI.
+ *
+ * @returns A JSON structure of the random Pokemon.
+ */
+async function fetchRandomPokemon() {
+    // Fetch a random pokemon
+    const pokeClient = new Pokedex();
+    const pkmnList = await pokeClient.getPokemonsList();
+    const rdx = Math.floor(Math.random() * pkmnList.count);
+    const pkmnName = pkmnList.results[rdx].name;
+    const pkmnInfo = await pokeClient.getPokemonByName(pkmnName);
+    return pkmnInfo;
+}
+
+/**
+ * Makes a question for the given Pokemon.
+ *
+ * @param {object}          pkmnInfo    The random Pokemon in JSON object form
+ * @param {Discord.Message} message     The message that invoked this command.
+ *
+ * @returns {Array}                     An array of types of the Pokemon
+ */
+function makeTypeQuestion(pkmnInfo) {
+    // Make the question and ask
+    let pkmnName = pkmnInfo.name;
+    pkmnName = pkmnName.substring(0, 1).toUpperCase() + pkmnName.substring(1);
+    const pkmnPic = pkmnInfo.sprites.front_default;
+    const pkmnType = [];
+    for (const type of pkmnInfo.types) {
+        pkmnType.push(type.type.name);
+    }
+    const question = `What is \`${pkmnName}'s\` typing?`;
+    return {
+        question: question,
+        files: [pkmnPic],
+        answer: pkmnType,
+    };
+}
+
+/**
+ * Processes the guess for the question that was asked.
+ *
+ * @param {Discord.Collection} guess The guess of the user.
+ *
+ * @returns {Array}                  An array that represents what the user guessed.
+ */
+function processGuess(guess) {
+    if (guess.first() === undefined) {
+        return null;
+    }
+    guess = guess.first().content.split(/[ ]+/);
+    return guess;
+}
+
+/**
+ * Checks the guess with the answer. Returns the appropriate string
+ * to send to the channel.
+ *
+ * @param {Array} guess     What the user guessed.
+ * @param {Array} answer    The correct answer to the question.
+ *
+ * @returns {string}        The message to notify if the user got it right.
+ */
+function verifyAnswer(guess, answer) {
+    if (guess.length == answer.length) {
+        if (JSON.stringify(guess.sort()) === JSON.stringify(answer.sort())) {
+            return "That's correct!";
         }
     }
+    return ["Sorry, that's incorrect.", `The correct answer is ${answer}`];
 }
