@@ -1,4 +1,5 @@
 const Pokedex = require("pokedex-promise-v2");
+const { logger, format } = require("../logger");
 
 module.exports = {
     name: "pokemon",
@@ -7,13 +8,20 @@ module.exports = {
         ${process.env.PREFIX}pokemon
         `,
     async execute(message, args) {
+        logger.debug(format("pokemon", "Fetching random pokemon..."));
         const pkmnInfo = await fetchRandomPokemon();
 
-        const answer = makeTypeQuestion(pkmnInfo, message);
-        console.log("Answer:", answer);
+        logger.debug(format("pokemon", "Making question..."));
+        const { question, files, answer } = makeTypeQuestion(pkmnInfo, message);
+        message.channel.send(question, { files: files });
 
+        logger.debug(format("pokemon", `Answer: ${answer}`));
+
+        logger.debug(format("pokemon", "Awaiting user's guess..."));
         const guess = await retrieveGuess(message);
-        console.log("Guess: ", guess);
+        logger.debug(format("pokemon", `Guess: ${guess}`));
+
+        logger.debug(format("pokemon", "Processing answer..."));
         if (guess === null) {
             message.reply("I didn't get an answer.");
         } else {
@@ -39,14 +47,14 @@ async function fetchRandomPokemon() {
 }
 
 /**
- * Makes a question for the given Pokemon and asks the user in the text channel.
+ * Makes a question for the given Pokemon.
  *
  * @param {object}          pkmnInfo    The random Pokemon in JSON object form
  * @param {Discord.Message} message     The message that invoked this command.
  *
  * @returns {Array}                     An array of types of the Pokemon
  */
-function makeTypeQuestion(pkmnInfo, message) {
+function makeTypeQuestion(pkmnInfo) {
     // Make the question and ask
     let pkmnName = pkmnInfo.name;
     pkmnName = pkmnName.substring(0, 1).toUpperCase() + pkmnName.substring(1);
@@ -55,10 +63,12 @@ function makeTypeQuestion(pkmnInfo, message) {
     for (const type of pkmnInfo.types) {
         pkmnType.push(type.type.name);
     }
-    // Ask the question
     const question = `What is \`${pkmnName}'s\` typing?`;
-    message.channel.send(question, { files: [pkmnPic] });
-    return pkmnType;
+    return {
+        question: question,
+        files: [pkmnPic],
+        answer: pkmnType,
+    };
 }
 
 /**
