@@ -2,3 +2,4 @@ config.json
 node_modules
 media
 .env
+package-lock.json
