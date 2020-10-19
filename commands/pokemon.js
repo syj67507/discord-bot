@@ -1,6 +1,7 @@
 const Pokedex = require("pokedex-promise-v2");
 const UsageError = require("../custom/UsageError");
-const { logger, format } = require("../logger");
+const log = require("../custom/logger").logger;
+const f = require("../custom/logger").format;
 
 module.exports = {
     name: "pokemon",
@@ -14,16 +15,16 @@ module.exports = {
             throw new UsageError("Did not specify type as an argument");
         }
 
-        logger.debug(format("pokemon", "Fetching random pokemon..."));
+        log.debug(f("pokemon", "Fetching random pokemon..."));
         const pkmnInfo = await fetchRandomPokemon();
 
-        logger.debug(format("pokemon", "Making question..."));
+        log.debug(f("pokemon", "Making question..."));
         const { question, files, answer } = makeTypeQuestion(pkmnInfo, message);
         message.channel.send(question, { files: files });
 
-        logger.debug(format("pokemon", `Answer: ${answer}`));
+        log.debug(f("pokemon", `Answer: ${answer}`));
 
-        logger.debug(format("pokemon", "Awaiting user's guess..."));
+        log.debug(f("pokemon", "Awaiting user's guess..."));
         // Retrieve guess
         function filter(incMsg) {
             return incMsg.author === message.author;
@@ -34,9 +35,9 @@ module.exports = {
         };
         let guess = await message.channel.awaitMessages(filter, answerTimeout);
         guess = processGuess(guess);
-        logger.debug(format("pokemon", `Guess: ${guess}`));
+        log.debug(f("pokemon", `Guess: ${guess}`));
 
-        logger.debug(format("pokemon", "Processing answer..."));
+        log.debug(f("pokemon", "Processing answer..."));
         if (guess === null) {
             message.reply("I didn't get an answer.");
         } else {
