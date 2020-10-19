@@ -1,5 +1,5 @@
 const Pokedex = require("pokedex-promise-v2");
-const UsageError = require("../custom_errors/usage_error");
+const UsageError = require("../custom/UsageError");
 const { logger, format } = require("../logger");
 
 module.exports = {
