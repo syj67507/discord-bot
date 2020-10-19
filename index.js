@@ -1,4 +1,3 @@
-"use strict";
 // Setup...
 require("dotenv").config();
 const prefix = process.env.PREFIX;
