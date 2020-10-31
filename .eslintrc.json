@@ -2,7 +2,8 @@
     "env": {
         "node": true,
         "commonjs": true,
-        "es2021": true
+        "es2021": true,
+        "jest/globals": true
     },
     "extends": "eslint:recommended",
     "parserOptions": {
@@ -10,7 +11,7 @@
     },
     "rules": {
         "brace-style": ["error", "1tbs", { "allowSingleLine": true }],
-        //"comma-dangle": ["error", "always-multiline"],
+        "comma-dangle": ["error", "always-multiline"],
         "comma-spacing": "error",
         "comma-style": "error",
         "curly": ["error", "multi-line", "consistent"],

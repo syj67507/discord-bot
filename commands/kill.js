@@ -1,25 +1,23 @@
-const UsageError = require('../custom_errors/usage_error');
-const { logger, format } = require('../logger');
+const UsageError = require("../custom/UsageError");
+const log = require("../custom/logger").logger;
+const f = require("../custom/logger").format;
 
 module.exports = {
-    name: 'kill',
-    description: 'Kicks a member from voice chat every set number of seconds',
+    name: "kill",
+    description: "Kicks a member from voice chat every set number of seconds",
     usage: `
         ${process.env.PREFIX}kill <@user> <seconds>
         Note: <seconds> cannot be less than 10
         `,
     async execute(message, args) {
         const input = processInput(message, args);
-        logger.debug(format('kill', `Time: ${input.time}`));
-        logger.debug(format('kill', `Mentions: ${input.mentions}`));
-        message.channel.send('Hunting...');
+        log.debug(f("kill", `Time: ${input.time}`));
+        log.debug(f("kill", `Mentions: ${input.mentions}`));
+        message.channel.send("Hunting...");
 
         initIntervals(message, input.mentions, input.time);
-        logger.debug(
-            format(
-                'kill',
-                `Active Intervals: ${message.client.activeIntervals}`
-            )
+        log.debug(
+            f("kill", `Active Intervals: ${message.client.activeIntervals}`)
         );
     },
 };
@@ -36,12 +34,12 @@ module.exports = {
 function processInput(message, args) {
     // There must be at least one argument
     if (args.length < 1) {
-        throw new UsageError('Did not mention anybody');
+        throw new UsageError("Did not mention anybody");
     }
 
     // Mentions must be specified
     if (message.mentions.members.size < 1) {
-        throw new UsageError('Did not mention anybody');
+        throw new UsageError("Did not mention anybody");
     }
 
     // Pulling time if specified
@@ -50,9 +48,9 @@ function processInput(message, args) {
     if (!isNaN(userTime) && time <= userTime) {
         time = userTime;
     } else {
-        logger.debug(
-            format(
-                'kill',
+        log.debug(
+            f(
+                "kill",
                 `Specified time not specified/invalid, defaulting to ${time}`
             )
         );
@@ -74,7 +72,7 @@ function processInput(message, args) {
 function initIntervals(message, mentions, time) {
     for (const mention of mentions.keys()) {
         const guildMember = mentions.get(mention);
-        logger.debug(format('kill', `GuildMember ID: ${guildMember.user.id}`));
+        log.debug(f("kill", `GuildMember ID: ${guildMember.user.id}`));
 
         if (message.client.activeIntervals.has(guildMember.user.id)) {
             message.channel.send(
@@ -109,17 +107,13 @@ function kick(guildMember, message) {
         })
         .then((res) => {
             if (previousChannel !== null) {
-                logger.debug(
-                    format('kill', `GuildMember ID kicked: ${res.user.id}`)
-                );
-                message.channel.send('I have brain damage.');
+                log.debug(f("kill", `GuildMember ID kicked: ${res.user.id}`));
+                message.channel.send("I have brain damage.");
             }
         })
         .catch((err) => {
-            logger.error(format('killerr', err));
-            logger.debug(
-                format('kill', `Removing interval on ${guildMember.user.id}`)
-            );
+            log.error(f("killerr", err));
+            log.debug(f("kill", `Removing interval on ${guildMember.user.id}`));
             message.channel.send(
                 `I'm having trouble killing <@${guildMember.user.id}>, removing him from the list`
             );
@@ -130,9 +124,9 @@ function kick(guildMember, message) {
             message.client.clearInterval(interval);
             message.client.activeIntervals.delete(guildMember.user.id);
 
-            logger.debug(
-                format(
-                    'kill',
+            log.debug(
+                f(
+                    "kill",
                     `Active Intervals: ${message.client.activeIntervals.keyArray()}`
                 )
             );
