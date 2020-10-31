@@ -40,3 +40,10 @@ Stop the application by terminating the process. On bash: `CTRL-C`.
 Logs are implemented using the `winston` library. The logs are set to output to the console. When deployed to Heroku, the application logs will hold all of the console outputs. The documentation for the `winston` library can be seen in the following link.
 
 https://www.npmjs.com/package/winston
+
+### Notes
+
+Buildpacks for `ffmpeg` have been replaced by using the npm package `ffmpeg-static`. This was in response to issues with the ultra command.
+This was the following buildpack added on the heroku settings page.
+The other buildpacks can be found in the commit history within the `.buildpacks` file."
+https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
