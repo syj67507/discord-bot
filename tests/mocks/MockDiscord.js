@@ -1,4 +1,4 @@
-const Discord = require('discord.js');
+const Discord = require("discord.js");
 
 // a counter so that all the ids are unique
 let count = 0;
@@ -8,11 +8,11 @@ class Guild extends Discord.Guild {
         super(client, {
             // you don't need all of these but I just put them in to show you all the properties that Discord.js uses
             id: count++,
-            name: '',
+            name: "",
             icon: null,
             splash: null,
-            owner_id: '',
-            region: '',
+            owner_id: "",
+            region: "",
             afk_channel_id: null,
             afk_timeout: 0,
             verification_level: 0,
@@ -46,14 +46,14 @@ class TextChannel extends Discord.TextChannel {
             channel_id: this.id,
             content,
             author: {
-                id: 'bot id',
-                username: 'bot username',
-                discriminator: '1234',
+                id: "bot id",
+                username: "bot username",
+                discriminator: "1234",
                 bot: true,
             },
             pinned: false,
             tts: false,
-            nonce: '',
+            nonce: "",
             embeds: [],
             attachments: [],
             timestamp: Date.now(),
@@ -77,7 +77,7 @@ class Message extends Discord.Message {
                 author,
                 pinned: false,
                 tts: false,
-                nonce: '',
+                nonce: "",
                 embeds: [],
                 attachments: [],
                 timestamp: Date.now(),
