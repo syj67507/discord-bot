@@ -1,25 +1,26 @@
 {
-  "name": "discord-bot",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "test": "jest"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@discordjs/opus": "^0.3.2",
-    "discord.js": "^12.2.0",
-    "dotenv": "^8.2.0",
-    "giphy-js-sdk-core": "^1.0.6",
-    "pokedex-promise-v2": "^3.2.0",
-    "winston": "^3.3.3",
-    "ytdl-core": "^3.2.2"
-  },
-  "devDependencies": {
-    "eslint": "^7.8.1",
-    "jest": "^26.5.2"
-  }
+    "name": "discord-bot",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "test": "jest"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@discordjs/opus": "^0.3.2",
+        "discord.js": "^12.2.0",
+        "dotenv": "^8.2.0",
+        "ffmpeg-static": "^4.2.7",
+        "giphy-js-sdk-core": "^1.0.6",
+        "pokedex-promise-v2": "^3.2.0",
+        "winston": "^3.3.3",
+        "ytdl-core": "^3.2.2"
+    },
+    "devDependencies": {
+        "eslint": "^7.8.1",
+        "jest": "^26.5.2"
+    }
 }

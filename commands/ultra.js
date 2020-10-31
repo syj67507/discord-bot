@@ -10,9 +10,12 @@ module.exports = {
         ${process.env.PREFIX}ultra
         `,
     async execute(message, args) {
+<<<<<<< Updated upstream
 
         const ytdl = require('ytdl-core');
 
+=======
+>>>>>>> Stashed changes
         // Validation checks
         logger.debug(format('ultra', 'Validating...'));
         if (message.member.voice.channel == null) {
@@ -29,16 +32,23 @@ module.exports = {
         logger.debug(format('ultra', `Joined channel: ${channel.name}`));
 
         // Start yelling on successful join
-        logger.debug(format('ultra', 'Playing clip'));
-        const dispatcher = connection.play(ytdl('https://www.youtube.com/watch?v=vaGzR9E9mPU'));
+        const dispatcher = connection.play(
+            "media/prominence-burn-1c9da3a6.1280x720r.mp4"
+        );
 
-        // Use dispatcher to identify the end of the clip
-        dispatcher.on('speaking', (speaking) => {
-            if (!speaking) {
-                logger.debug(format('ultra', 'Leaving channel...'));
-                channel.leave();
-                logger.debug(format('ultra', 'Left the channel'));
-            }
+        dispatcher.on("start", () => {
+            log.debug(f("ultra", "Playing clip"));
+        });
+
+        dispatcher.on("error", (error) => {
+            log.error(f("ultra", "Error in playing the clip."));
+            log.error(f("ultra", error));
+        });
+
+        dispatcher.on("finish", () => {
+            log.debug(f("ultra", "Leaving channel..."));
+            channel.leave();
+            log.debug(f("ultra", "Left the channel"));
         });
     },
 };
