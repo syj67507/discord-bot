@@ -1,5 +1,3 @@
 config.json
 node_modules
 .env
-package-lock.json
-.buildpacks
