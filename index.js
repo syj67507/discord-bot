@@ -56,9 +56,6 @@ client.on("message", (message) => {
                     error.name == "UsageError"
                 ) {
                     log.error(f(command, `${error.name}: ${error.message}`));
-                    log.error(
-                        f(command, "Execution unsuccessful due to usage.")
-                    );
                 } else {
                     log.error(f(command, `${error.name}: ${error.message}`));
                     log.error(
