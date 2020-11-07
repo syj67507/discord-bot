@@ -4,20 +4,6 @@ const log = require("../custom/logger.js").logger;
 const f = require("../custom/logger.js").format;
 const ExecutionError = require("../custom/ExecutionError");
 
-/**
- *
- * @param {string} joke The joke returned from the axios call
- * @returns {string}    The joke with the emoji appended at the end
- */
-function appendEmoji(joke) {
-    if (Math.floor(Math.random() * 2) == 0) {
-        joke += " :rofl:";
-    } else {
-        joke += " :joy:";
-    }
-    return joke;
-}
-
 module.exports = {
     name: "joke",
     description: "Sends a dad joke!",
@@ -42,4 +28,21 @@ module.exports = {
             throw new ExecutionError("Error in fetching the joke.");
         }
     },
+    test: {
+        appendEmoji,
+    },
 };
+
+/**
+ * Appends an emoji to the end of the joke.
+ * @param {string} joke The joke returned from the axios call
+ * @returns {string}    The joke with the emoji appended at the end
+ */
+function appendEmoji(joke) {
+    if (Math.floor(Math.random() * 2) == 0) {
+        joke += " :rofl:";
+    } else {
+        joke += " :joy:";
+    }
+    return joke;
+}
