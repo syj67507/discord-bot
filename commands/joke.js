@@ -1,5 +1,7 @@
-const log = require("../custom/logger.js").logger;
-const f = require("../custom/logger.js").format;
+const { executionAsyncResource } = require("async_hooks");
+const axios = require("axios");
+const { logger: log, format: f } = require("../custom/logger");
+const ExecutionError = require("../custom/ExecutionError");
 
 module.exports = {
     name: "joke",
@@ -8,43 +10,38 @@ module.exports = {
         ${process.env.PREFIX}joke
         `,
     async execute(message, args) {
-        log.debug(f("joke", "Making a request..."));
-        const https = require("https");
-        https
-            .get("https://icanhazdadjoke.com/slack", (res) => {
-                // Receiving joke
-                log.debug(f("joke", "Loading joke..."));
-                let data = "";
-                res.on("data", (chunk) => {
-                    data += chunk;
-                });
-                log.debug(f("joke", `data: ${data}`));
+        try {
+            log.debug(f("joke", "Fetching the joke..."));
+            const res = await axios.get("https://icanhazdadjoke.com/slack");
+            let joke = res.data.attachments[0].text;
 
-                // Found joke! Send in channel
-                log.debug(f("joke", "Found the joke"));
-                res.on("end", () => {
-                    let joke = JSON.parse(data);
-                    log.debug(f("joke", `joke: ${joke}`));
-                    if (joke != null) {
-                        joke = joke.attachments[0].text;
-                        log.debug(f("joke", "Processing joke"));
-                        log.debug(f("joke", `joke: ${joke}`));
-                        if (Math.floor(Math.random() * 2) == 0) {
-                            joke += " :rofl:";
-                        } else {
-                            joke += " :joy:";
-                        }
-                    } else {
-                        joke = "Sorry... we couldn't get you a joke :(";
-                    }
-                    log.debug(f("joke", "Sending joke..."));
-                    log.debug(f("joke", `joke: ${joke}`));
-                    message.channel.send(joke);
-                });
-            })
-            .on("error", (error) => {
-                message.channel.send("Sorry... we couldn't get you a joke :(");
-                throw error;
-            });
+            log.debug(f("joke", "Processing response..."));
+            joke = appendEmoji(joke);
+
+            log.debug(f("joke", "Sending to channel..."));
+            message.channel.send(joke);
+        } catch {
+            message.channel.send(
+                "Sorry... there I couldn't get you a joke :frowning:"
+            );
+            throw new ExecutionError("Error in fetching the joke.");
+        }
+    },
+    test: {
+        appendEmoji,
     },
 };
+
+/**
+ * Appends an emoji to the end of the joke.
+ * @param {string} joke The joke returned from the axios call
+ * @returns {string} The joke with the emoji appended at the end
+ */
+function appendEmoji(joke) {
+    if (Math.floor(Math.random() * 2) == 0) {
+        joke += " :rofl:";
+    } else {
+        joke += " :joy:";
+    }
+    return joke;
+}
