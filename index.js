@@ -18,6 +18,8 @@ for (const file of commandFiles) {
 
 client.activeIntervals = new Discord.Collection();
 
+client.musicQueue = [];
+
 // Logging in bot...
 client.once("ready", () => {
     log.info(f("client", "Log in successful"));
