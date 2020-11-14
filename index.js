@@ -4,8 +4,7 @@ const prefix = process.env.PREFIX;
 const token = process.env.TOKEN;
 const Discord = require("discord.js");
 const client = new Discord.Client();
-const log = require("./custom/logger").logger;
-const f = require("./custom/logger").format;
+const { logger: log, format: f } = require("./custom/logger");
 
 const fs = require("fs");
 client.commands = new Discord.Collection();

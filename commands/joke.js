@@ -1,7 +1,6 @@
 const { executionAsyncResource } = require("async_hooks");
 const axios = require("axios");
-const log = require("../custom/logger.js").logger;
-const f = require("../custom/logger.js").format;
+const { logger: log, format: f } = require("../custom/logger");
 const ExecutionError = require("../custom/ExecutionError");
 
 module.exports = {
@@ -36,7 +35,7 @@ module.exports = {
 /**
  * Appends an emoji to the end of the joke.
  * @param {string} joke The joke returned from the axios call
- * @returns {string}    The joke with the emoji appended at the end
+ * @returns {string} The joke with the emoji appended at the end
  */
 function appendEmoji(joke) {
     if (Math.floor(Math.random() * 2) == 0) {
