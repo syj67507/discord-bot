@@ -22,6 +22,13 @@ module.exports = {
     },
 };
 
+/**
+ * Validates whether the user that invoked this command is in a voice channel.
+ * Throws a UsageError if a voice channel is invalid.
+ *
+ * @param {Discord.Message} message The message that invoked this command.
+ * @returns Returns the voice channel
+ */
 function validateChannel(message) {
     // Check if the user is in a voice channel
     const channel = message.member.voice.channel;
@@ -32,6 +39,14 @@ function validateChannel(message) {
     return channel;
 }
 
+/**
+ * Validates that the arguments contains only on YouTube link.
+ * Throws a UsageError if the link is invalid or if none is provided.
+ *
+ * @param {Discord.Message} message The message that invoked this command.
+ * @param {Array} args An array of the arguments passed with this command.
+ * @returns The YouTube link
+ */
 function validateLink(message, args) {
     // Must provide one link
     if (args.length != 1) {
@@ -60,6 +75,15 @@ function validateLink(message, args) {
     return args[0];
 }
 
+/**
+ * Plays the next song found within the client's music queue and sends a message to the
+ * text channel providing the song title. This function is called recursively until there
+ * are no more song in the queue. Once finished, the client will leave the voice channel.
+ *
+ * @param {Discord.Message} message The message that invoked this command.
+ * @param {Discord.VoiceConnection} connection The client's connection to the voice channel.
+ * @param {Discord.VoiceChannel} voiceChannel The voice channel where the user is in.
+ */
 function playSong(message, connection, voiceChannel) {
     // Plays the next song in the queue
     const musicQueue = message.client.musicQueue;
