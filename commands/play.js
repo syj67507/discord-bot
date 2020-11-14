@@ -99,8 +99,15 @@ function playSong(message, connection, voiceChannel) {
 
     dispatcher.on("start", async () => {
         log.debug(f("play", "Now Playing..."));
-        const songInfo = await ytdl.getBasicInfo(songLink);
-        message.channel.send(`Now Playing: *${songInfo.videoDetails.title}*`);
+        try {
+            const songInfo = await ytdl.getBasicInfo(songLink);
+            message.channel.send(
+                `Now Playing: *${songInfo.videoDetails.title}*`
+            );
+        } catch (e) {
+            log.error(e.message);
+            message.channel.send(`Now Playing: []`);
+        }
     });
 
     // Plays the next song or leaves if there isn't one
