@@ -10,17 +10,15 @@ module.exports = {
         `,
     async execute(message, args) {
         log.debug(f("play", "Validating..."));
-        const channel = validateChannel(message);
+        const voiceChannel = validateChannel(message);
         const songLink = validateLink(message, args);
-        // const songInfo = await ytdl.getBasicInfo(songLink);
+        message.client.musicQueue.unshift(songLink);
 
         // Plays the song
         log.debug(f("play", "Joining voice channel..."));
-        const connection = await channel.join();
-
+        const connection = await voiceChannel.join();
         log.debug(f("play", "Retrieving song..."));
-        const song = ytdl(songLink);
-        playSong(song, connection, message, channel);
+        playSong(message, connection, voiceChannel);
     },
 };
 
@@ -62,25 +60,42 @@ function validateLink(message, args) {
     return args[0];
 }
 
-function playSong(song, connection, message, channel) {
+function playSong(message, connection, voiceChannel) {
+    // Plays the next song in the queue
+    const songLink = message.client.musicQueue.shift();
+    const song = ytdl(songLink);
     const dispatcher = connection.play(song, {
         filter: "audioonly",
         quality: "highestaudio",
     });
-    dispatcher.on("start", () => {
-        log.debug(f("play", "Playing..."));
-        message.channel.send("Playing");
+
+    dispatcher.on("start", async () => {
+        log.debug(f("play", "Now Playing..."));
+        const songInfo = await ytdl.getBasicInfo(songLink);
+        message.channel.send(`Now Playing: *${songInfo.videoDetails.title}*`);
     });
+
+    // Plays the next song or leaves if there isn't one
     dispatcher.on("finish", () => {
+        musicQueue = message.client.musicQueue;
         log.debug(f("play", "Song has finished."));
-        message.channel.send("Finished");
-        channel.leave();
-        log.debug(f("play", "Left the voice channel."));
+        log.debug(f("play", "Songs left in queue: " + musicQueue.length));
+
+        if (musicQueue.length > 0) {
+            log.debug(f("play", "Fetching next song in queue..."));
+            playSong(message, connection, voiceChannel);
+        } else {
+            log.debug(f("play", "No more songs left in queue."));
+            message.channel.send("No more songs left in queue.");
+            voiceChannel.leave();
+            log.debug(f("play", "Left the voice channel."));
+        }
     });
+
     dispatcher.on("error", (error) => {
         message.channel.send("Ran into an error when playing.");
         log.debug(f("play", error));
-        channel.leave();
+        voiceChannel.leave();
         log.debug(f("play", "Left the voice channel."));
     });
 }
