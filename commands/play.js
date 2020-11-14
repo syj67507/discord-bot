@@ -14,7 +14,7 @@ module.exports = {
         const songLink = validateLink(message, args);
         message.client.musicQueue.unshift(songLink);
 
-        // Plays the song
+        // Starts playing music from queue
         log.debug(f("play", "Joining voice channel..."));
         const connection = await voiceChannel.join();
         log.debug(f("play", "Retrieving song..."));
@@ -62,6 +62,7 @@ function validateLink(message, args) {
 
 function playSong(message, connection, voiceChannel) {
     // Plays the next song in the queue
+    const musicQueue = message.client.musicQueue;
     const songLink = message.client.musicQueue.shift();
     const song = ytdl(songLink);
     const dispatcher = connection.play(song, {
@@ -77,7 +78,6 @@ function playSong(message, connection, voiceChannel) {
 
     // Plays the next song or leaves if there isn't one
     dispatcher.on("finish", () => {
-        musicQueue = message.client.musicQueue;
         log.debug(f("play", "Song has finished."));
         log.debug(f("play", "Songs left in queue: " + musicQueue.length));
 

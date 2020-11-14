@@ -18,7 +18,7 @@ for (const file of commandFiles) {
 
 client.activeIntervals = new Discord.Collection();
 
-client.musicQueue = [];
+client.musicQueue = ["https://www.youtube.com/watch?v=csv3v5bSIEc"];
 
 // Logging in bot...
 client.once("ready", () => {
