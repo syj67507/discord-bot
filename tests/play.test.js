@@ -1,5 +1,5 @@
 const { MockDiscord, MockMessage } = require("./mocks/MockDiscord.js");
-const { validateLink } = require("../commands/play").test;
+const { validateLink } = require("../commands/play");
 const UsageError = require("../custom/UsageError");
 
 // setting up the Discord mock

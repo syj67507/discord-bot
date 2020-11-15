@@ -20,9 +20,7 @@ module.exports = {
         log.debug(f("play", "Retrieving song..."));
         playSong(message, connection, voiceChannel);
     },
-    test: {
-        validateLink,
-    },
+    validateLink,
 };
 
 /**
