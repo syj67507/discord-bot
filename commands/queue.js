@@ -5,7 +5,9 @@ module.exports = {
     name: "queue",
     description: "The bot adds a track to the queue",
     usage: `
+        Available Flags: (display, -d) | (clear, -c)
         ${process.env.PREFIX}queue <YouTube Link>
+        ${process.env.PREFIX}queue <flag>
         `,
     async execute(message, args) {
         log.debug(f("queue", "Checking for flags..."));
