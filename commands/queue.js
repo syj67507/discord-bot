@@ -46,12 +46,14 @@ module.exports = {
             "Songs in queue: " + message.client.musicQueue.length,
         ]);
     },
+    addToQueue,
 };
 
 function addToQueue(musicQueue, songLink) {
     // Check typing of parameters
     if (!Array.isArray(musicQueue) || typeof songLink !== "string") {
         log.debug(f("queue", "addToQueue() has invalid parameters."));
+        throw new TypeError("addToQueue has invalid parameters");
     }
 
     // Adds to queue
