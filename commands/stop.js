@@ -34,7 +34,9 @@ module.exports = {
         }
 
         if (args.includes("clear") || args.includes("-c")) {
+            log.debug(f("stop", "Clear flag found! Clearing..."));
             message.client.musicQueue = [];
+            log.debug(f("stop", "Queue cleared."));
             message.channel.send("The queue has been cleared!");
         }
     },
