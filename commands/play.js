@@ -36,34 +36,39 @@ module.exports = {
         }
 
         // Fall back to searching
-        message.channel.send("Searching since no valid link was provided");
+        // Creating search string
         let searchString = "";
         for (const arg of args) {
             if (!isYTLink(arg)) {
                 searchString += ` ${arg}`;
             }
         }
-        message.channel.send("Searching: " + searchString);
+
+        // Searching
         let searchResults = null;
         try {
             searchResults = await ytsr(searchString, { limit: 3 });
         } catch (error) {
             throw error;
         }
-        if (searchResults == null) {
+
+        // Processing results
+        if (searchResults.results === 0) {
             message.channel.send("Unable to find a song to play :(");
             throw new ExecutionError();
         }
+
+        // Finds the first candidate and plays
         for (const item of searchResults.items) {
             if (item.type === "video") {
                 message.client.musicQueue.unshift(item.link);
                 const connection = await voiceChannel.join();
                 playSong(message, connection, voiceChannel);
+                break;
             }
         }
     },
     isYTLink,
-    validateChannel,
 };
 
 /**
@@ -132,8 +137,11 @@ function playSong(message, connection, voiceChannel) {
         log.debug(f("play", "Now Playing..."));
         try {
             const songInfo = await ytdl.getBasicInfo(songLink);
+            const songLength = songInfo.videoDetails.lengthSeconds;
             message.channel.send(
-                `Now Playing: *${songInfo.videoDetails.title}*`
+                `Now Playing: *${songInfo.videoDetails.title} | ${Math.floor(
+                    songLength / 60
+                )}: ${songLength % 60}*`
             );
         } catch (e) {
             log.error(e.message);
