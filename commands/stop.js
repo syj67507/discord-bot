@@ -6,7 +6,8 @@ module.exports = {
     name: "stop",
     description: "The bot stops playing music and clears the queue.",
     usage: `
-        ${process.env.PREFIX}stop
+        Available Flags: (clear, -c)
+        ${process.env.PREFIX}stop <flag>
         `,
     async execute(message, args) {
         // Check if the bot is in a voice channel
@@ -30,6 +31,11 @@ module.exports = {
         } catch (error) {
             log.error(f("stop", `${error.name}: ${error.message}`));
             throw new ExecutionError("Leaving the voice channel failed.");
+        }
+
+        if (args.includes("clear") || args.includes("-c")) {
+            message.client.musicQueue = [];
+            message.channel.send("The queue has been cleared!");
         }
     },
 };
