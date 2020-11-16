@@ -1,6 +1,8 @@
 const { logger: log, format: f } = require("../custom/logger");
+const ExecutionError = require("../custom/ExecutionError");
 const UsageError = require("../custom/UsageError");
 const ytdl = require("ytdl-core");
+const ytsr = require("ytsr");
 
 module.exports = {
     name: "play",
@@ -34,7 +36,7 @@ module.exports = {
         }
 
         // Fall back to searching
-        message.channel.send("Searching since no link was provided");
+        message.channel.send("Searching since no valid link was provided");
         let searchString = "";
         for (const arg of args) {
             if (!isYTLink(arg)) {
@@ -42,7 +44,23 @@ module.exports = {
             }
         }
         message.channel.send("Searching: " + searchString);
-        return;
+        let searchResults = null;
+        try {
+            searchResults = await ytsr(searchString, { limit: 3 });
+        } catch (error) {
+            throw error;
+        }
+        if (searchResults == null) {
+            message.channel.send("Unable to find a song to play :(");
+            throw new ExecutionError();
+        }
+        for (const item of searchResults.items) {
+            if (item.type === "video") {
+                message.client.musicQueue.unshift(item.link);
+                const connection = await voiceChannel.join();
+                playSong(message, connection, voiceChannel);
+            }
+        }
     },
     isYTLink,
     validateChannel,
