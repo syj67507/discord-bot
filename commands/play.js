@@ -45,13 +45,24 @@ module.exports = {
         }
 
         // Searching
+        let searchFilters = null;
         let searchResults = null;
         try {
-            searchResults = await ytsr(searchString, { limit: 3 });
+            // Search filters inherently sort by relevance
+            // Getting a filter to only return "Videos"
+            searchFilters = await ytsr.getFilters(searchString);
+            searchFilters = searchFilters
+                .get("Type")
+                .find((o) => o.name === "Video");
+
+            // Applying filter and getting results
+            searchResults = await ytsr(searchString, {
+                limit: 1,
+                nextpageRef: searchFilters.ref,
+            });
         } catch (error) {
             throw error;
         }
-
         // Processing results
         if (searchResults.results === 0) {
             message.channel.send("Unable to find a song to play :(");
