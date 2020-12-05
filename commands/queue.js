@@ -1,5 +1,5 @@
 const { logger: log, format: f } = require("../custom/logger");
-const { validateLink } = require("./play");
+const { isYTLink, searchForYTLink } = require("./play");
 
 module.exports = {
     name: "queue",
@@ -38,9 +38,23 @@ module.exports = {
         }
 
         log.debug(f("queue", "Validating song link..."));
-        const songLink = validateLink(message, args);
+        if (args.length === 1 && isYTLink(args[0])) {
+            addToQueue(message.client.musicQueue, args[0]);
+            message.reply([
+                "Queued up!",
+                "Songs in queue: " + message.client.musicQueue.length,
+            ]);
+            return;
+        }
+
+        // Falling back to searching
+        const searchResults = await searchForYTLink(args);
+        for (const item of searchResults.items) {
+            if (item.type === "video") {
+                addToQueue(message.client.musicQueue, item.link);
+            }
+        }
         log.debug(f("queue", "Adding to queue..."));
-        addToQueue(message.client.musicQueue, songLink);
         log.debug(f("queue", "Queue successful."));
 
         message.reply([
