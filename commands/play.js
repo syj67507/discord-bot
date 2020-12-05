@@ -14,7 +14,13 @@ module.exports = {
         log.debug(f("play", "Validating..."));
         const voiceChannel = validateChannel(message);
 
-        // Handling no args
+        // Exits if the client is already playing music
+        if (message.client.voice.connections.size > 0) {
+            message.channel.send("I'm already playing :musical_note:");
+            return;
+        }
+
+        // Handling no args - plays music from the queue
         if (args.length === 0) {
             if (message.client.musicQueue.length === 0) {
                 message.channel.send("There isn't anything in the queue!");
@@ -25,62 +31,63 @@ module.exports = {
             return;
         }
 
-        // Handling args that are passed in
-        if (args.length === 1) {
-            if (isYTLink(args[0])) {
-                message.client.musicQueue.unshift(args[0]);
-                const connection = await voiceChannel.join();
-                playSong(message, connection, voiceChannel);
-                return;
-            }
+        // Handling if the one arg passed in is a direct YT link
+        if (args.length === 1 && isYTLink(args[0])) {
+            message.client.musicQueue.unshift(args[0]);
+            const connection = await voiceChannel.join();
+            playSong(message, connection, voiceChannel);
+            return;
         }
 
-        // Fall back to searching
-        // Creating search string
-        let searchString = "";
-        for (const arg of args) {
-            if (!isYTLink(arg)) {
-                searchString += ` ${arg}`;
-            }
-        }
-
-        // Searching
-        let searchFilters = null;
-        let searchResults = null;
-        try {
-            // Search filters inherently sort by relevance
-            // Getting a filter to only return "Videos"
-            searchFilters = await ytsr.getFilters(searchString);
-            searchFilters = searchFilters
-                .get("Type")
-                .find((o) => o.name === "Video");
-
-            // Applying filter and getting results
-            searchResults = await ytsr(searchString, {
-                limit: 1,
-                nextpageRef: searchFilters.ref,
-            });
-        } catch (error) {
-            throw error;
-        }
-        // Processing results
-        if (searchResults.results === 0) {
-            message.channel.send("Unable to find a song to play :(");
-            throw new ExecutionError();
-        }
-
-        // Finds the first candidate and plays
+        // Falls back to searching
+        const searchResults = await searchForYTLink(args);
         for (const item of searchResults.items) {
             if (item.type === "video") {
                 message.client.musicQueue.unshift(item.link);
                 const connection = await voiceChannel.join();
                 playSong(message, connection, voiceChannel);
-                break;
             }
         }
     },
     isYTLink,
+    searchForYTLink,
 };
+
+async function searchForYTLink(args) {
+    // Creating search string from arguments
+    let searchString = "";
+    for (const arg of args) {
+        if (!isYTLink(arg)) {
+            searchString += ` ${arg}`;
+        }
+    }
+
+    // Searching
+    let searchFilters = null;
+    let searchResults = null;
+    try {
+        // Search filters inherently sort by relevance
+        // Getting a filter to only return "Videos"
+        searchFilters = await ytsr.getFilters(searchString);
+        searchFilters = searchFilters
+            .get("Type")
+            .find((o) => o.name === "Video");
+
+        // Applying filter and getting results
+        searchResults = await ytsr(searchString, {
+            limit: 1,
+            nextpageRef: searchFilters.ref,
+        });
+    } catch (error) {
+        throw error;
+    }
+    // Processing results
+    if (searchResults.results === 0) {
+        message.channel.send("Unable to find a song to play :(");
+        throw new ExecutionError();
+    }
+    return searchResults;
+}
 
 /**
  * Validates whether the user that invoked this command is in a voice channel.
@@ -104,7 +111,7 @@ function validateChannel(message) {
  *
  * @param {Discord.Message} message The message that invoked this command.
  * @param {Array} args An array of the arguments passed with this command.
- * @returns The YouTube link
+ * @returns Boolean
  */
 function isYTLink(link) {
     // Checks if the link is from YouTube
@@ -152,7 +159,7 @@ function playSong(message, connection, voiceChannel) {
             message.channel.send(
                 `Now Playing: *${songInfo.videoDetails.title} | ${Math.floor(
                     songLength / 60
-                )}: ${songLength % 60}*`
+                )}:${songLength % 60}*`
             );
         } catch (e) {
             log.error(e.message);
