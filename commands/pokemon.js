@@ -2,6 +2,7 @@ const Pokedex = require("pokedex-promise-v2");
 const UsageError = require("../custom/UsageError");
 const log = require("../custom/logger").logger;
 const f = require("../custom/logger").format;
+const { MessageEmbed } = require("discord.js");
 
 module.exports = {
     name: "pokemon",
@@ -20,7 +21,15 @@ module.exports = {
 
         log.debug(f("pokemon", "Making question..."));
         const { question, files, answer } = makeTypeQuestion(pkmnInfo, message);
-        message.channel.send(question, { files: files });
+        const embed = new MessageEmbed()
+            .setColor("#B51B1B")
+            .setTitle(question)
+            .setAuthor(
+                "Pokemon Type Trivia",
+                "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/b05d80a0-2a64-476e-8971-3fbb10b3173f/de9yh1g-c086a995-be28-488f-b709-c009e3f1733f.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOiIsImlzcyI6InVybjphcHA6Iiwib2JqIjpbW3sicGF0aCI6IlwvZlwvYjA1ZDgwYTAtMmE2NC00NzZlLTg5NzEtM2ZiYjEwYjMxNzNmXC9kZTl5aDFnLWMwODZhOTk1LWJlMjgtNDg4Zi1iNzA5LWMwMDllM2YxNzMzZi5wbmcifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6ZmlsZS5kb3dubG9hZCJdfQ.6kqNinRj421Gq-PVszIVuTfEZxHaI62nCULU4aRKY1U"
+            )
+            .setImage(files[0]);
+        message.reply(embed);
 
         log.debug(f("pokemon", `Answer: ${answer}`));
 
@@ -84,7 +93,7 @@ function makeTypeQuestion(pkmnInfo) {
     for (const type of pkmnInfo.types) {
         pkmnType.push(type.type.name);
     }
-    const question = `What is \`${pkmnName}'s\` typing?`;
+    const question = `What is __${pkmnName}'s__ typing?`;
     return {
         question: question,
         files: [pkmnPic],
