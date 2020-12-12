@@ -7,6 +7,11 @@ module.exports = {
         ${process.env.PREFIX}vibecheck
         `,
     async execute(message, args) {
-        message.channel.send(Math.ceil(Math.random() * 20));
+        const value = Math.ceil(Math.random() * 20);
+        let response = [value];
+        if (value === 20) {
+            response.push("We vibin'! (~‾▿‾)~");
+        }
+        message.channel.send(response);
     },
 };
