@@ -1,5 +1,4 @@
-const log = require("../custom/logger").logger;
-const f = require("../custom/logger").format;
+const { logger: log, format: f } = require("../custom/logger");
 
 module.exports = {
     name: "ping",
