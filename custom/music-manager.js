@@ -12,7 +12,6 @@ class MusicManager {
         this.client.on("voiceStateUpdate", (oldState, newState) => {
             if (newState.member.user.bot) {
                 if (newState.channel === null) {
-                    console.log("cleaning up disconnect");
                     this.voiceChannel = null;
                     this.voiceConnection = null;
                     this.dispatcher = null;
@@ -25,14 +24,23 @@ class MusicManager {
     }
 
     // Queue management methods
+    queueAtBeginning(song) {
+        this.playlist.unshift(song);
+    }
     queue(song) {
         this.playlist.push(song);
     }
     queueLength() {
         return this.playlist.length;
     }
+    clearQueue() {
+        this.playlist = [];
+    }
 
     // validation methods
+    isPlaying() {
+        return this.dispatcher != null;
+    }
     /**
      * Determines if the passed in argument is a YouTube link
      *
@@ -62,21 +70,18 @@ class MusicManager {
         const channel = message.member.voice.channel;
         if (channel == null) {
             message.channel.send("You've got to join a voice channel.");
+            throw Error("Unable to join voice channel");
         }
 
         // Attempts to connect
         try {
-            // this.voiceChannel updated in voiceStatusUpdate
-            // this.voiceConnection = await channel.join();
             await channel.join();
-        } catch {
-            console.log("Failed to join voice channel.");
+        } catch (error) {
+            throw error;
         }
-        console.log("Successfully joined voice channel!");
     }
     disconnect() {
         if (this.voiceChannel) {
-            console.log("natural disconnect");
             this.voiceChannel.leave();
         }
     }
