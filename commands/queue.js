@@ -3,75 +3,47 @@ const { isYTLink, searchForYTLink } = require("./play");
 
 module.exports = {
     name: "queue",
-    description: "The bot adds a track to the queue",
+    description: "Manages the queue for playback.",
     usage: `
-        Available Flags: (display, -d) | (clear, -c)
-        ${process.env.PREFIX}queue <YouTube Link>
-        ${process.env.PREFIX}queue <flag>
+        ${process.env.PREFIX}queue - Display what is in queue
+        ${process.env.PREFIX}queue <search> - Add song to queue using search
+        ${process.env.PREFIX}queue clear - Clear the queue
         `,
     async execute(message, args) {
-        log.debug(f("queue", "Checking for flags..."));
+        const musicManager = message.client.musicManager;
 
-        // Checks if the user wants to clear the queue
-        if (args.includes("clear") || args.includes("-c")) {
-            log.debug(f("queue", "Found the clear flag."));
-            message.client.musicQueue = [];
-            message.reply(["The queue has been cleared!"]);
-            log.debug(f("queue", "Cleared the queue."));
-            log.debug(
-                f(
-                    "queue",
-                    "Songs in queue: " + message.client.musicQueue.length
-                )
-            );
+        // Clears the queue
+        if (args.length === 1 && args[0] === "clear") {
+            log.debug(f("queue", "Clearing queue..."));
+            musicManager.clearQueue();
+            message.channel.send("I've cleared the queue.");
+            log.debug(f("queue", "Cleared."));
             return;
         }
 
-        // Checks if the user wants to display the queue
-        if (args.includes("display") || args.includes("-d")) {
-            log.debug(f("queue", "Found the display flag."));
-            message.reply([
-                "Songs in queue: " + message.client.musicQueue.length,
-            ]);
-            log.debug(f("queue", "Displayed queue length."));
-            return;
-        }
-
-        log.debug(f("queue", "Validating song link..."));
-        if (args.length === 1 && isYTLink(args[0])) {
-            addToQueue(message.client.musicQueue, args[0]);
-            message.reply([
-                "Queued up!",
-                "Songs in queue: " + message.client.musicQueue.length,
-            ]);
-            return;
-        }
-
-        // Falling back to searching
-        const searchResults = await searchForYTLink(args);
-        for (const item of searchResults.items) {
-            if (item.type === "video") {
-                addToQueue(message.client.musicQueue, item.link);
+        // Displays queue
+        if (args.length < 1) {
+            log.debug(f("queue", "Displaying queue..."));
+            if (musicManager.queueLength() > 0) {
+                const displayQueue = [];
+                for (const song of musicManager.playlist) {
+                    displayQueue.push(song.title);
+                }
+                message.channel.send(displayQueue);
+            } else {
+                message.channel.send("No song left in the queue.");
             }
+            log.debug(f("queue", "Displayed."));
         }
-        log.debug(f("queue", "Adding to queue..."));
-        log.debug(f("queue", "Queue successful."));
 
-        message.reply([
-            "Queued up!",
-            "Songs in queue: " + message.client.musicQueue.length,
-        ]);
+        // Adds search to queue
+        else {
+            log.debug(f("queue", "Searching..."));
+            const song = await musicManager.search(args.join(" "));
+            log.debug(f("queue", "Queueing..."));
+            musicManager.queue(song);
+            log.debug(f("queue", "Queued."));
+            message.channel.send(`Added to queue: ${song.title}`);
+        }
     },
-    addToQueue,
 };
-
-function addToQueue(musicQueue, songLink) {
-    // Check typing of parameters
-    if (!Array.isArray(musicQueue) || typeof songLink !== "string") {
-        log.debug(f("queue", "addToQueue() has invalid parameters."));
-        throw new TypeError("addToQueue has invalid parameters");
-    }
-
-    // Adds to queue
-    musicQueue.push(songLink);
-}

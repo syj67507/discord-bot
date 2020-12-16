@@ -7,6 +7,7 @@ const client = new Discord.Client();
 const { logger: log, format: f } = require("./custom/logger");
 
 const fs = require("fs");
+const MusicManager = require("./custom/music-manager");
 client.commands = new Discord.Collection();
 const commandFiles = fs
     .readdirSync("./commands")
@@ -18,7 +19,7 @@ for (const file of commandFiles) {
 
 client.activeIntervals = new Discord.Collection();
 
-client.musicQueue = [];
+client.musicManager = new MusicManager(client);
 
 // Logging in bot...
 client.once("ready", () => {
