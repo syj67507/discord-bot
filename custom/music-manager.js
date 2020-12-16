@@ -139,7 +139,7 @@ class MusicManager {
         this.dispatcher.on("start", async () => {
             // log.debug(f("play", "Now Playing..."));
             message.channel.send(
-                `Now Playing: *${song.title} | ${song.duration}*`
+                `:notes: Now Playing: [${song.duration}] *${song.title}*`
             );
         });
 
