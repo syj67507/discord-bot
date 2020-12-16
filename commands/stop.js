@@ -12,6 +12,7 @@ module.exports = {
     async execute(message, args) {
         const musicManager = message.client.musicManager;
 
+        // Stops only if it is playing
         if (musicManager.isPlaying()) {
             log.debug(f("stop", "Stopping..."));
             musicManager.disconnect();

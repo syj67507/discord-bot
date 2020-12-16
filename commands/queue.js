@@ -12,6 +12,7 @@ module.exports = {
     async execute(message, args) {
         const musicManager = message.client.musicManager;
 
+        // Clears the queue
         if (args.length === 1 && args[0] === "clear") {
             log.debug(f("queue", "Clearing queue..."));
             musicManager.clearQueue();

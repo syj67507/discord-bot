@@ -1,5 +1,6 @@
 const ytdl = require("ytdl-core");
 const ytsr = require("ytsr");
+const { logger: log, format: f } = require("../custom/logger");
 
 class MusicManager {
     constructor(client) {
@@ -23,7 +24,6 @@ class MusicManager {
         });
     }
 
-    // Queue management methods
     queueAtBeginning(song) {
         this.playlist.unshift(song);
     }
@@ -37,7 +37,6 @@ class MusicManager {
         this.playlist = [];
     }
 
-    // validation methods
     isPlaying() {
         return this.dispatcher != null;
     }
@@ -65,6 +64,7 @@ class MusicManager {
         }
         return result;
     }
+
     async connect(message) {
         // Check if the user is in a voice channel
         const channel = message.member.voice.channel;
@@ -137,7 +137,7 @@ class MusicManager {
         });
 
         this.dispatcher.on("start", async () => {
-            // log.debug(f("play", "Now Playing..."));
+            log.debug(f("dispatcher", "Now Playing..."));
             message.channel.send(
                 `:notes: Now Playing: [${song.duration}] *${song.title}*`
             );
@@ -145,25 +145,27 @@ class MusicManager {
 
         // Plays the next song or leaves if there isn't one
         this.dispatcher.on("finish", () => {
-            // log.debug(f("play", "Song has finished."));
-            // log.debug(f("play", "Songs left in queue: " + this.playlist.length));
+            log.debug(f("dispatcher", "Song has finished."));
+            log.debug(
+                f("dispatcher", "Songs left in queue: " + this.queueLength())
+            );
 
             if (this.playlist.length > 0) {
-                // log.debug(f("play", "Fetching next song in queue..."));
+                log.debug(f("dispatcher", "Fetching next song in queue..."));
                 this.play(message);
             } else {
-                // log.debug(f("play", "No more songs left in queue."));
+                log.debug(f("dispatcher", "No more songs left in queue."));
                 message.channel.send("No more songs left in queue.");
                 this.disconnect();
-                // log.debug(f("play", "Left the voice channel."));
+                log.debug(f("dispatcher", "Left the voice channel."));
             }
         });
 
         this.dispatcher.on("error", (error) => {
             message.channel.send("Ran into an error when playing.");
-            // log.debug(f("play", error));
+            log.debug(f("dispatcher", error));
             this.disconnect();
-            // log.debug(f("play", "Left the voice channel."));
+            log.debug(f("play", "Left the voice channel."));
         });
     }
 }
