@@ -4,6 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
+        "postinstall": "npm install ytdl-core@latest",
         "start": "node index.js",
         "test": "jest"
     },
@@ -17,8 +18,8 @@
         "giphy-js-sdk-core": "^1.0.6",
         "pokedex-promise-v2": "^3.2.0",
         "winston": "^3.3.3",
-        "ytdl-core": "^4.1.2",
-        "ytsr": "^2.0.0-alpha.3"
+        "ytdl-core": "^4.2.1",
+        "ytsr": "^3.2.1"
     },
     "devDependencies": {
         "eslint": "^7.8.1",

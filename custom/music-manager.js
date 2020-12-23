@@ -94,14 +94,11 @@ class MusicManager {
             // Search filters inherently sort by relevance
             // Getting a filter to only return "Videos"
             searchFilters = await ytsr.getFilters(searchString);
-            searchFilters = searchFilters
-                .get("Type")
-                .find((o) => o.name === "Video");
+            searchFilters = searchFilters.get("Type").get("Video");
 
             // Applying filter and getting results
-            searchResults = await ytsr(searchString, {
+            searchResults = await ytsr(searchFilters.url, {
                 limit: 1,
-                nextpageRef: searchFilters.ref,
             });
         } catch (error) {
             throw error;
@@ -113,10 +110,9 @@ class MusicManager {
         if (searchResults.items.length === 0) {
             throw new Error("No results found.");
         }
-
         return {
             title: searchResults.items[0].title,
-            link: searchResults.items[0].link,
+            link: searchResults.items[0].url,
             duration: searchResults.items[0].duration,
         };
     }
