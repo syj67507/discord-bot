@@ -10,6 +10,7 @@ class MusicManager {
         this.voiceConnection = null;
         this.dispatcher = null;
 
+        // Handles manager's property values on voice state changes
         this.client.on("voiceStateUpdate", (oldState, newState) => {
             if (newState.member.user.bot) {
                 if (newState.channel === null) {
@@ -24,19 +25,41 @@ class MusicManager {
         });
     }
 
+    /**
+     * Adds a song to the front of the queue/playlist.
+     *
+     * @param {object} song Song object
+     */
     queueAtBeginning(song) {
         this.playlist.unshift(song);
     }
+
+    /**
+     * Adds a song to the back of the queue/playlist.
+     *
+     * @param {object} song Song object
+     */
     queue(song) {
         this.playlist.push(song);
     }
+
+    /**
+     * Returns the number of songs left in the queue.
+     */
     queueLength() {
         return this.playlist.length;
     }
+
+    /**
+     * Resets to the queue to be empty.
+     */
     clearQueue() {
         this.playlist = [];
     }
 
+    /**
+     * Returns true if the manager is currently playing music.
+     */
     isPlaying() {
         return this.dispatcher != null;
     }
@@ -65,6 +88,11 @@ class MusicManager {
         return result;
     }
 
+    /**
+     * Connects the bot to the voice channel that the user is currently in
+     *
+     * @param {Discord.Message} message Message sent by the user to use a command
+     */
     async connect(message) {
         // Check if the user is in a voice channel
         const channel = message.member.voice.channel;
@@ -80,12 +108,21 @@ class MusicManager {
             throw error;
         }
     }
+    /**
+     * Disconnects the bot from the voice channel gracefully.
+     */
     disconnect() {
         if (this.voiceChannel) {
             this.voiceChannel.leave();
         }
     }
 
+    /**
+     * Returns an object that represents the first YouTube search result with the provided
+     * search
+     *
+     * @param {string} searchString Search string used to search on YouTube
+     */
     async search(searchString) {
         // Searching
         let searchFilters = null;
