@@ -2,8 +2,8 @@
 
 ## Overview
 
-This discord bot is a personal project. It is implemented using the Discord.js
-library and the Node.js framework.
+This discord bot is a personal project. It is implemented using the Discord.js/Commando
+library and the Node.js framework using Typescript.
 
 ## Installation
 
@@ -37,7 +37,7 @@ within a local `.env` file.
 
 Run the application using the following command:
 
-    $ node .
+    $ npm start
 
 Stop the application by terminating the process. On bash: `CTRL-C`.
 
