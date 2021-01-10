@@ -9,7 +9,7 @@
         "prestart": "npm install ytdl-core@latest",
         "start": "node index.js",
         "test": "jest",
-        "dev": "nodemon --ext ts --exec \"npm run build && node ./dist/_index.js\""
+        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node ./dist/_index.js\""
     },
     "author": "",
     "license": "ISC",
@@ -26,6 +26,7 @@
         "ytsr": "^3.2.1"
     },
     "devDependencies": {
+        "@types/node": "^14.14.20",
         "eslint": "^7.8.1",
         "jest": "^26.5.2",
         "typescript": "^4.1.3"

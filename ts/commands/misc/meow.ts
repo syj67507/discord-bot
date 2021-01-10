@@ -6,7 +6,7 @@ module.exports = class MeowCommand extends (
     constructor(client: CommandoClient) {
         super(client, {
             name: "meow",
-            group: "first",
+            group: "misc",
             memberName: "meow",
             description: "Replies with a meow, kitty cat.",
         });
