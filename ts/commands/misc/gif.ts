@@ -17,6 +17,7 @@ module.exports = class GifCommand extends (
             group: "misc",
             memberName: "gif",
             description: "Gives back a gif based on your search term",
+            argsPromptLimit: 0,
             args: [
                 {
                     key: "search",
