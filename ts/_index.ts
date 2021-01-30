@@ -12,7 +12,10 @@ const client: CommandoClient = new CommandoClient({
 
 client.registry
     .registerDefaultTypes()
-    .registerGroups([["misc", "Miscellaneous Commands"]])
+    .registerGroups([
+        ["misc", "Miscellaneous Commands"],
+        ["troll", "Troll Commands"],
+    ])
     .registerDefaultGroups()
     .registerDefaultCommands({ eval: false })
     .registerCommandsIn(path.join(__dirname, "commands"));
