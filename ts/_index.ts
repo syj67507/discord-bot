@@ -15,6 +15,7 @@ client.registry
     .registerGroups([
         ["misc", "Miscellaneous Commands"],
         ["troll", "Troll Commands"],
+        ["music", "Music Player Commands"],
     ])
     .registerDefaultGroups()
     .registerDefaultCommands({ eval: false })
