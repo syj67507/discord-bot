@@ -8,7 +8,7 @@
         "build": "tsc",
         "prestart": "npm install ytdl-core@latest",
         "start": "node dist/index.js",
-        "test": "jest",
+        "test": "jest --passWithNoTests",
         "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/index.js\""
     },
     "author": "",
