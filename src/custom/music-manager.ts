@@ -1,50 +1,78 @@
+import {
+    StreamDispatcher,
+    VoiceChannel,
+    VoiceConnection,
+    VoiceState,
+} from "discord.js";
+import { CommandoClient, CommandoMessage } from "discord.js-commando";
+
 const ytdl = require("ytdl-core");
 const ytsr = require("ytsr");
 const { logger: log, format: f } = require("../custom/logger");
 
-class MusicManager {
-    constructor(client) {
+interface Track {
+    title: string;
+    link: string;
+    duration: string;
+}
+
+export default class MusicManager {
+    private static instance: MusicManager;
+    static getInstance(client: CommandoClient): MusicManager {
+        if (!MusicManager.instance) {
+            MusicManager.instance = new MusicManager(client);
+        }
+        return MusicManager.instance;
+    }
+
+    playlist: Track[];
+    private client: CommandoClient;
+    private voiceChannel: VoiceChannel | undefined;
+    private voiceConnection: VoiceConnection | undefined;
+    private dispatcher: StreamDispatcher | undefined;
+    constructor(client: CommandoClient) {
         this.playlist = [];
         this.client = client;
-        this.voiceChannel = null;
-        this.voiceConnection = null;
-        this.dispatcher = null;
+        this.voiceChannel = undefined;
+        this.voiceConnection = undefined;
+        this.dispatcher = undefined;
 
         // Handles manager's property values on voice state changes
-        this.client.on("voiceStateUpdate", (oldState, newState) => {
-            if (newState.member.user.bot) {
-                if (newState.channel === null) {
-                    this.voiceChannel = null;
-                    this.voiceConnection = null;
-                    this.dispatcher = null;
-                } else {
-                    this.voiceChannel = newState.channel;
-                    this.voiceConnection = this.client.voice.connections.first();
+        this.client.on(
+            "voiceStateUpdate",
+            (oldState: VoiceState, newState: VoiceState) => {
+                if (newState.member!.user.bot) {
+                    if (newState.channel === null) {
+                        this.voiceChannel = undefined;
+                        this.voiceConnection = undefined;
+                        this.dispatcher = undefined;
+                    } else {
+                        this.voiceChannel = newState.channel;
+                        this.voiceConnection = this.client.voice!.connections.first();
+                    }
                 }
+                console.log(
+                    "debug: MUSICMANAGER - Voice Updated:",
+                    this.voiceChannel?.id
+                );
             }
-        });
+        );
     }
 
     /**
-     * Adds a song to the front of the queue/playlist.
+     * Adds a track to the queue/playlist. By default, the track is added
+     * at the end. This is configurable using the position parameter.
      *
-     * @param {object} song Song object
+     * @param {Track} track Track object
+     * @param {number} position The position where in playlist to add the track.
+     * To add to the beginning, set this parameter to 0.
      */
-    queueAtBeginning(song) {
-        this.playlist.unshift(song);
+    queue(track: Track, position: number = this.queueLength()) {
+        this.playlist.splice(position, 0, track);
     }
 
     /**
-     * Adds a song to the back of the queue/playlist.
-     *
-     * @param {object} song Song object
-     */
-    queue(song) {
-        this.playlist.push(song);
-    }
-
-    /**
-     * Returns the number of songs left in the queue.
+     * Returns the number of tracks left in the queue.
      */
     queueLength() {
         return this.playlist.length;
@@ -61,15 +89,15 @@ class MusicManager {
      * Returns true if the manager is currently playing music.
      */
     isPlaying() {
-        return this.dispatcher != null;
+        return this.dispatcher != undefined;
     }
     /**
      * Determines if the passed in argument is a YouTube link
      *
-     * @param {string} link The link to the song
+     * @param {string} link The link to the track
      * @returns Boolean
      */
-    isYTLink(link) {
+    isYTLink(link: string) {
         // Checks if the link is from YouTube
         const linkTemplates = [
             "https://youtu.be/",
@@ -93,12 +121,11 @@ class MusicManager {
      *
      * @param {Discord.Message} message Message sent by the user to use a command
      */
-    async connect(message) {
+    // async connect(message: CommandoMessage) {
+    async connect(channel: VoiceChannel | null) {
         // Check if the user is in a voice channel
-        const channel = message.member.voice.channel;
         if (channel == null) {
-            message.channel.send("You've got to join a voice channel.");
-            throw Error("Unable to join voice channel");
+            throw new Error(`Unable to join voice channel: ${channel}`);
         }
 
         // Attempts to connect
@@ -123,7 +150,7 @@ class MusicManager {
      *
      * @param {string} searchString Search string used to search on YouTube
      */
-    async search(searchString) {
+    async search(searchString: string) {
         // Searching
         let searchFilters = null;
         let searchResults = null;
@@ -141,7 +168,7 @@ class MusicManager {
             throw error;
         }
         // Processing results
-        searchResults.items = searchResults.items.filter((item) => {
+        searchResults.items = searchResults.items.filter((item: any) => {
             return item.type === "video";
         });
         if (searchResults.items.length === 0) {
@@ -160,19 +187,29 @@ class MusicManager {
      *
      * @param {Discord.Message} message The message that invoked this command.
      */
-    play(message) {
+    play(message: CommandoMessage) {
+        // Validation checks for playing
+        if (this.queueLength() <= 0) {
+            throw new Error("Queue is empty.");
+        }
+        if (!this.voiceChannel || !this.voiceConnection) {
+            throw new Error(
+                "Music Manager not connected. Must be connected in order to play"
+            );
+        }
+
         // Plays the next song in the queue
-        const song = this.playlist.shift();
-        const playback = ytdl(song.link);
-        this.dispatcher = this.voiceConnection.play(playback, {
+        const track = this.playlist.shift();
+        const playback = ytdl(track!.link);
+        this.dispatcher = this.voiceConnection!.play(playback, {
             filter: "audioonly",
             quality: "highestaudio",
-        });
+        } as any);
 
         this.dispatcher.on("start", async () => {
             log.debug(f("dispatcher", "Now Playing..."));
             message.channel.send(
-                `:notes: Now Playing: [${song.duration}] *${song.title}*`
+                `:notes: Now Playing: [${track!.duration}] *${track!.title}*`
             );
         });
 
@@ -202,5 +239,3 @@ class MusicManager {
         });
     }
 }
-
-module.exports = MusicManager;

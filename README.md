@@ -2,10 +2,10 @@
 
 ## Overview
 
-This discord bot is a personal project. It is implemented using the Discord.js
-library and the Node.js framework.
+This discord bot is a personal project. It is implemented using the Discord.js/Commando
+library and the Node.js framework using Typescript.
 
-## Installation
+# Installation
 
 This project uses the Node.js framework. Download and install node at the following link: https://nodejs.org/en/
 
@@ -37,7 +37,9 @@ within a local `.env` file.
 
 Run the application using the following command:
 
-    $ node .
+    $ npm run clean
+    $ npm run build
+    $ npm start
 
 Stop the application by terminating the process. On bash: `CTRL-C`.
 
@@ -45,13 +47,15 @@ Stop the application by terminating the process. On bash: `CTRL-C`.
 
 One instance of this bot is deployed using Heroku. Every time the master branch is updated, Heroku will automatically deploy once the Continuous Integration checks have passed.
 
+# Project Notes
+
 ## Logging
 
 Logs are implemented using the `winston` library. The logs are set to output to the console. When deployed to Heroku, the application logs will hold all of the console outputs. The documentation for the `winston` library can be seen in the following link.
 
 https://www.npmjs.com/package/winston
 
-### Notes
+## FFMPEG changes
 
 Buildpacks for `ffmpeg` have been replaced by using the npm package `ffmpeg-static`. This was in response to issues with the ultra command.
 This was the following buildpack added on the heroku settings page.
