@@ -18,9 +18,6 @@ module.exports = class StopCommand extends (
     async run(message: CommandoMessage, args: any) {
         const mm = MusicManager.getInstance(this.client);
         log.debug(f("stop", `MusicManager isPlaying: ${mm.isPlaying()}`));
-        if (!mm.isPlaying()) {
-            return message.reply("I'm not playing anything.");
-        }
         mm.disconnect();
         log.debug(f("stop", "MusicManager disconnected."));
         return null;

@@ -28,24 +28,27 @@ module.exports = class PlayCommand extends (
         const mm = MusicManager.getInstance(this.client);
 
         try {
-            // Connects if currently not playing
-            if (mm.isPlaying() == false) {
-                log.debug(f("play", "Not playing. Connecting..."));
-                await mm.connect(message.member.voice.channel);
-                log.debug(f("play", "Connected."));
-            }
             if (args.track) {
+                console.log(mm.playlist);
                 log.debug(f("play", `Searching YT for ${args.track}`));
                 const track = await mm.search(args.track);
                 mm.queue(track, 0);
                 log.debug(f("play", `Queued: ${track.link}`));
+                console.log(mm.playlist);
             }
-            if (mm.queueLength() > 0) {
-                mm.play(message);
+            if (mm.queueLength() < 1) {
+                return message.reply("There is nothing to play.");
             }
+            // Connects if currently not playing
+            if (mm.isPlaying() == false) {
+                log.debug(f("play", "Not playing. Connecting..."));
+                await mm.connect(message.member!.voice.channel);
+                log.debug(f("play", "Connected."));
+            }
+            mm.play(message);
         } catch (error) {
             log.error(f("play", error));
-            message.reply("Join a voice channel in order to play a track.");
+            message.reply(`Error: Contact bot admin ${this.client.owners[0]}.`);
         }
         return null;
     }

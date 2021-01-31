@@ -34,7 +34,7 @@ module.exports = class KillCommand extends (
     }
     run(message: CommandoMessage, args: any) {
         // Check permissions
-        const authorRole = message.member.roles.highest;
+        const authorRole = message.member!.roles.highest;
         const subjectRole = args.member.roles.highest;
         if (authorRole.comparePositionTo(subjectRole) < 0) {
             log.debug(

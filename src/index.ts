@@ -1,4 +1,5 @@
 import { CommandoClient } from "discord.js-commando";
+import MusicManager from "./custom/music-manager";
 import path from "path";
 
 require("dotenv").config();
@@ -26,3 +27,5 @@ client.once("ready", () => {
     client?.user?.setActivity("with Commando");
 });
 client.login(token);
+
+MusicManager.getInstance(client); // Initializing the music manager

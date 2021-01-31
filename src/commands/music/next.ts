@@ -23,7 +23,7 @@ module.exports = class NextCommand extends (
         try {
             if (!mm.isPlaying()) {
                 log.debug(f("next", "Not playing. Connecting..."));
-                await mm.connect(message.member.voice.channel);
+                await mm.connect(message.member!.voice.channel);
                 log.debug(f("next", "Connected."));
             }
             mm.play(message);

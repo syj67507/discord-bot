@@ -33,12 +33,12 @@ module.exports = class ReviveCommand extends (
 
         for (const member of args.members) {
             log.debug(f("revive", `Member ID: ${member}`));
-            if (owners.includes(message.member.id)) {
+            if (owners.includes(message.member!.id)) {
                 log.debug(f("revive", "Client owner override."));
             }
             if (
-                member.id === message.member.id &&
-                !owners.includes(message.member.id)
+                member.id === message.member!.id &&
+                !owners.includes(message.member!.id)
             ) {
                 return message.reply("You cannot revive yourself");
             }

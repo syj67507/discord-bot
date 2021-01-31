@@ -16,14 +16,14 @@ module.exports = class UltraCommand extends (
     async run(message: CommandoMessage) {
         // Validation checks
         log.debug(f("ultra", "Validating..."));
-        if (message.member.voice.channel == null) {
+        if (message.member!.voice.channel == null) {
             return message.reply("You must join a voice channel.");
         }
         log.debug(f("ultra", "Validated"));
 
         // Let the bot join the channel
         log.debug(f("ultra", "Joining channel"));
-        const channel = message.member.voice.channel;
+        const channel = message.member!.voice.channel;
         const connection = await channel.join();
         log.debug(f("ultra", "Joined channel"));
         log.debug(f("ultra", `Joined channel: ${channel.name}`));

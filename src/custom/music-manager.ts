@@ -51,6 +51,10 @@ export default class MusicManager {
                         this.voiceConnection = this.client.voice!.connections.first();
                     }
                 }
+                console.log(
+                    "debug: MUSICMANAGER - Voice Updated:",
+                    this.voiceChannel?.id
+                );
             }
         );
     }
