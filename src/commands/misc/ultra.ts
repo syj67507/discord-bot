@@ -1,28 +1,29 @@
-const UsageError = require("../custom/UsageError.js");
-const log = require("../custom/logger").logger;
-const f = require("../custom/logger").format;
+import { CommandoMessage, Command, CommandoClient } from "discord.js-commando";
+import { logger as log, format as f } from "../../custom/logger";
 
-module.exports = {
-    name: "ultra",
-    description: "Plays the clip...",
-    usage: `
-        Must be in a voice channel to use the command
-        ${process.env.PREFIX}ultra
-        `,
-    async execute(message, args) {
+module.exports = class UltraCommand extends (
+    Command
+) {
+    constructor(client: CommandoClient) {
+        super(client, {
+            name: "ultra",
+            group: "misc",
+            memberName: "ultra",
+            description: "Endeavor...",
+        });
+    }
+
+    async run(message: CommandoMessage) {
         // Validation checks
         log.debug(f("ultra", "Validating..."));
-        if (message.member.voice.channel == null) {
-            message.channel.send("You must join a voice channel.");
-            throw new UsageError(
-                "Client cannot join a null value voice channel"
-            );
+        if (message.member!.voice.channel == null) {
+            return message.reply("You must join a voice channel.");
         }
         log.debug(f("ultra", "Validated"));
 
         // Let the bot join the channel
         log.debug(f("ultra", "Joining channel"));
-        const channel = message.member.voice.channel;
+        const channel = message.member!.voice.channel;
         const connection = await channel.join();
         log.debug(f("ultra", "Joined channel"));
         log.debug(f("ultra", `Joined channel: ${channel.name}`));
@@ -38,7 +39,7 @@ module.exports = {
 
         dispatcher.on("error", (error) => {
             log.error(f("ultra", "Error in playing the clip."));
-            log.error(f("ultra", error));
+            log.error(f("ultra", `${error}`));
         });
 
         dispatcher.on("finish", () => {
@@ -46,5 +47,6 @@ module.exports = {
             channel.leave();
             log.debug(f("ultra", "Left the channel"));
         });
-    },
+        return null;
+    }
 };
