@@ -6,7 +6,7 @@
     "scripts": {
         "clean": "tsc --build --clean && rm -rf dist",
         "build": "tsc",
-        "prestart": "npm i ytdl-core@latest ytsr",
+        "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/index.js",
         "test": "jest --passWithNoTests",
         "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/index.js\""
