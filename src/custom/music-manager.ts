@@ -212,10 +212,7 @@ export default class MusicManager {
      * @param {Discord.Message} message The message that invoked this command.
      */
     play(message: CommandoMessage): void {
-        // Validation checks for playing
-        if (this.queueLength() <= 0) {
-            throw new Error("Queue is empty.");
-        }
+        // Validation checks before playing
         if (!this.voiceChannel || !this.voiceConnection) {
             throw new Error(
                 "Music Manager not connected. Must be connected in order to play"
@@ -224,7 +221,10 @@ export default class MusicManager {
 
         // Plays the next song in the queue
         const track = this.playlist.shift();
-        const playback = ytdl(track!.link, {
+        if (!track) {
+            throw new Error("Queue is empty.");
+        }
+        const playback = ytdl(track.link, {
             filter: "audioonly",
             quality: "highestaudio",
         });
