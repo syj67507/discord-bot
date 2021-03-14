@@ -2,9 +2,7 @@ import { CommandoMessage, Command, CommandoClient } from "discord.js-commando";
 import { format as f, logger as log } from "../../custom/logger";
 import MusicManager from "../../custom/music-manager";
 
-module.exports = class QueueCommand extends (
-    Command
-) {
+module.exports = class QueueCommand extends Command {
     constructor(client: CommandoClient) {
         super(client, {
             name: "queue",

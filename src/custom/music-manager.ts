@@ -6,14 +6,14 @@ import {
 } from "discord.js";
 import { CommandoClient, CommandoMessage } from "discord.js-commando";
 
-const ytdl = require("ytdl-core");
-const ytsr = require("ytsr");
-const { logger: log, format: f } = require("../custom/logger");
+import ytdl from "ytdl-core";
+import ytsr from "ytsr";
+import { logger as log, format as f } from "../custom/logger";
 
 interface Track {
     title: string;
     link: string;
-    duration: string;
+    duration: string | null;
 }
 
 export default class MusicManager {
@@ -154,30 +154,46 @@ export default class MusicManager {
         // Searching
         let searchFilters = null;
         let searchResults = null;
-        try {
-            // Search filters inherently sort by relevance
-            // Getting a filter to only return "Videos"
-            searchFilters = await ytsr.getFilters(searchString);
-            searchFilters = searchFilters.get("Type").get("Video");
 
-            // Applying filter and getting results
+        // Search filters inherently sort by relevance
+        // Getting a filter to only return "Videos"
+        try {
+            searchFilters = await ytsr.getFilters(searchString);
+        } catch (error) {
+            throw error;
+        }
+        searchFilters = searchFilters.get("Type");
+        if (!searchFilters) {
+            throw new Error("Unable to get search filters: Type");
+        }
+        searchFilters = searchFilters.get("Video");
+        if (!searchFilters) {
+            throw new Error("Unable to get search filters: Video");
+        }
+
+        // Applying filter and getting results
+        if (!searchFilters.url) {
+            throw new Error("Unable to get search filters URL");
+        }
+        try {
             searchResults = await ytsr(searchFilters.url, {
                 limit: 1,
             });
         } catch (error) {
             throw error;
         }
+
         // Processing results
         searchResults.items = searchResults.items.filter((item: any) => {
             return item.type === "video";
         });
         if (searchResults.items.length === 0) {
-            throw new Error("No results found.");
+            throw new Error("Search results are empty.");
         }
         return {
-            title: searchResults.items[0].title,
-            link: searchResults.items[0].url,
-            duration: searchResults.items[0].duration,
+            title: (searchResults.items[0] as ytsr.Video).title,
+            link: (searchResults.items[0] as ytsr.Video).url,
+            duration: (searchResults.items[0] as ytsr.Video).duration,
         };
     }
     /**
@@ -200,13 +216,13 @@ export default class MusicManager {
 
         // Plays the next song in the queue
         const track = this.playlist.shift();
-        const playback = ytdl(track!.link);
-        this.dispatcher = this.voiceConnection!.play(playback, {
+        const playback = ytdl(track!.link, {
             filter: "audioonly",
             quality: "highestaudio",
-        } as any);
+        });
+        this.dispatcher = this.voiceConnection!.play(playback);
 
-        this.dispatcher.on("start", async () => {
+        this.dispatcher.on("start", () => {
             log.debug(f("dispatcher", "Now Playing..."));
             message.channel.send(
                 `:notes: Now Playing: [${track!.duration}] *${track!.title}*`
@@ -233,7 +249,7 @@ export default class MusicManager {
 
         this.dispatcher.on("error", (error) => {
             message.channel.send("Ran into an error when playing.");
-            log.debug(f("dispatcher", error));
+            log.debug(f("dispatcher", `${error}`));
             this.disconnect();
             log.debug(f("play", "Left the voice channel."));
         });
