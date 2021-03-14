@@ -26,7 +26,7 @@ module.exports = class PlayCommand extends Command {
     async run(message: CommandoMessage, args: any) {
         const mm = MusicManager.getInstance(this.client);
 
-        if (mm.isPlaying()) {
+        if (mm.isPlaying() && !args.track) {
             return message.reply(
                 "I am currently playing... use next to skip to the next song"
             );
