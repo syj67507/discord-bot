@@ -56,7 +56,11 @@ module.exports = class QueueCommand extends Command {
             return message.reply(`Queued: ${track.title}`);
         } catch (error) {
             log.error(f("queue", error));
-            return message.reply(`Couldn't find a link for \`${args.track}\``);
+            return message.reply([
+                `Couldn't find a link for \`${args.track}\``,
+                "Either the search had no results or the search failed.",
+                `A restart may be necessary... ${this.client.owners[0]}`,
+            ]);
         }
     }
 };

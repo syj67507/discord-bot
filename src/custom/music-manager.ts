@@ -258,7 +258,10 @@ export default class MusicManager {
         });
 
         this.dispatcher.on("error", (error) => {
-            message.channel.send("Ran into an error when playing.");
+            message.channel.send([
+                "Ran into an error when playing.",
+                `A restart is recommended... ${this.client.owners[0]}`,
+            ]);
             log.debug(f("dispatcher", `${error}`));
             this.disconnect();
             log.debug(f("play", "Left the voice channel."));

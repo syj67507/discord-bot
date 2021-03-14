@@ -42,9 +42,11 @@ module.exports = class PlayCommand extends Command {
                 log.debug(f("play", `Queued: ${track.link}`));
             } catch (error) {
                 log.error(f("play", error));
-                return message.reply(
-                    `Couldn't find a link for \`${args.track}\``
-                );
+                return message.reply([
+                    `Couldn't find a link for \`${args.track}\``,
+                    "Either the search had no results or the search failed.",
+                    `A restart may be necessary... ${this.client.owners[0]}`,
+                ]);
             }
         }
 
