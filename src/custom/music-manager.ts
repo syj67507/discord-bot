@@ -27,15 +27,15 @@ export default class MusicManager {
 
     playlist: Track[];
     private client: CommandoClient;
-    private voiceChannel: VoiceChannel | undefined;
-    private voiceConnection: VoiceConnection | undefined;
-    private dispatcher: StreamDispatcher | undefined;
+    private voiceChannel: VoiceChannel | null;
+    private voiceConnection: VoiceConnection | null;
+    private dispatcher: StreamDispatcher | null;
     constructor(client: CommandoClient) {
         this.playlist = [];
         this.client = client;
-        this.voiceChannel = undefined;
-        this.voiceConnection = undefined;
-        this.dispatcher = undefined;
+        this.voiceChannel = null;
+        this.voiceConnection = null;
+        this.dispatcher = null;
 
         // Handles manager's property values on voice state changes
         this.client.on(
@@ -43,18 +43,23 @@ export default class MusicManager {
             (oldState: VoiceState, newState: VoiceState) => {
                 if (newState.member!.user.bot) {
                     if (newState.channel === null) {
-                        this.voiceChannel = undefined;
-                        this.voiceConnection = undefined;
-                        this.dispatcher = undefined;
+                        this.voiceChannel = null;
+                        this.voiceConnection = null;
+                        this.dispatcher = null;
                     } else {
                         this.voiceChannel = newState.channel;
-                        this.voiceConnection = this.client.voice!.connections.first();
+                        this.voiceConnection = newState.connection; //this.client.voice!.connections.first();
                     }
+                    console.log("debug: MUSICMANAGER - Voice Updated:");
+                    console.log(
+                        "debug: MUSICMANAGER - Voice Channel:",
+                        this.voiceChannel?.id
+                    );
+                    console.log(
+                        "debug: MUSICMANAGER - Voice Connection:",
+                        this.voiceConnection !== null
+                    );
                 }
-                console.log(
-                    "debug: MUSICMANAGER - Voice Updated:",
-                    this.voiceChannel?.id
-                );
             }
         );
     }
@@ -67,29 +72,29 @@ export default class MusicManager {
      * @param {number} position The position where in playlist to add the track.
      * To add to the beginning, set this parameter to 0.
      */
-    queue(track: Track, position: number = this.queueLength()) {
+    queue(track: Track, position: number = this.queueLength()): void {
         this.playlist.splice(position, 0, track);
     }
 
     /**
      * Returns the number of tracks left in the queue.
      */
-    queueLength() {
+    queueLength(): number {
         return this.playlist.length;
     }
 
     /**
      * Resets to the queue to be empty.
      */
-    clearQueue() {
+    clearQueue(): void {
         this.playlist = [];
     }
 
     /**
      * Returns true if the manager is currently playing music.
      */
-    isPlaying() {
-        return this.dispatcher != undefined;
+    isPlaying(): boolean {
+        return this.dispatcher !== null;
     }
     /**
      * Determines if the passed in argument is a YouTube link
@@ -121,8 +126,7 @@ export default class MusicManager {
      *
      * @param {Discord.Message} message Message sent by the user to use a command
      */
-    // async connect(message: CommandoMessage) {
-    async connect(channel: VoiceChannel | null) {
+    async connect(channel: VoiceChannel | null): Promise<void> {
         // Check if the user is in a voice channel
         if (channel == null) {
             throw new Error(`Unable to join voice channel: ${channel}`);
@@ -138,7 +142,7 @@ export default class MusicManager {
     /**
      * Disconnects the bot from the voice channel gracefully.
      */
-    disconnect() {
+    disconnect(): void {
         if (this.voiceChannel) {
             this.voiceChannel.leave();
         }
@@ -150,7 +154,7 @@ export default class MusicManager {
      *
      * @param {string} searchString Search string used to search on YouTube
      */
-    async search(searchString: string) {
+    async search(searchString: string): Promise<Track> {
         // Searching
         let searchFilters = null;
         let searchResults = null;
@@ -203,7 +207,7 @@ export default class MusicManager {
      *
      * @param {Discord.Message} message The message that invoked this command.
      */
-    play(message: CommandoMessage) {
+    play(message: CommandoMessage): void {
         // Validation checks for playing
         if (this.queueLength() <= 0) {
             throw new Error("Queue is empty.");
