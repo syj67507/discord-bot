@@ -10,7 +10,7 @@ import ytdl from "ytdl-core";
 import ytsr from "ytsr";
 import { logger as log, format as f } from "../custom/logger";
 
-interface Track {
+export interface Track {
     title: string;
     link: string;
     duration: string | null;
@@ -153,6 +153,8 @@ export default class MusicManager {
      * search
      *
      * @param {string} searchString Search string used to search on YouTube
+     * @throws {Error} Throws a generic error with custom messages based on the status
+     * of the search results
      */
     async search(searchString: string): Promise<Track> {
         // Searching
@@ -205,6 +207,8 @@ export default class MusicManager {
      * text channel providing what it is playing. This function is called recursively until there
      * are no more song in the playlist. Once finished, the client will leave the voice channel.
      *
+     * Any playback errors that are thrown within the dispatcher will be caught and logged.
+     *
      * @param {Discord.Message} message The message that invoked this command.
      */
     play(message: CommandoMessage): void {
@@ -245,7 +249,9 @@ export default class MusicManager {
                 this.play(message);
             } else {
                 log.debug(f("dispatcher", "No more songs left in queue."));
-                message.channel.send("No more songs left in queue.");
+                message.channel.send(
+                    "No more songs left in queue. You can add more by using the `queue` command"
+                );
                 this.disconnect();
                 log.debug(f("dispatcher", "Left the voice channel."));
             }

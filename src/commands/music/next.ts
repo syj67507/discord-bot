@@ -2,9 +2,7 @@ import { CommandoMessage, Command, CommandoClient } from "discord.js-commando";
 import { format as f, logger as log } from "../../custom/logger";
 import MusicManager from "../../custom/music-manager";
 
-module.exports = class NextCommand extends (
-    Command
-) {
+module.exports = class NextCommand extends Command {
     constructor(client: CommandoClient) {
         super(client, {
             name: "next",
@@ -18,7 +16,7 @@ module.exports = class NextCommand extends (
         const mm = MusicManager.getInstance(this.client);
         log.debug(f("next", `Queue length: ${mm.queueLength()}`));
         if (mm.queueLength() < 1) {
-            return message.reply("There are no tracks left in the queue.");
+            return message.reply("There are no tracks in the queue.");
         }
         try {
             if (!mm.isPlaying()) {

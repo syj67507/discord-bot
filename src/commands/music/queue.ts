@@ -49,9 +49,14 @@ module.exports = class QueueCommand extends Command {
         }
 
         log.debug(f("queue", `Searching YT for ${args.track}`));
-        const track = await mm.search(args.track);
-        mm.queue(track);
-        log.debug(f("queue", `Queued: ${track.link}`));
-        return message.reply(`Queued: ${track.title}`);
+        try {
+            const track = await mm.search(args.track);
+            mm.queue(track);
+            log.debug(f("queue", `Queued: ${track.link}`));
+            return message.reply(`Queued: ${track.title}`);
+        } catch (error) {
+            log.error(f("queue", error));
+            return message.reply(`Couldn't find a link for \`${args.track}\``);
+        }
     }
 };
