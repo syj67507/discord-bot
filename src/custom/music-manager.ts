@@ -30,7 +30,7 @@ export default class MusicManager {
     private voiceChannel: VoiceChannel | null;
     private voiceConnection: VoiceConnection | null;
     private dispatcher: StreamDispatcher | null;
-    constructor(client: CommandoClient) {
+    private constructor(client: CommandoClient) {
         this.playlist = [];
         this.client = client;
         this.voiceChannel = null;
@@ -102,23 +102,29 @@ export default class MusicManager {
      * @param {string} link The link to the track
      * @returns Boolean
      */
-    isYTLink(link: string) {
-        // Checks if the link is from YouTube
-        const linkTemplates = [
-            "https://youtu.be/",
-            "https://youtube.com/watch?",
-            "https://www.youtu.be/",
-            "https://www.youtube.com/watch?",
-        ];
-
-        let result = false;
-        for (const linkTemplate of linkTemplates) {
-            result = result || link.startsWith(linkTemplate);
-            if (result) {
-                break;
-            }
+    isYTLink(link: string): string {
+        let pattern: RegExp = /^(https:\/\/|http:\/\/)?(www.)?youtu(be.com\/watch\?v=|.be\/){1}[a-zA-Z0-9_-]{11}$/;
+        if (link.match(pattern) != null) {
+            return link.substring(link.length - 11);
+        } else {
+            return "";
         }
-        return result;
+    }
+
+    async createTrackFromYTLink(video_id: string): Promise<Track> {
+        let link: string = `https://youtube.com/watch?v=${video_id}`;
+        const info = await ytdl.getInfo(link);
+        let durationMin: number = Math.floor(
+            parseInt(info.videoDetails.lengthSeconds) / 60
+        );
+        let durationSecond: number =
+            parseInt(info.videoDetails.lengthSeconds) % 60;
+        throw Error("asdf");
+        return {
+            title: info.videoDetails.title,
+            link: info.videoDetails.video_url,
+            duration: `${durationMin}:${durationSecond}`,
+        };
     }
 
     /**

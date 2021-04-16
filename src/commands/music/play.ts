@@ -32,21 +32,42 @@ module.exports = class PlayCommand extends Command {
             );
         }
 
-        // Search for a track
+        // Get a track based on argument
         let track: Track;
         if (args.track) {
-            log.debug(f("play", `Searching YT for ${args.track}`));
-            try {
-                track = await mm.search(args.track);
-                mm.queue(track, 0);
-                log.debug(f("play", `Queued: ${track.link}`));
-            } catch (error) {
-                log.error(f("play", error));
-                return message.reply([
-                    `Couldn't find a link for \`${args.track}\``,
-                    "Either the search had no results or the search failed.",
-                    `A restart may be necessary... ${this.client.owners[0]}`,
-                ]);
+            log.debug(f("play", "Checking if argument is a YouTube link"));
+            const video_id = mm.isYTLink(args.track);
+
+            if (video_id) {
+                log.debug(f("play", "Argument is a YouTube link"));
+                try {
+                    track = await mm.createTrackFromYTLink(video_id);
+                    mm.queue(track);
+                } catch (error) {
+                    log.error(f("play", error));
+                    log.error(f("play", "Creating empty track"));
+                    track = {
+                        duration: "",
+                        link: `https://www.youtube.com/watch?v=${video_id}`,
+                        title: "",
+                    };
+                    mm.queue(track);
+                }
+            } else {
+                log.debug(f("play", "Argument is NOT a YouTube link"));
+                log.debug(f("play", `Searching YT for ${args.track}`));
+                try {
+                    track = await mm.search(args.track);
+                    mm.queue(track, 0);
+                    log.debug(f("play", `Queued: ${track.link}`));
+                } catch (error) {
+                    log.error(f("play", error));
+                    return message.reply([
+                        `Couldn't find a link for \`${args.track}\``,
+                        "Either the search had no results or the search failed.",
+                        `A restart may be necessary... ${this.client.owners[0]}`,
+                    ]);
+                }
             }
         }
 
