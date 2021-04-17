@@ -48,26 +48,30 @@ module.exports = class QueueCommand extends Command {
             return message.reply("Queue has been cleared.");
         }
 
-        log.debug(f("play", "Checking if argument is a YouTube link"));
-        const video_id: string = mm.isYTLink(args.track);
+        log.debug(f("queue", "Checking if argument is a YouTube link"));
         let track: Track;
-        if (video_id) {
+        if (mm.isLink(args.track)) {
             log.debug(f("queue", "Argument is a YouTube link"));
             try {
-                track = await mm.createTrackFromYTLink(video_id);
+                track = await mm.createTrackFromYTLink(args.track);
                 mm.queue(track);
             } catch (error) {
                 log.error(f("queue", error));
-                log.error(f("queue", "Creating empty track"));
-                track = {
-                    duration: "",
-                    link: `https://www.youtube.com/watch?v=${video_id}`,
-                    title: "",
-                };
-                mm.queue(track);
+                log.error(
+                    f(
+                        "queue",
+                        "Unable to create Track object" + " from youtube link."
+                    )
+                );
+                return message.reply(
+                    "Unable to queue with the provided link. " +
+                        "Only YouTube links are supported. " +
+                        "If the link is a youtube link, make sure it is valid."
+                );
             }
             return message.reply(`Queued: ${track.title}`);
         } else {
+            log.debug(f("queue", "Argument is NOT a link"));
             log.debug(f("queue", `Searching YT for ${args.track}`));
             try {
                 const track = await mm.search(args.track);

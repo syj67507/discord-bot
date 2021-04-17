@@ -5,6 +5,7 @@ import {
     VoiceState,
 } from "discord.js";
 import { CommandoClient, CommandoMessage } from "discord.js-commando";
+import { info } from "winston";
 
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
@@ -102,29 +103,85 @@ export default class MusicManager {
      * @param {string} link The link to the track
      * @returns Boolean
      */
-    isYTLink(link: string): string {
+    isYTLink(link: string): boolean {
         let pattern: RegExp = /^(https:\/\/|http:\/\/)?(www.)?youtu(be.com\/watch\?v=|.be\/){1}[a-zA-Z0-9_-]{11}$/;
-        if (link.match(pattern) != null) {
-            return link.substring(link.length - 11);
-        } else {
-            return "";
-        }
+        return link.match(pattern) != null;
     }
 
-    async createTrackFromYTLink(video_id: string): Promise<Track> {
-        let link: string = `https://youtube.com/watch?v=${video_id}`;
-        const info = await ytdl.getInfo(link);
-        let durationMin: number = Math.floor(
-            parseInt(info.videoDetails.lengthSeconds) / 60
-        );
-        let durationSecond: number =
-            parseInt(info.videoDetails.lengthSeconds) % 60;
-        throw Error("asdf");
-        return {
-            title: info.videoDetails.title,
-            link: info.videoDetails.video_url,
-            duration: `${durationMin}:${durationSecond}`,
-        };
+    /**
+     * Convenience method to return if a string is a link
+     * @param link
+     * @returns True if the parameter is a link, otherwise false
+     */
+    isLink(link: string): boolean {
+        const linkValues = [
+            "http://",
+            "https://",
+            "www",
+            ".com",
+            ".net",
+            ".org",
+            ".gov",
+            ".be",
+        ];
+        for (const value of linkValues) {
+            if (link.includes(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Creates a track object from the provided youtube link.
+     * @param link A YouTube link
+     * @returns A Track object of the youtube link
+     */
+    async createTrackFromYTLink(link: string): Promise<Track> {
+        if (!this.isYTLink(link)) {
+            throw Error(
+                `MusicManagerError: The link ${link} is not a youtube link.`
+            );
+        }
+
+        // Use video id to create a new link (ytdl doesn't like youtube share links)
+        let video_id: string;
+        if (link.includes("?v=")) {
+            const id_start = link.indexOf("?v=") + 3;
+            video_id = link.substring(id_start, id_start + 11);
+        } else {
+            const id_start = link.indexOf(".be/") + 4;
+            video_id = link.substring(id_start, id_start + 11);
+        }
+
+        link = `https://www.youtube.com/watch?v=${video_id}`;
+        try {
+            const info = await ytdl.getInfo(link);
+            let durationMin: number = Math.floor(
+                parseInt(info.videoDetails.lengthSeconds) / 60
+            );
+            let durationSecond: number =
+                parseInt(info.videoDetails.lengthSeconds) % 60;
+            return {
+                title: info.videoDetails.title,
+                link: info.videoDetails.video_url,
+                duration: `${durationMin}:${durationSecond}`,
+            };
+        } catch (error) {
+            log.error(f("musicmanager", "Error in receiving video details."));
+            log.error(f("musicmanager", error));
+            log.debug(
+                f(
+                    "musicmanager",
+                    "Creating empty track object with youtube link"
+                )
+            );
+            return {
+                title: "title not available",
+                link: link,
+                duration: "00:00",
+            };
+        }
     }
 
     /**
