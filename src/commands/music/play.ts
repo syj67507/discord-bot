@@ -32,21 +32,46 @@ module.exports = class PlayCommand extends Command {
             );
         }
 
-        // Search for a track
+        // Get a track based on argument
         let track: Track;
         if (args.track) {
-            log.debug(f("play", `Searching YT for ${args.track}`));
-            try {
-                track = await mm.search(args.track);
-                mm.queue(track, 0);
-                log.debug(f("play", `Queued: ${track.link}`));
-            } catch (error) {
-                log.error(f("play", error));
-                return message.reply([
-                    `Couldn't find a link for \`${args.track}\``,
-                    "Either the search had no results or the search failed.",
-                    `A restart may be necessary... ${this.client.owners[0]}`,
-                ]);
+            log.debug(f("play", "Checking if argument is a YouTube link"));
+
+            if (mm.isLink(args.track)) {
+                log.debug(f("play", "Argument is a link"));
+                try {
+                    track = await mm.createTrackFromYTLink(args.track);
+                    mm.queue(track);
+                } catch (error) {
+                    log.error(f("play", error));
+                    log.error(
+                        f(
+                            "play",
+                            "Unable to create Track object" +
+                                " from youtube link."
+                        )
+                    );
+                    return message.reply(
+                        "Unable to play with the provided link. " +
+                            "Only YouTube links are supported. " +
+                            "If the link is a youtube link, make sure it is valid."
+                    );
+                }
+            } else {
+                log.debug(f("play", "Argument is NOT a link"));
+                log.debug(f("play", `Searching YT for ${args.track}`));
+                try {
+                    track = await mm.search(args.track);
+                    mm.queue(track, 0);
+                    log.debug(f("play", `Queued: ${track.link}`));
+                } catch (error) {
+                    log.error(f("play", error));
+                    return message.reply([
+                        `Couldn't find a link for \`${args.track}\``,
+                        "Either the search had no results or the search failed.",
+                        `A restart may be necessary... ${this.client.owners[0]}`,
+                    ]);
+                }
             }
         }
 
