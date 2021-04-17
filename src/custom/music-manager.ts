@@ -5,7 +5,6 @@ import {
     VoiceState,
 } from "discord.js";
 import { CommandoClient, CommandoMessage } from "discord.js-commando";
-import { info } from "winston";
 
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
@@ -145,16 +144,15 @@ export default class MusicManager {
         }
 
         // Use video id to create a new link (ytdl doesn't like youtube share links)
-        let video_id: string;
+        let id_start: number;
         if (link.includes("?v=")) {
-            const id_start = link.indexOf("?v=") + 3;
-            video_id = link.substring(id_start, id_start + 11);
+            id_start = link.indexOf("?v=") + 3;
         } else {
-            const id_start = link.indexOf(".be/") + 4;
-            video_id = link.substring(id_start, id_start + 11);
+            id_start = link.indexOf(".be/") + 4;
         }
-
+        const video_id: string = link.substring(id_start, id_start + 11);
         link = `https://www.youtube.com/watch?v=${video_id}`;
+
         try {
             const info = await ytdl.getInfo(link);
             let durationMin: number = Math.floor(
