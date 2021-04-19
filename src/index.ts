@@ -31,6 +31,7 @@ client.login(token);
 MusicManager.getInstance(client); // Initializing the music manager
 
 // Cycling through legal names on No Hands Server
+// Checks every hour
 let lastDateChanged: Date = new Date();
 client.setInterval(async () => {
     // Check if it is time to change the nickname
@@ -53,8 +54,8 @@ client.setInterval(async () => {
     ];
 
     // Fetch the client as a guildMember
-    const noHandsGuildId = "749330283081236532";
-    const clientId = "763939181570949142";
+    const noHandsGuildId = "665419154890817567";
+    const clientId = "705916871605747733";
     const guild = await client.guilds.fetch(noHandsGuildId);
     const guildMember = await guild.members.fetch(clientId);
 
