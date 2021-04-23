@@ -1,10 +1,14 @@
 import { CommandoClient } from "discord.js-commando";
 import MusicManager from "./custom/music-manager";
 import path from "path";
+import fs from "fs";
 
 require("dotenv").config();
 const prefix: any = process.env.PREFIX;
 const token: any = process.env.TOKEN;
+const googleApplicationCredentialsJson: any =
+    process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+fs.writeFileSync("creds.json", googleApplicationCredentialsJson);
 
 const client: CommandoClient = new CommandoClient({
     commandPrefix: prefix,
