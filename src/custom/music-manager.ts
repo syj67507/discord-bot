@@ -5,6 +5,7 @@ import {
     VoiceState,
 } from "discord.js";
 import { CommandoClient, CommandoMessage } from "discord.js-commando";
+import fs from "fs";
 
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
@@ -183,9 +184,24 @@ export default class MusicManager {
     }
 
     /**
+     * Creates a Track object from a local mp3 file to be
+     * used in the playlist/queue
+     *
+     * @param mp3File Path to the mp3File to play
+     * @returns A Track object representing the mp3
+     */
+    createTrackFromMP3(title: string, mp3File: string): Track {
+        return {
+            title: "say.mp3",
+            link: mp3File,
+            duration: "",
+        };
+    }
+
+    /**
      * Connects the bot to the voice channel that the user is currently in
      *
-     * @param {Discord.Message} message Message sent by the user to use a command
+     * @param {Discord.Message} channel Channel to join
      */
     async connect(channel: VoiceChannel | null): Promise<void> {
         // Check if the user is in a voice channel
@@ -285,33 +301,44 @@ export default class MusicManager {
         if (!track) {
             throw new Error("Queue is empty.");
         }
-        const playback = ytdl(track.link, {
-            filter: "audioonly",
-            quality: "highestaudio",
-        });
+
+        let playback = null;
+        const isYTLink = this.isYTLink(track.link);
+        if (isYTLink) {
+            playback = ytdl(track.link, {
+                filter: "audioonly",
+                quality: "highestaudio",
+            });
+        } else {
+            fs.existsSync(track.link);
+            playback = track.link;
+        }
         this.dispatcher = this.voiceConnection!.play(playback);
 
         this.dispatcher.on("start", () => {
-            log.debug(f("dispatcher", "Now Playing..."));
-            message.channel.send(
-                `:notes: Now Playing: [${track!.duration}] *${track!.title}*`
-            );
+            log.debug(f("dispatcher", `Now Playing: ${track.title}`));
+            if (isYTLink) {
+                message.channel.send(
+                    `:notes: Now Playing: [${track!.duration}] *${
+                        track!.title
+                    }*`
+                );
+            }
         });
 
         // Plays the next song or leaves if there isn't one
         this.dispatcher.on("finish", () => {
-            log.debug(f("dispatcher", "Song has finished."));
+            log.debug(f("dispatcher", "Track has finished."));
             log.debug(
-                f("dispatcher", "Songs left in queue: " + this.queueLength())
+                f("dispatcher", "Tracks left in queue: " + this.queueLength())
             );
-
             if (this.playlist.length > 0) {
-                log.debug(f("dispatcher", "Fetching next song in queue..."));
+                log.debug(f("dispatcher", "Fetching next track in queue..."));
                 this.play(message);
             } else {
-                log.debug(f("dispatcher", "No more songs left in queue."));
+                log.debug(f("dispatcher", "No more tracks left in queue."));
                 message.channel.send(
-                    "No more songs left in queue. You can add more by using the `queue` command"
+                    "No more tracks left in queue. You can add more by using the `queue` command"
                 );
                 this.disconnect();
                 log.debug(f("dispatcher", "Left the voice channel."));
