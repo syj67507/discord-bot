@@ -192,7 +192,7 @@ export default class MusicManager {
      */
     createTrackFromMP3(title: string, mp3File: string): Track {
         return {
-            title: "say.mp3",
+            title: title,
             link: mp3File,
             duration: "",
         };
@@ -317,17 +317,26 @@ export default class MusicManager {
 
         this.dispatcher.on("start", () => {
             log.debug(f("dispatcher", `Now Playing: ${track.title}`));
-            if (isYTLink) {
-                message.channel.send(
-                    `:notes: Now Playing: [${track!.duration}] *${
-                        track!.title
-                    }*`
-                );
-            }
+            if (track.title === "SayCmd Output") return;
+            message.channel.send(
+                `:notes: Now Playing: [${track!.duration}] *${track!.title}*`
+            );
         });
 
         // Plays the next song or leaves if there isn't one
         this.dispatcher.on("finish", () => {
+            if (track.title === "SayCmd Output") {
+                log.debug(
+                    f(
+                        "dispatcher",
+                        "SayCmd Output track has finished. Leaving..."
+                    )
+                );
+                this.disconnect();
+                log.debug(f("dispatcher", "Left the voice channel."));
+                return;
+            }
+
             log.debug(f("dispatcher", "Track has finished."));
             log.debug(
                 f("dispatcher", "Tracks left in queue: " + this.queueLength())

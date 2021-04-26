@@ -4,3 +4,4 @@ node_modules
 dist
 *.mp3
 credentials*
+googleApplicationCredentials.json

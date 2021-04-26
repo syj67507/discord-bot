@@ -13,8 +13,7 @@ module.exports = class SayCommand extends Command {
             name: "say",
             group: "misc",
             memberName: "say",
-            description:
-                "Takes some text and synthesizes speech to the voice channel.",
+            description: "Repeat after you!",
             aliases: ["tts", "texttospeech", "text-to-speech"],
             args: [
                 {
