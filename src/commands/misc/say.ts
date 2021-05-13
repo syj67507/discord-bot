@@ -13,13 +13,15 @@ module.exports = class SayCommand extends Command {
             name: "say",
             group: "misc",
             memberName: "say",
-            description: "Repeat after you!",
+            description:
+                "Takes some text and synthesizes speech to the voice channel.",
             aliases: ["tts", "texttospeech", "text-to-speech"],
             args: [
                 {
                     key: "text",
                     prompt: "What do you want me to say?",
                     type: "string",
+                    validate: (text: string) => text.length <= 100,
                 },
             ],
             argsPromptLimit: 0,
@@ -28,21 +30,13 @@ module.exports = class SayCommand extends Command {
     }
 
     async run(message: CommandoMessage, args: any) {
-        // Return error if the input is too long
-        if (args.text.length > 100) {
-            return message.reply([
-                "You've given too many characters.",
-                "There is a 100 character limit",
-            ]);
-        }
-
-        // Errors if music is being played
         const mm = MusicManager.getInstance(this.client);
         if (mm.isPlaying()) {
             return message.reply(
                 "You must first stop playing music before calling this command."
             );
         }
+
         const file = "media/say.mp3";
         try {
             await this.synthesizeSpeech(args.text, file);
@@ -58,10 +52,12 @@ module.exports = class SayCommand extends Command {
             f("say", "Joining voice channel and streaming synthesized text.")
         );
         try {
-            await mm.connect(message.member?.voice.channel!);
-            const sayTrack = mm.createTrackFromMP3("SayCmd Output", file);
-            mm.queue(sayTrack, 0);
-            mm.play(message);
+            const connection = await message.member!.voice.channel?.join();
+            const dispatcher = connection?.play(file);
+            dispatcher?.setVolume(1);
+            dispatcher?.on("finish", async () => {
+                message.member!.voice.channel?.leave();
+            });
         } catch (error) {
             log.error(f("say", error));
             return message.reply([
@@ -71,7 +67,6 @@ module.exports = class SayCommand extends Command {
                     `${this.client.owners[0]}`,
             ]);
         }
-
         return null;
     }
 

@@ -5,7 +5,6 @@ import {
     VoiceState,
 } from "discord.js";
 import { CommandoClient, CommandoMessage } from "discord.js-commando";
-import fs from "fs";
 
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
@@ -184,24 +183,9 @@ export default class MusicManager {
     }
 
     /**
-     * Creates a Track object from a local mp3 file to be
-     * used in the playlist/queue
-     *
-     * @param mp3File Path to the mp3File to play
-     * @returns A Track object representing the mp3
-     */
-    createTrackFromMP3(title: string, mp3File: string): Track {
-        return {
-            title: title,
-            link: mp3File,
-            duration: "",
-        };
-    }
-
-    /**
      * Connects the bot to the voice channel that the user is currently in
      *
-     * @param {Discord.Message} channel Channel to join
+     * @param {Discord.Message} message Message sent by the user to use a command
      */
     async connect(channel: VoiceChannel | null): Promise<void> {
         // Check if the user is in a voice channel
@@ -301,23 +285,14 @@ export default class MusicManager {
         if (!track) {
             throw new Error("Queue is empty.");
         }
-
-        let playback = null;
-        const isYTLink = this.isYTLink(track.link);
-        if (isYTLink) {
-            playback = ytdl(track.link, {
-                filter: "audioonly",
-                quality: "highestaudio",
-            });
-        } else {
-            fs.existsSync(track.link);
-            playback = track.link;
-        }
+        const playback = ytdl(track.link, {
+            filter: "audioonly",
+            quality: "highestaudio",
+        });
         this.dispatcher = this.voiceConnection!.play(playback);
 
         this.dispatcher.on("start", () => {
-            log.debug(f("dispatcher", `Now Playing: ${track.title}`));
-            if (track.title === "SayCmd Output") return;
+            log.debug(f("dispatcher", "Now Playing..."));
             message.channel.send(
                 `:notes: Now Playing: [${track!.duration}] *${track!.title}*`
             );
@@ -325,29 +300,18 @@ export default class MusicManager {
 
         // Plays the next song or leaves if there isn't one
         this.dispatcher.on("finish", () => {
-            if (track.title === "SayCmd Output") {
-                log.debug(
-                    f(
-                        "dispatcher",
-                        "SayCmd Output track has finished. Leaving..."
-                    )
-                );
-                this.disconnect();
-                log.debug(f("dispatcher", "Left the voice channel."));
-                return;
-            }
-
-            log.debug(f("dispatcher", "Track has finished."));
+            log.debug(f("dispatcher", "Song has finished."));
             log.debug(
-                f("dispatcher", "Tracks left in queue: " + this.queueLength())
+                f("dispatcher", "Songs left in queue: " + this.queueLength())
             );
+
             if (this.playlist.length > 0) {
-                log.debug(f("dispatcher", "Fetching next track in queue..."));
+                log.debug(f("dispatcher", "Fetching next song in queue..."));
                 this.play(message);
             } else {
-                log.debug(f("dispatcher", "No more tracks left in queue."));
+                log.debug(f("dispatcher", "No more songs left in queue."));
                 message.channel.send(
-                    "No more tracks left in queue. You can add more by using the `queue` command"
+                    "No more songs left in queue. You can add more by using the `queue` command"
                 );
                 this.disconnect();
                 log.debug(f("dispatcher", "Left the voice channel."));
