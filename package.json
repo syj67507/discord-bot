@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "clean": "tsc --build --clean && rm -rf dist",
+        "clean": "tsc --build --clean && rm -rf dist && rm -f googleApplicationCredentials.json rm -f media/say.mp3",
         "build": "tsc",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/index.js",
@@ -15,6 +15,7 @@
     "license": "ISC",
     "dependencies": {
         "@discordjs/opus": "^0.3.2",
+        "@google-cloud/text-to-speech": "^3.2.0",
         "discord.js": "^12.2.0",
         "discord.js-commando": "github:discordjs/Commando",
         "dotenv": "^8.2.0",

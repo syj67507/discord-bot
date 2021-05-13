@@ -1,14 +1,18 @@
 import { CommandoClient } from "discord.js-commando";
 import MusicManager from "./custom/music-manager";
 import path from "path";
+import fs from "fs";
+import registerGCP from "./custom/register-gcp";
 
 require("dotenv").config();
 const prefix: any = process.env.PREFIX;
 const token: any = process.env.TOKEN;
 
+registerGCP(); // Register GCP credentials (for Text-to-Speech)
+
 const client: CommandoClient = new CommandoClient({
     commandPrefix: prefix,
-    owner: "108726505688862720",
+    owner: "108726505688862720", // @Bonk#9304
 });
 
 client.registry
