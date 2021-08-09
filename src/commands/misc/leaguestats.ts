@@ -27,6 +27,7 @@ module.exports = class LeagueStatsCommand extends (Command) {
 
     // What makes the command do stuff
     async run(message: CommandoMessage, args: any) {
+        const x = ""; // Random var because I messed up LOL
         console.log(args.userInput);
         const leagueURL: URL = searchLeagueName(args.userInput);
         message.say(leagueURL.href);
