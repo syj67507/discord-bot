@@ -7,9 +7,9 @@
         "clean": "tsc --build --clean && rimraf -rf dist && rimraf -f googleApplicationCredentials.json rimraf -f media/say.mp3",
         "build": "tsc",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
-        "start": "node dist/index.js",
+        "start": "node dist/v12_src/index.js",
         "test": "jest --passWithNoTests",
-        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/index.js\""
+        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/v12_src/index.js\""
     },
     "author": "",
     "license": "ISC",
