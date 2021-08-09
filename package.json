@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "clean": "tsc --build --clean && rm -rf dist && rm -f googleApplicationCredentials.json rm -f media/say.mp3",
+        "clean": "tsc --build --clean && rimraf -rf dist && rimraf -f googleApplicationCredentials.json rimraf -f media/say.mp3",
         "build": "tsc",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/index.js",
@@ -23,8 +23,8 @@
         "giphy-js-sdk-core": "^1.0.6",
         "pokedex-promise-v2": "^3.2.0",
         "winston": "^3.3.3",
-        "ytdl-core": "^4.5.0",
-        "ytsr": "^3.3.1"
+        "ytdl-core": "^4.9.1",
+        "ytsr": "^3.5.2"
     },
     "devDependencies": {
         "@types/node": "^14.14.20",
