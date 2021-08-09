@@ -4,7 +4,6 @@ import {
     CommandoClient,
     ArgumentInfo,
 } from "discord.js-commando";
-import { link } from "fs";
 
 module.exports = class LeagueStatsCommand extends (Command) {
     constructor(client: CommandoClient) {
