@@ -4,7 +4,6 @@ import {
     CommandoClient,
     ArgumentInfo,
 } from "discord.js-commando";
-import axios from "axios";
 import { link } from "fs";
 
 module.exports = class LeagueStatsCommand extends (Command) {
@@ -27,7 +26,6 @@ module.exports = class LeagueStatsCommand extends (Command) {
 
     // What makes the command do stuff
     async run(message: CommandoMessage, args: any) {
-        console.log(args.userInput);
         const leagueURL: URL = searchLeagueName(args.userInput);
         message.say(leagueURL.href);
         return null;
