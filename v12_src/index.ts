@@ -1,5 +1,5 @@
 console.log("running v12 standard");
-import { Client } from "discord.js";
+import { Client, Collection } from "discord.js";
 import "dotenv/config";
 
 const client = new Client();
@@ -9,7 +9,7 @@ client.on("ready", () => {
     console.log(`Logged in ${client?.user?.id} as ${client?.user?.tag}`);
 });
 
-client.on("message", (message) => {
+client.on("message", async (message) => {
     if (message.author.bot) {
         return;
     }
@@ -20,6 +20,11 @@ client.on("message", (message) => {
         "this message started with the command prefix",
         message.content
     );
+
+    const meowCommand = (await import("./commands/misc/meow")).default;
+    console.log("asdf");
+    await meowCommand.run(message, {});
+    console.log("asdf");
 });
 
 client.login(token);
