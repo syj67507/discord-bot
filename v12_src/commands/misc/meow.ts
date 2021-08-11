@@ -1,22 +1,30 @@
 import { Message } from "discord.js";
-import { Command } from "../base";
+import { ArgumentValues, Command } from "../base";
 
 const command: Command = {
     name: "meow",
     description: "Kitty Cat replies with Meow!",
     arguments: [
         {
-            key: "testing",
+            key: "key1",
             type: "string",
-            description: "this is a test argument",
-            default: "asdf",
+            description: "key1 description",
+        },
+        {
+            key: "key2",
+            type: "string",
+            description: "key2 description",
+        },
+        {
+            key: "key3",
+            type: "number2",
+            description: "key3 description",
         },
     ],
-    async run(message) {
+    async run(message, args: ArgumentValues) {
+        console.log("Inside Meow Command - args:", args);
+        message.channel.send("Meow!");
         return null;
-    },
-    parseArgs(message) {
-        return message;
     },
     aliases: ["cat"],
     group: "misc",

@@ -1,6 +1,7 @@
 console.log("running v12 standard");
 import { Client, Collection } from "discord.js";
 import "dotenv/config";
+import { parseArgs } from "./commands/base";
 
 const client = new Client();
 const token = process.env.TOKEN;
@@ -16,15 +17,19 @@ client.on("message", async (message) => {
     if (!message.content.startsWith(prefix)) {
         return;
     }
-    console.log(
-        "this message started with the command prefix",
-        message.content
-    );
 
-    const meowCommand = (await import("./commands/misc/meow")).default;
-    console.log("asdf");
-    await meowCommand.run(message, {});
-    console.log("asdf");
+    // Parse through message.content
+    const rawArgs = message.content.slice(prefix.length).split(/[ ]+/);
+    const command = rawArgs.shift();
+
+    console.log("command", command);
+    console.log("rawArgs", rawArgs);
+
+    const meowCommand = (await import(`./commands/misc/${command}`)).default;
+
+    const args = parseArgs(rawArgs, meowCommand.arguments);
+
+    await meowCommand.run(message, args);
 });
 
 client.login(token);
