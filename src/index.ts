@@ -34,4 +34,5 @@ client.once("ready", () => {
 client.login(token);
 
 MusicManager.getInstance(client); // Initializing the music manager
-setNicknameCycle(client);
+
+setNicknameCycle(client); // Cycles the client's nickname once every day
