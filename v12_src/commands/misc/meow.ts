@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { ArgumentValues, Command } from "../base";
+import { ArgumentValues, Command } from "../../custom/base";
 
 const command: Command = {
     name: "meow",
@@ -21,13 +21,12 @@ const command: Command = {
             description: "key3 description",
         },
     ],
-    async run(message, args: ArgumentValues) {
-        console.log("Inside Meow Command - args:", args);
+    async run(message: Message, args: ArgumentValues) {
+        console.log(args);
         message.channel.send("Meow!");
         return null;
     },
-    aliases: ["cat"],
-    group: "misc",
+    aliases: ["cat", "kitten", "kit"],
 };
 
 export default command;

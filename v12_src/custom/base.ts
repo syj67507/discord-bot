@@ -1,33 +1,39 @@
 import { Message } from "discord.js";
 
-/**
- * @property name: The name of the command
- * @property description: The description of the command
- * @property run: The function to run the command
- * @property parseArgs: The function to parse the message for arguments for this command
- * @property aliases: The aliases that can also run this command
- * @property group: The name of the group to place this command under
- */
 export interface Command {
+    /**The default name of the command */
     name: string;
+    /**A short description of the command */
     description: string;
-    run: runFunction;
+    /**The configuration information about the arguments of the command */
     arguments: Argument[];
+    /**The function to run when the command is triggerd */
+    run: runFunction;
+    /**The aliases that can also trigger the command */
     aliases?: string[];
-    group?: string;
 }
 
 export interface Argument {
+    /**The key to reference this argument */
     key: string;
+    /**The type of this argument (number|string|boolean) */
     type: string;
+    /**The description of what this argument is */
     description: string;
+    /**The default value of this argument if nothing is passed */
     default?: any;
 }
 
-type parseArgsFunction = (args: string) => any[] | string;
-type runFunction = (message: Message, args: any) => Promise<null>;
+type runFunction = (message: Message, args: ArgumentValues) => Promise<null>;
 
-export function parseArgs(rawArgs: string[], argsInfo?: Argument[]): ArgumentValues {
+/**
+ * Parses the arguments from a string with the provided argument information,
+ * retrieved from a Command.arguments definition.
+ * @param rawArgs The raw string containing all of the arguments to be parsed
+ * @param argsInfo An array of the configuration argument information for each argument
+ * @returns An ArgumentValues structure containing key value pairs for each argument definition.
+ */
+export function parseArgs(rawArgs: string[], argsInfo: Argument[]): ArgumentValues {
     // If no arguments defined for command, return empty arguments object
     if (!argsInfo) {
         return {};
@@ -56,10 +62,9 @@ export function parseArgs(rawArgs: string[], argsInfo?: Argument[]): ArgumentVal
                 break;
         }
     }
-    console.log(result);
     return result;
 }
 
 export type ArgumentValues = {
-    [key: string]: any;
+    [key: string]: string | number | boolean | undefined;
 };
