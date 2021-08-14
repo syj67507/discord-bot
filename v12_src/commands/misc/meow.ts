@@ -6,23 +6,24 @@ const command: Command = {
     description: "Kitty Cat replies with Meow!",
     arguments: [
         {
-            key: "key1",
-            type: "string",
-            description: "key1 description",
+            key: "full",
+            type: "number",
+            description: "whether to throw an error",
+            default: "google",
         },
         {
-            key: "key2",
+            key: "asdf",
             type: "string",
-            description: "key2 description",
+            description: "another string",
         },
         {
-            key: "key3",
-            type: "number2",
-            description: "key3 description",
+            key: "asdf2",
+            type: "string",
+            description: "another string",
         },
     ],
     async run(message: Message, args: ArgumentValues) {
-        console.log(args);
+        // console.log(args);
         message.channel.send("Meow!");
         return null;
     },

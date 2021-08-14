@@ -14,7 +14,7 @@ const commandGroups = new Collection<string, string[]>(); // Groups contain name
 loadCommands(__dirname, commands, commandAliases, commandGroups);
 console.log("Loaded");
 
-client.once("ready", async () => {
+client.once("ready", () => {
     console.log(`Logged in ${client?.user?.id} as ${client?.user?.tag}`);
 });
 
