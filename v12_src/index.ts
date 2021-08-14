@@ -36,18 +36,30 @@ client.on("message", async (message) => {
         return;
     }
 
-    // Retrieve command definition and run
+    // Retrieve command definition
+    const commandAlias = commandAliases.get(rawCommand)!;
+    const command = commands.get(commandAlias)!;
+
+    // Attempt to parse args and run the command
     try {
-        const commandAlias = commandAliases.get(rawCommand)!;
-        const command = commands.get(commandAlias)!;
         const args = parseArgs(rawArgs, command.arguments);
         await command.run(message, args);
     } catch (error) {
         if (error.name === "ArgumentUsageError") {
-            message.reply(`\`${error.message}\``);
+            message.channel.send([
+                `${message.author}`,
+                `\`Invalid command usage: double check your arguments/parameters.\``,
+                `\`${error.message}\``,
+            ]);
         } else {
-            throw error;
+            message.reply([
+                `An error occurred while running the command: \`${error.message}\``,
+                `You shouldn't ever receive an error like this.`,
+                `Please contact the bot admin.`,
+            ]);
         }
+        process.stderr.write("CommandExecutionError: ");
+        console.error(error);
     }
 });
 

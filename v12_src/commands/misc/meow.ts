@@ -12,18 +12,15 @@ const command: Command = {
             default: "google",
         },
         {
-            key: "key2",
+            key: "error",
             type: "string",
-            description: "another string",
-        },
-        {
-            key: "key3",
-            type: "boolean",
             description: "another string",
         },
     ],
     async run(message: Message, args: ArgumentValues) {
-        // console.log(args);
+        if (args.error === "error") {
+            throw new Error("asdf");
+        }
         message.channel.send("Meow!");
         return null;
     },
