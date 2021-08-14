@@ -30,15 +30,24 @@ client.on("message", async (message) => {
     const rawArgs = message.content.toLowerCase().slice(prefix.length).split(/[ ]+/);
     const rawCommand = rawArgs.shift();
 
-    // Find if the command is in the aliases
-    if (rawCommand && commandAliases.has(rawCommand)) {
-        // Retrieve command definition and run
+    // If the command is not found in the aliases
+    if (!(rawCommand && commandAliases.has(rawCommand))) {
+        message.reply(`Unknown command \`${prefix}${rawCommand}\` not found.`);
+        return;
+    }
+
+    // Retrieve command definition and run
+    try {
         const commandAlias = commandAliases.get(rawCommand)!;
         const command = commands.get(commandAlias)!;
         const args = parseArgs(rawArgs, command.arguments);
         await command.run(message, args);
-    } else {
-        message.reply(`Unknown command \`${prefix}${rawCommand}\` not found.`);
+    } catch (error) {
+        if (error.name === "ArgumentUsageError") {
+            message.reply(`\`${error.message}\``);
+        } else {
+            throw error;
+        }
     }
 });
 

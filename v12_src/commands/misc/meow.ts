@@ -6,19 +6,19 @@ const command: Command = {
     description: "Kitty Cat replies with Meow!",
     arguments: [
         {
-            key: "full",
+            key: "key1",
             type: "number",
             description: "whether to throw an error",
             default: "google",
         },
         {
-            key: "asdf",
+            key: "key2",
             type: "string",
             description: "another string",
         },
         {
-            key: "asdf2",
-            type: "string",
+            key: "key3",
+            type: "boolean",
             description: "another string",
         },
     ],
