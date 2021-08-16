@@ -4,6 +4,8 @@
  * undefined if unable to successfully parse.
  */
 
+import { Guild, GuildMember } from "discord.js";
+
 /**
  * Validates the incoming value to see if it is a number. If it is not a number,
  * it will return undefined
@@ -34,4 +36,14 @@ export function validateBoolean(value: string): boolean | undefined {
     if (truthyValues.has(value)) return true;
     if (falsyValues.has(value)) return false;
     return undefined;
+}
+
+export async function validateUser(
+    value: string,
+    guild: Guild
+): Promise<GuildMember | undefined> {
+    if (value.match(/^<@![0-9]{18}>$/) == null) {
+        return undefined;
+    }
+    return await guild.members.fetch(value.replace("<@!", "").replace(">", ""));
 }

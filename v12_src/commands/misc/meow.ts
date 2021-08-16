@@ -10,11 +10,7 @@ const command: Command = {
             type: "number",
             description: "whether to throw an error",
             default: "google",
-        },
-        {
-            key: "error",
-            type: "string",
-            description: "another string",
+            validator: (value: number) => [5, 4, 3].includes(value),
         },
     ],
     async run(message: Message, args: ArgumentValues) {

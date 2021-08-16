@@ -42,13 +42,15 @@ client.on("message", async (message) => {
 
     // Attempt to parse args and run the command
     try {
-        const args = parseArgs(rawArgs, command.arguments);
+        const args = await parseArgs(rawArgs, command.arguments, message.guild!);
         await command.run(message, args);
     } catch (error) {
         if (error.name === "ArgumentUsageError") {
-            message.channel.send([
-                `${message.author}`,
-                `\`Invalid command usage: double check your arguments/parameters.\``,
+            message.reply([`\`Invalid command usage\``, `\`${error.message}\``]);
+        } else if (error.name === "ArgumentCustomValidationError") {
+            message.reply([
+                `\`Invalid command usage: Did not pass the requirements.\``,
+                `\`Check the help command for more information.\``,
                 `\`${error.message}\``,
             ]);
         } else {

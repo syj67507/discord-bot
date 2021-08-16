@@ -1,17 +1,21 @@
-import { Message } from "discord.js";
+import { Guild, GuildMember, Message } from "discord.js";
+import { ArgumentCustomValidationError } from "../errors/ArgumentCustomValidationError";
 import { ArgumentRuntimeError } from "../errors/ArgumentRuntimeError";
 import { ArgumentUsageError } from "../errors/ArgumentUsageError";
-import { validateNumber, validateBoolean } from "./validators";
+import { validateNumber, validateBoolean, validateUser } from "./validators";
 
 export interface Argument {
     /**The key to reference this argument */
     key: string;
-    /**The type of this argument (number|string|boolean) */
-    type: "number" | "string" | "boolean";
+    /**The type of this argument (number|string|boolean|user) */
+    type: "number" | "string" | "boolean" | "user";
     /**The description of what this argument is */
     description: string;
     /**The default value of this argument if nothing is passed */
     default?: any;
+    /**A validator function to run on the argument.
+     * Expects the parameter type to be the same as the argument.type*/
+    validator?: (value: any) => boolean;
 }
 
 /**
@@ -21,7 +25,7 @@ export interface Argument {
  */
 export type ArgumentValues = {
     /**Key/Value pair of the argument */
-    [key: string]: string | number | boolean | undefined;
+    [key: string]: string | number | boolean | GuildMember | undefined;
 };
 
 /**
@@ -29,9 +33,14 @@ export type ArgumentValues = {
  * retrieved from a Command.arguments definition.
  * @param rawArgs The raw string containing all of the arguments to be parsed
  * @param argsInfo An array of the configuration argument information for each argument
+ * @param client The instance of this client (used for fetching guildMembers for user arguments)
  * @returns An ArgumentValues structure containing key value pairs for each argument definition.
  */
-export function parseArgs(rawArgs: string[], argumentsInfo: Argument[]): ArgumentValues {
+export async function parseArgs(
+    rawArgs: string[],
+    argumentsInfo: Argument[],
+    guild: Guild
+): Promise<ArgumentValues> {
     // If no arguments defined for command, return empty arguments object
     if (!argumentsInfo) {
         return {};
@@ -72,7 +81,7 @@ export function parseArgs(rawArgs: string[], argumentsInfo: Argument[]): Argumen
         }
 
         // Validate and parse the value
-        let parsedValue: string | number | boolean | undefined;
+        let parsedValue: string | number | boolean | GuildMember | undefined;
         switch (arg.type) {
             case "string":
                 parsedValue = value;
@@ -83,6 +92,9 @@ export function parseArgs(rawArgs: string[], argumentsInfo: Argument[]): Argumen
             case "boolean":
                 parsedValue = validateBoolean(value);
                 break;
+            case "user":
+                parsedValue = await validateUser(value, guild);
+                break;
             default:
                 // Shouldn't ever enter here
                 throw new Error(
@@ -91,11 +103,23 @@ export function parseArgs(rawArgs: string[], argumentsInfo: Argument[]): Argumen
                 );
         }
 
-        // Throw usage error if validators did not return a valid for argument
+        // Throw usage error if validators returned undefined
         if (parsedValue) {
             result[arg.key] = parsedValue;
         } else {
             throw new ArgumentUsageError(arg, value);
+        }
+
+        // Uses custom validator if one is passed
+        if (arg.validator) {
+            try {
+                const valid = arg.validator(parsedValue);
+                if (valid == false) {
+                    throw new ArgumentCustomValidationError(arg, value);
+                }
+            } catch (error) {
+                throw error;
+            }
         }
     }
 
