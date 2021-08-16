@@ -71,12 +71,12 @@ export async function parseArgs(
         let value = rawArgs.shift()!;
 
         // If no value passed but a default is defined
-        if (!value && arg.default) {
+        if (!value && arg.default !== undefined) {
             value = arg.default;
         }
 
         // If no value passed and no default defined
-        if (!value && !arg.default) {
+        if (!value && arg.default === undefined) {
             throw new ArgumentUsageError(arg, value);
         }
 
@@ -104,7 +104,7 @@ export async function parseArgs(
         }
 
         // Throw usage error if validators returned undefined
-        if (parsedValue) {
+        if (parsedValue !== undefined) {
             result[arg.key] = parsedValue;
         } else {
             throw new ArgumentUsageError(arg, value);
