@@ -7,9 +7,9 @@ const client = new Client();
 const token = process.env.TOKEN;
 const prefix = process.env.PREFIX || "!";
 
-const commands = new Collection<string, Command>(); // Command definitions
+export const commands = new Collection<string, Command>(); // Command definitions
 const commandAliases = new Collection<string, string>(); // All aliases that map to a command definition
-const commandGroups = new Collection<string, string[]>(); // Groups contain name of all commands
+export const commandGroups = new Collection<string, string[]>(); // Groups contain name of all commands
 
 loadCommands(__dirname, commands, commandAliases, commandGroups);
 console.log("Loaded");
