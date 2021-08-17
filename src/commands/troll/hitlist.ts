@@ -5,7 +5,6 @@ import {
     CommandoClient,
     ArgumentInfo,
 } from "discord.js-commando";
-import { MembershipStates, Message, SystemChannelFlags } from "discord.js";
 
 module.exports = class HitListCommand extends (Command) {
     constructor(client: CommandoClient) {
@@ -13,6 +12,7 @@ module.exports = class HitListCommand extends (Command) {
             name: "hitlist",
             group: "troll",
             memberName: "hitlist",
+            aliases: ["hl", "killList"],
             description: "Displays killed people in the server in a hitlist.",
         });
     }
@@ -25,7 +25,7 @@ module.exports = class HitListCommand extends (Command) {
 
 /**
  * Returns values of killed users of a server in an array.
- * @returns {members} array of killed users in a server.
+ * @returns {string[]} array of killed users in a server.
  */
 
 function killedPeople() {
