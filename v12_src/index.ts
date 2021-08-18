@@ -5,13 +5,9 @@ import { loadCommands } from "./custom/loadCommands";
 
 const client = new Client();
 const token = process.env.TOKEN;
-const prefix = process.env.PREFIX || "!";
+const prefix = process.env.PREFIX!;
 
-export const commands = new Collection<string, Command>(); // Command definitions
-const commandAliases = new Collection<string, string>(); // All aliases that map to a command definition
-export const commandGroups = new Collection<string, string[]>(); // Groups contain name of all commands
-
-loadCommands(__dirname, commands, commandAliases, commandGroups);
+export const { commands, commandAliases, commandGroups } = loadCommands(__dirname);
 console.log("Loaded");
 
 client.once("ready", () => {
@@ -46,18 +42,18 @@ client.on("message", async (message) => {
         await command.run(message, args);
     } catch (error) {
         if (error.name === "ArgumentUsageError") {
-            message.reply([`\`Invalid command usage\``, `\`${error.message}\``]);
+            message.reply(["`Invalid command usage`", `\`${error.message}\``]);
         } else if (error.name === "ArgumentCustomValidationError") {
             message.reply([
-                `\`Invalid command usage: Did not pass the requirements.\``,
-                `\`Check the help command for more information.\``,
+                "`Invalid command usage: Did not pass the requirements.`",
+                "`Check the help command for more information.`",
                 `\`${error.message}\``,
             ]);
         } else {
             message.reply([
                 `An error occurred while running the command: \`${error.message}\``,
-                `You shouldn't ever receive an error like this.`,
-                `Please contact the bot admin.`,
+                "You shouldn't ever receive an error like this.",
+                "Please contact the bot admin.",
             ]);
         }
         process.stderr.write("CommandExecutionError: ");

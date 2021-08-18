@@ -12,6 +12,11 @@ const command: Command = {
             default: "google",
             validator: (value: number) => [5, 4, 3].includes(value),
         },
+        {
+            key: "key2",
+            type: "string",
+            description: "whether to throw an error",
+        },
     ],
     async run(message: Message, args: ArgumentValues) {
         if (args.error === "error") {

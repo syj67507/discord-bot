@@ -5,17 +5,13 @@ import { Command } from "./base";
 /**
  * Loads all of the commands into the provided collections. This function mutates the provided collection parameters.
  * @param indexPath The path of where the index.ts file is located
- * @param commands A collection containing the default command name and the corresponding command definition
- * @param commandAliases A collection containing all of the aliases, mapping them to the corresponding default command name
- * @param commandGroups A collection of each command group and their default command names
+ * @returns {LoadedCommands} An object containing several collections of command definitions/info
  */
-export function loadCommands(
-    indexPath: string,
-    commands: Collection<string, Command>,
-    commandAliases: Collection<string, string>,
-    commandGroups: Collection<string, string[]>
-) {
+export function loadCommands(indexPath: string): LoadedCommands {
     // Loads in all of the commands into grouped collections
+    const commands = new Collection<string, Command>();
+    const commandAliases = new Collection<string, string>();
+    const commandGroups = new Collection<string, string[]>();
 
     const groups = fs.readdirSync(`${indexPath}/commands`); //);"./v12_src/commands");
     for (const group of groups) {
@@ -37,4 +33,18 @@ export function loadCommands(
             commands.set(command.name, command);
         }
     }
+    return {
+        commands,
+        commandAliases,
+        commandGroups,
+    };
+}
+
+interface LoadedCommands {
+    /**A collection containing the default command name and the corresponding command definition */
+    commands: Collection<string, Command>;
+    /**A collection containing all of the aliases, mapping them to the corresponding default command name */
+    commandAliases: Collection<string, string>;
+    /**A collection of each command group and their default command names */
+    commandGroups: Collection<string, string[]>;
 }
