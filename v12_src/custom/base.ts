@@ -61,14 +61,15 @@ export async function parseArgs(
 
     // Need a copy to prevent modification of original command argument definition
     const argsInfo = [...argumentsInfo];
+    const argValues = [...rawArgs];
 
     const result: ArgumentValues = {
-        full: rawArgs.join(" "),
+        full: argValues.join(" "),
     };
 
     while (argsInfo.length) {
         const arg = argsInfo.shift()!;
-        let value = rawArgs.shift()!;
+        let value = argValues.shift()!;
 
         // If no value passed but a default is defined
         if (!value && arg.default !== undefined) {
@@ -123,8 +124,8 @@ export async function parseArgs(
         }
     }
 
-    if (rawArgs.length > 0) {
-        result["remaining"] = rawArgs.join(" ");
+    if (argValues.length > 0) {
+        result["remaining"] = argValues.join(" ");
     }
 
     return result;
