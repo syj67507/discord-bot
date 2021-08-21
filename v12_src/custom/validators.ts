@@ -40,7 +40,7 @@ export function validateBoolean(value: string): boolean | undefined {
 
 export async function validateUser(
     value: string,
-    guild: Guild
+    guild: Guild | any
 ): Promise<GuildMember | undefined> {
     if (value.match(/^<@![0-9]{18}>$/) === null) {
         return undefined;
