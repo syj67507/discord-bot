@@ -142,4 +142,6 @@ export interface Command {
     run: (message: Message, args: ArgumentValues) => Promise<null>;
     /**The aliases that can also trigger the command */
     aliases?: string[];
+    /**Defines whether the command is enabled for use */
+    enabled: boolean | "fixed";
 }

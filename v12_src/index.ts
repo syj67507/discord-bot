@@ -21,6 +21,13 @@ client.on("message", async (message) => {
     if (!message.content.startsWith(prefix)) {
         return;
     }
+    if (!message.guild || !message.member) {
+        message.channel.send([
+            "Can't use commands in DM's.",
+            "Go to the server and try using the command.",
+        ]);
+        return;
+    }
 
     // Parse through message.content
     const rawArgs = message.content.toLowerCase().slice(prefix.length).split(/[ ]+/);
@@ -37,12 +44,10 @@ client.on("message", async (message) => {
     const command = commands.get(commandAlias)!;
 
     // If command is disabled stop here
-    // If the command is a utility command, then you can not disable it
-    ///// This can be handled inside of the utility commands run() definition
-    ///// Or the disable property can be [enable, disable, fixed]
-    ///// Could have a different command definition for utilty commands that
-    ///// does not have a disable property, so the enable/disable only allows
-    ///// for changes on those that have that property (non-utility commands)
+    if (command.enabled === false) {
+        message.channel.send(`\`${prefix}${rawCommand}\` is disabled.`);
+        return;
+    }
 
     // Attempt to parse args and run the command
     try {

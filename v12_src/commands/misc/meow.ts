@@ -1,9 +1,11 @@
 import { Message } from "discord.js";
 import { ArgumentValues, Command } from "../../custom/base";
 
-const command: Command = {
+const meowCommand: Command = {
     name: "meow",
     description: "Kitty Cat replies with Meow!",
+    aliases: ["cat", "kitten", "kit"],
+    enabled: true,
     arguments: [
         {
             key: "key1",
@@ -25,7 +27,6 @@ const command: Command = {
         message.channel.send("Meow!");
         return null;
     },
-    aliases: ["cat", "kitten", "kit"],
 };
 
-export default command;
+export default meowCommand;

@@ -15,6 +15,7 @@ const helpCommand: Command = {
         },
     ],
     aliases: ["h"],
+    enabled: true,
     async run(message: Message, args: ArgumentValues) {
         // Fetch the DM Channel to send the help information to
         // let dmChannel = message.author.dmChannel;
@@ -77,6 +78,7 @@ function makeHelpAllMessage(
     const helpMessage = [
         `To run a command, use \`${prefix}command\` in any text channel provided on the server.`,
         `Use \`${prefix}help <command>\` to view detailed information about a specific command.`,
+        "Any commands that ~~crossed out~~ are currently disabled.",
         "",
         "__**Available commands**__",
         "",
@@ -88,7 +90,11 @@ function makeHelpAllMessage(
 
         for (const commandName of commandGroup) {
             const command = commands.get(commandName)!;
-            helpMessage.push(`**${command.name}:** ${command.description}`);
+            let m = `**${command.name}:** ${command.description}`;
+            if (command.enabled === false) {
+                m = `~~${m}~~`;
+            }
+            helpMessage.push(m);
         }
         helpMessage.push("");
     }
@@ -101,7 +107,7 @@ function makeHelpAllMessage(
  * @returns {string[]} An array of strings of all the command details
  */
 function makeSpecificHelpMessage(command: Command): string[] {
-    const { aliases, description, name, arguments: args } = command;
+    const { aliases, description, enabled, name, arguments: args } = command;
 
     let usageArgs: string = "";
     let argDetails: string[] = [];
@@ -117,6 +123,7 @@ function makeSpecificHelpMessage(command: Command): string[] {
     return [
         `__Command **${name}**__`,
         description,
+        `Currently ${enabled === false ? "**disabled**" : "**enabled**"}`,
         "",
         `**Usage:** \`${name} ${usageArgs}\``,
         `**Aliases:** \`[${aliases}]\``,
