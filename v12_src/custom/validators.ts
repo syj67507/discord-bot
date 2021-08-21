@@ -42,7 +42,7 @@ export async function validateUser(
     value: string,
     guild: Guild
 ): Promise<GuildMember | undefined> {
-    if (value.match(/^<@![0-9]{18}>$/) == null) {
+    if (value.match(/^<@![0-9]{18}>$/) === null) {
         return undefined;
     }
     return await guild.members.fetch(value.replace("<@!", "").replace(">", ""));

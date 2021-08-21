@@ -9,21 +9,11 @@ const meowCommand: Command = {
     arguments: [
         {
             key: "key1",
-            type: "number",
-            description: "whether to throw an error",
-            default: "google",
-            validator: (value: number) => [5, 4, 3].includes(value),
-        },
-        {
-            key: "key2",
-            type: "string",
+            type: "user",
             description: "whether to throw an error",
         },
     ],
     async run(message: Message, args: ArgumentValues) {
-        if (args.error === "error") {
-            throw new Error("asdf");
-        }
         message.channel.send("Meow!");
         return null;
     },

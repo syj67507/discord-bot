@@ -12,7 +12,7 @@
         "build": "tsc",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/v12_src/index.js",
-        "test": "jest --passWithNoTests --coverage",
+        "test": "npm run clean-build && npm run clean-test && jest --passWithNoTests --coverage",
         "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/v12_src/index.js\""
     },
     "author": "",

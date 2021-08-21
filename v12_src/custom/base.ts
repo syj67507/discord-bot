@@ -33,19 +33,14 @@ export type ArgumentValues = {
  * retrieved from a Command.arguments definition.
  * @param rawArgs The raw string containing all of the arguments to be parsed
  * @param argsInfo An array of the configuration argument information for each argument
- * @param client The instance of this client (used for fetching guildMembers for user arguments)
+ * @param guild The guild where the command was triggered from (used for fetching guildMembers for user arguments)
  * @returns An ArgumentValues structure containing key value pairs for each argument definition.
  */
 export async function parseArgs(
     rawArgs: string[],
     argumentsInfo: Argument[],
-    guild: Guild
+    guild: Guild | any
 ): Promise<ArgumentValues> {
-    // If no arguments defined for command, return empty arguments object
-    if (!argumentsInfo) {
-        return {};
-    }
-
     // Check if keys are valid, otherwise throw ArgumentKeyError
     const keyCheck = argumentsInfo.map((argumentInfo) => {
         return argumentInfo.key;
