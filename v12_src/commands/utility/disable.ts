@@ -15,7 +15,7 @@ const disableCommand: Command = {
     ],
     async run(message: Message, args: ArgumentValues) {
         // Check if user has permissions to use this command
-        if (!message.member?.permissions.has("ADMINISTRATOR")) {
+        if (!message.member!.permissions.has("ADMINISTRATOR")) {
             message.reply("You do not have permissions to disable commands.");
             return null;
         }
