@@ -9,7 +9,7 @@
         "clean-build": "rimraf -rf dist",
         "clean-gcp": "rimraf -f googleApplicationCredentials.json",
         "clean-test": "rimraf -rf coverage",
-        "build": "tsc",
+        "build": "tsc -p ./tsconfig.json",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/v12_src/index.js",
         "test": "npm run clean-build && npm run clean-test && jest --passWithNoTests --coverage",
