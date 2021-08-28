@@ -40,7 +40,7 @@ describe("Testing utility/disable command", () => {
     });
 
     it("should disable the sample command", async () => {
-        expect(commands.get("sample")!.enabled).toBe(false);
+        expect(commands.get("sample")!.enabled).toBe(true);
 
         const permissionsSpy = jest.spyOn(message.member.permissions, "has");
 
