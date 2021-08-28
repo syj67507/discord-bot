@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { Collection, Message } from "discord.js";
-import { ArgumentValues, Command } from "../../custom/base";
+import { Argument, ArgumentValues, Command } from "../../custom/base";
 import { commands, commandGroups, commandAliases } from "../..";
 
 const helpCommand: Command = {
@@ -66,13 +66,15 @@ function capitalize(s: string): string {
 /**
  * Returns an array of messages that contains information about all commands and how to use them
  * @param prefix The command prefix for this client
- * @param commands The collection that contains all of the command definitions
- * @param commandGroups The collection that contains all the groups and all of its commands
+ * @param commands The collection that contains all of the command definitions (from loadedCommands)
+ * @param commandGroups The collection that contains all the groups and all of its commands (from loadedCommands)
  * @returns {string[]} The help message
  */
 function makeHelpAllMessage(
     prefix: string,
+    // eslint-disable-next-line no-shadow
     commands: Collection<string, Command>,
+    // eslint-disable-next-line no-shadow
     commandGroups: Collection<string, string[]>
 ): string[] {
     const helpMessage = [
@@ -108,9 +110,29 @@ function makeHelpAllMessage(
  */
 function makeSpecificHelpMessage(command: Command): string[] {
     const { aliases, description, enabled, name, arguments: args } = command;
+    const { usageArgs, argDetails } = makeArgDescriptions(args);
+    return [
+        `__Command **${name}**__`,
+        description,
+        `Currently ${enabled === false ? "**disabled**" : "**enabled**"}`,
+        "",
+        `**Aliases:** \`[${aliases}]\``,
+        `**Usage:** \`${name} ${usageArgs}\``,
+        "",
+        "**Arguments:**",
+        ...argDetails,
+    ];
+}
 
-    let usageArgs: string = "";
-    let argDetails: string[] = [];
+/**
+ * Returns an object that parses the passed arguments for use in generating a help message
+ * @param args: an array of arguments
+ * @returns usageArgs, a string with all arguments
+ * @returns argDetails, an array where each entry is detailed information about an argument
+ */
+function makeArgDescriptions(args: Argument[]) {
+    let usageArgs = "";
+    const argDetails: string[] = [];
     for (const arg of args) {
         const { key, description, default: defValue } = arg;
         usageArgs += `<${key}> `;
@@ -120,17 +142,7 @@ function makeSpecificHelpMessage(command: Command): string[] {
         }
         argDetails.push(argDescription);
     }
-    return [
-        `__Command **${name}**__`,
-        description,
-        `Currently ${enabled === false ? "**disabled**" : "**enabled**"}`,
-        "",
-        `**Usage:** \`${name} ${usageArgs}\``,
-        `**Aliases:** \`[${aliases}]\``,
-        "",
-        "**Arguments:**",
-        ...argDetails,
-    ];
+    return { usageArgs, argDetails };
 }
 
 export default helpCommand;

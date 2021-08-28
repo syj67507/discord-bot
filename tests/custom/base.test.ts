@@ -8,7 +8,7 @@ describe("Testing base.ts/parseArgs()", () => {
     let c: Client;
     let guild: Guild;
     beforeAll(() => {
-        const c = new Client();
+        c = new Client();
         guild = new Guild(c, {});
         c.destroy();
     });
@@ -271,7 +271,7 @@ describe("Testing base.ts/parseArgs()", () => {
                 key: "key1",
                 type: "number",
                 description: "description",
-                validator: (value) => 5 === value,
+                validator: (value) => value === 5,
             },
         ];
         const expected = {
@@ -289,7 +289,7 @@ describe("Testing base.ts/parseArgs()", () => {
                 key: "key1",
                 type: "number",
                 description: "description",
-                validator: (value) => 5 !== value,
+                validator: (value) => value !== 5,
             },
         ];
 

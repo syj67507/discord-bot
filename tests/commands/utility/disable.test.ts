@@ -11,7 +11,7 @@ describe("Testing utility/disable command", () => {
         reply: jest.fn(),
         member: {
             permissions: {
-                has(perm: any): boolean {
+                has(perm: string): boolean {
                     return perm === "ADMINISTRATOR";
                 },
             },
@@ -40,7 +40,7 @@ describe("Testing utility/disable command", () => {
     });
 
     it("should disable the sample command", async () => {
-        expect(commands.get("sample")!.enabled).toBe(true);
+        expect(commands.get("sample")!.enabled).toBe(false);
 
         const permissionsSpy = jest.spyOn(message.member.permissions, "has");
 

@@ -6,7 +6,7 @@ export class ArgumentRuntimeError extends Error {
     constructor(key: string) {
         const message =
             `Argument Keys: [${key}] are not valid. There are duplicates` +
-            ` or keys contain reserved values 'full' or 'remaining'`;
+            " or keys contain reserved values 'full' or 'remaining'";
         super(message);
         this.name = "ArgumentRuntimeError";
     }

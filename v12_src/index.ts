@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { Client, Collection } from "discord.js";
-import { parseArgs, Command } from "./custom/base";
+import { Client } from "discord.js";
+import { parseArgs } from "./custom/base";
 import { loadCommands } from "./custom/loadCommands";
 
 const client = new Client();

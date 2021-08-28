@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import { ArgumentValues, Command } from "../../custom/base";
-import { commands, commandGroups, commandAliases } from "../..";
+import { commands, commandAliases } from "../..";
 
 const enableCommand: Command = {
     name: "enable",

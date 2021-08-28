@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import fs from "fs";
 import { Collection } from "discord.js";
 import { Command } from "./base";
@@ -14,9 +15,9 @@ export function loadCommands(commandFolderPath: string): LoadedCommands {
     const commandAliases = new Collection<string, string>();
     const commandGroups = new Collection<string, string[]>();
 
-    const groups = fs.readdirSync(`${commandFolderPath}/commands`); //);"./v12_src/commands");
+    const groups = fs.readdirSync(`${commandFolderPath}/commands`);
     for (const group of groups) {
-        let commandFiles = fs.readdirSync(`${commandFolderPath}/commands/${group}`); //`./v12_src/commands/${group}`);
+        const commandFiles = fs.readdirSync(`${commandFolderPath}/commands/${group}`);
         commandGroups.set(group, []);
         for (const commandFile of commandFiles) {
             const path = `${commandFolderPath}/commands/${group}/${commandFile}`.replace(
@@ -42,10 +43,10 @@ export function loadCommands(commandFolderPath: string): LoadedCommands {
 }
 
 interface LoadedCommands {
-    /**A collection containing the default command name and the corresponding command definition */
+    /** A collection containing the default command name and the corresponding command definition */
     commands: Collection<string, Command>;
-    /**A collection containing all of the aliases, mapping them to the corresponding default command name */
+    /** A collection containing all of the aliases, mapping them to the corresponding default command name */
     commandAliases: Collection<string, string>;
-    /**A collection of each command group and their default command names */
+    /** A collection of each command group and their default command names */
     commandGroups: Collection<string, string[]>;
 }

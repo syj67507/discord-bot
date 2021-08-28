@@ -14,7 +14,7 @@ const meowCommand: Command = {
         },
     ],
     async run(message: Message, args: ArgumentValues) {
-        message.channel.send("Meow!");
+        message.channel.send("Meow! " + args.key1);
         return null;
     },
 };

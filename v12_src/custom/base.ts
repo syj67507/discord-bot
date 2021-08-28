@@ -5,15 +5,15 @@ import { ArgumentUsageError } from "../errors/ArgumentUsageError";
 import { validateNumber, validateBoolean, validateUser } from "./validators";
 
 export interface Argument {
-    /**The key to reference this argument */
+    /** The key to reference this argument */
     key: string;
-    /**The type of this argument (number|string|boolean|user) */
+    /** The type of this argument (number|string|boolean|user) */
     type: "number" | "string" | "boolean" | "user";
-    /**The description of what this argument is */
+    /** The description of what this argument is */
     description: string;
-    /**The default value of this argument if nothing is passed */
+    /** The default value of this argument if nothing is passed */
     default?: any;
-    /**A validator function to run on the argument.
+    /** A validator function to run on the argument.
      * Expects the parameter type to be the same as the argument.type*/
     validator?: (value: any) => boolean;
 }
@@ -22,9 +22,12 @@ export interface Argument {
  * @property full - The full string of all the argument values passed in
  * @property remaining - If there are more args passed in than defined,
  * the remaining will be populated here
+ * @property all other properties can be referenced by this.key
+ * @example args.key1
+ * @example args.full
  */
 export type ArgumentValues = {
-    /**Key/Value pair of the argument */
+    /** Key/Value pair of the argument */
     [key: string]: string | number | boolean | GuildMember | undefined;
 };
 
@@ -108,13 +111,9 @@ export async function parseArgs(
 
         // Uses custom validator if one is passed
         if (arg.validator) {
-            try {
-                const valid = arg.validator(parsedValue);
-                if (valid == false) {
-                    throw new ArgumentCustomValidationError(arg, value);
-                }
-            } catch (error) {
-                throw error;
+            const valid = arg.validator(parsedValue);
+            if (valid == false) {
+                throw new ArgumentCustomValidationError(arg, value);
             }
         }
     }
@@ -127,16 +126,16 @@ export async function parseArgs(
 }
 
 export interface Command {
-    /**The default name of the command */
+    /** The default name of the command */
     name: string;
-    /**A short description of the command */
+    /** A short description of the command */
     description: string;
-    /**The configuration information about the arguments of the command */
+    /** The configuration information about the arguments of the command */
     arguments: Argument[];
-    /**The function to run when the command is triggerd */
+    /** The function to run when the command is triggerd */
     run: (message: Message, args: ArgumentValues) => Promise<null>;
-    /**The aliases that can also trigger the command */
+    /** The aliases that can also trigger the command */
     aliases?: string[];
-    /**Defines whether the command is enabled for use */
+    /** Defines whether the command is enabled for use */
     enabled: boolean | "fixed";
 }

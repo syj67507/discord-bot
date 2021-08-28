@@ -53,7 +53,6 @@ describe("validateBoolean", () => {
 });
 
 describe("validateUser", () => {
-    let c: Client;
     let guild: Guild;
     let mockGuild: any;
     beforeAll(() => {
@@ -63,7 +62,7 @@ describe("validateUser", () => {
 
         mockGuild = {
             members: {
-                fetch: (id: string): any => {
+                fetch: (): any => {
                     return new GuildMember(c, {}, guild);
                 },
             },

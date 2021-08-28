@@ -11,7 +11,7 @@ describe("Testing utility/enable command", () => {
         reply: jest.fn(),
         member: {
             permissions: {
-                has(perm: any): boolean {
+                has(perm: string): boolean {
                     return perm === "ADMINISTRATOR";
                 },
             },

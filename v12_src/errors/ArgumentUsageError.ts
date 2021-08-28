@@ -8,7 +8,7 @@ export class ArgumentUsageError extends Error {
      * @param value The value that was unable to parse
      */
     constructor(argumentInfo: Argument, value: string) {
-        let message =
+        const message =
             `Unable to parse argument '${argumentInfo.key}'` +
             ` into type '${argumentInfo.type}' from value '${value}'. `;
         super(message);
