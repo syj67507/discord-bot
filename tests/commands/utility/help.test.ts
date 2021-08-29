@@ -30,7 +30,6 @@ describe("Testing help command", () => {
 
     // reimport modules before each test to reset the loaded command definitions before each test
     let commands: Collection<string, Command>;
-    let commandAliases: Collection<string, string>;
     let commandGroups: Collection<string, string[]>;
     let helpCommand: Command;
     let helpCommandHelpers;
@@ -105,7 +104,6 @@ describe("Testing help command", () => {
 
         const loadedCommands = await import("../../../v12_src/index");
         commands = loadedCommands.commands;
-        commandAliases = loadedCommands.commandAliases;
         commandGroups = loadedCommands.commandGroups;
 
         const module = await import("../../../v12_src/commands/utility/help");
