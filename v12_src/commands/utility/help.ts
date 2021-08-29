@@ -18,8 +18,7 @@ const helpCommand: Command = {
     enabled: true,
     async run(message: Message, args: ArgumentValues) {
         // Fetch the DM Channel to send the help information to
-        // let dmChannel = message.author.dmChannel;
-        let dmChannel = message.channel;
+        let dmChannel = message.author.dmChannel;
         if (dmChannel === null) {
             dmChannel = await message.author.createDM();
         }
@@ -110,18 +109,25 @@ function makeHelpAllMessage(
  */
 function makeSpecificHelpMessage(command: Command): string[] {
     const { aliases, description, enabled, name, arguments: args } = command;
-    const { usageArgs, argDetails } = makeArgDescriptions(args);
-    return [
+    const msg = [
         `__Command **${name}**__`,
         description,
         `Currently ${enabled === false ? "**disabled**" : "**enabled**"}`,
         "",
         `**Aliases:** \`[${aliases}]\``,
-        `**Usage:** \`${name} ${usageArgs}\``,
-        "",
-        "**Arguments:**",
-        ...argDetails,
     ];
+
+    if (args.length > 0) {
+        const { usageArgs, argDetails } = makeArgDescriptions(args);
+        msg.push(
+            `**Usage:** \`${name} ${usageArgs}\``,
+            "",
+            "**Arguments:**",
+            ...argDetails
+        );
+    }
+
+    return msg;
 }
 
 /**
@@ -130,7 +136,7 @@ function makeSpecificHelpMessage(command: Command): string[] {
  * @returns usageArgs, a string with all arguments
  * @returns argDetails, an array where each entry is detailed information about an argument
  */
-function makeArgDescriptions(args: Argument[]) {
+function makeArgDescriptions(args: Argument[]): any {
     let usageArgs = "";
     const argDetails: string[] = [];
     for (const arg of args) {
@@ -146,3 +152,10 @@ function makeArgDescriptions(args: Argument[]) {
 }
 
 export default helpCommand;
+const helpers = {
+    capitalize,
+    makeHelpAllMessage,
+    makeSpecificHelpMessage,
+    makeArgDescriptions,
+};
+export { helpers };

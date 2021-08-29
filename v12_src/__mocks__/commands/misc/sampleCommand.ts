@@ -8,7 +8,15 @@ const sampleCommand: Command = {
     run: async () => {
         return null;
     },
-    arguments: [],
+    arguments: [
+        {
+            key: "key1",
+            type: "number",
+            description: "argument description",
+            default: 0,
+            validator: (value: number) => value > -1,
+        },
+    ],
 };
 
 export default sampleCommand;

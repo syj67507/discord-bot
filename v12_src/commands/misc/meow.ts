@@ -6,13 +6,7 @@ const meowCommand: Command = {
     description: "Kitty Cat replies with Meow!",
     aliases: ["cat", "kitten", "kit"],
     enabled: true,
-    arguments: [
-        {
-            key: "key1",
-            type: "user",
-            description: "whether to throw an error",
-        },
-    ],
+    arguments: [],
     async run(message: Message, args: ArgumentValues) {
         message.channel.send("Meow! " + args.key1);
         return null;

@@ -13,13 +13,13 @@
         "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/v12_src/index.js\"",
         "format-check": "prettier --config .prettierrc --check ./v12_src ./tests",
         "format-write": "prettier --config .prettierrc --write ./v12_src ./tests",
-        "lint": "eslint . .",
+        "lint": "eslint .",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/v12_src/index.js",
         "test": "npm run clean-build && npm run clean-test && jest tests --passWithNoTests --coverage"
     },
     "lint-staged": {
-        "{v12_src,tests}/*": [
+        "{v12_src,tests}/**/*": [
             "npm run format-write",
             "npm run lint"
         ]
