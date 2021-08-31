@@ -11,7 +11,11 @@ const jokeCommand: Command = {
     enabled: true,
     async run(message: Message) {
         log.debug(f("joke", "Fetching the joke..."));
-        const res = await axios.get("https://icanhazdadjoke.com/slack");
+        const res = await axios.get("https://icanhazdadjoke.com/slack", {
+            headers: {
+                "User-Agent": "No Hands Discord Bot",
+            },
+        });
         let joke: string = res.data.attachments[0].text;
 
         log.debug(f("joke", "Processing response..."));
