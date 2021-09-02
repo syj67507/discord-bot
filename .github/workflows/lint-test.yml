@@ -19,6 +19,12 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
+            - name: Set command prefix in env
+              run: |
+                  # Needed for help test snapshots
+                  touch .env
+                  echo 'PREFIX="-"' >> .env
+
             - name: Check for linting errors
               run: npm run lint
 
