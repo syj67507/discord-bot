@@ -13,10 +13,6 @@ describe("Testing base.ts/parseArgs()", () => {
         c.destroy();
     });
 
-    it("should be true", () => {
-        expect(true).toBe(true);
-    });
-
     it("parseArgs should get the number", async () => {
         const rawArgs = ["4"];
         const argumentsInfo: Argument[] = [
@@ -45,7 +41,7 @@ describe("Testing base.ts/parseArgs()", () => {
     });
 
     it("parseArgs should get the string", async () => {
-        const rawArgs = ["test string"];
+        const rawArgs = ["teststring"];
         const argumentsInfo: Argument[] = [
             {
                 key: "key1",
@@ -55,13 +51,13 @@ describe("Testing base.ts/parseArgs()", () => {
         ];
 
         const expected = {
-            full: "test string",
-            key1: "test string",
+            full: "teststring",
+            key1: "teststring",
         };
         const result = await parseArgs(rawArgs, argumentsInfo, guild);
 
         expect(result).toEqual(expected);
-        expect(rawArgs).toEqual(["test string"]);
+        expect(rawArgs).toEqual(["teststring"]);
         expect(argumentsInfo).toEqual([
             {
                 key: "key1",
@@ -345,6 +341,91 @@ describe("Testing base.ts/parseArgs()", () => {
 
         return expect(parseArgs(rawArgs, argumentsInfo, guild)).rejects.toThrowError(
             ArgumentUsageError
+        );
+    });
+
+    it("parseArgs should get all the arguments in a string[]", async () => {
+        const rawArgs = ["teststring", "teststring 2"];
+        const argumentsInfo: Argument[] = [
+            {
+                key: "key1",
+                type: "strings",
+                description: "description",
+            },
+        ];
+
+        const expected = {
+            full: "teststring teststring 2",
+            key1: "teststring teststring 2",
+        };
+        const result = await parseArgs(rawArgs, argumentsInfo, guild);
+
+        expect(result).toEqual(expected);
+        expect(rawArgs).toEqual(["teststring", "teststring 2"]);
+        expect(argumentsInfo).toEqual([
+            {
+                key: "key1",
+                type: "strings",
+                description: "description",
+            },
+        ]);
+    });
+
+    it("parseArgs should get all the remaining arguments in a string[]", async () => {
+        const rawArgs = ["4", "teststring 2", "teststring 3"];
+        const argumentsInfo: Argument[] = [
+            {
+                key: "key1",
+                type: "number",
+                description: "description",
+            },
+            {
+                key: "key2",
+                type: "strings",
+                description: "description",
+            },
+        ];
+
+        const expected = {
+            full: "4 teststring 2 teststring 3",
+            key1: 4,
+            key2: "teststring 2 teststring 3",
+        };
+        const result = await parseArgs(rawArgs, argumentsInfo, guild);
+
+        expect(result).toEqual(expected);
+        expect(rawArgs).toEqual(["4", "teststring 2", "teststring 3"]);
+        expect(argumentsInfo).toEqual([
+            {
+                key: "key1",
+                type: "number",
+                description: "description",
+            },
+            {
+                key: "key2",
+                type: "strings",
+                description: "description",
+            },
+        ]);
+    });
+
+    it("parseArgs should error if string[] is not the last argument definition", async () => {
+        const rawArgs = ["teststring", "teststring 2"];
+        const argumentsInfo: Argument[] = [
+            {
+                key: "key1",
+                type: "strings",
+                description: "description",
+            },
+            {
+                key: "key2",
+                type: "string",
+                description: "description",
+            },
+        ];
+
+        return expect(parseArgs(rawArgs, argumentsInfo, guild)).rejects.toThrowError(
+            "Argument Keys: [Argument of type strings can only be defined for the final argument.] are not valid. There are duplicates or keys contain reserved values 'full' or 'remaining'"
         );
     });
 });

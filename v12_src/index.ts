@@ -2,6 +2,8 @@ import "dotenv/config";
 import { Client } from "discord.js";
 import { parseArgs } from "./custom/base";
 import { loadCommands } from "./custom/loadCommands";
+import { ArgumentUsageError } from "./errors/ArgumentUsageError";
+import { ArgumentCustomValidationError } from "./errors/ArgumentCustomValidationError";
 
 const client = new Client();
 const token = process.env.TOKEN;
@@ -54,9 +56,9 @@ client.on("message", async (message) => {
         const args = await parseArgs(rawArgs, command.arguments, message.guild!);
         await command.run(message, args);
     } catch (error) {
-        if (error.name === "ArgumentUsageError") {
+        if (error instanceof ArgumentUsageError) {
             message.reply(["`Invalid command usage`", `\`${error.message}\``]);
-        } else if (error.name === "ArgumentCustomValidationError") {
+        } else if (error instanceof ArgumentCustomValidationError) {
             message.reply([
                 "`Invalid command usage: Did not pass the requirements.`",
                 "`Check the help command for more information.`",
@@ -64,7 +66,9 @@ client.on("message", async (message) => {
             ]);
         } else {
             message.reply([
-                `An error occurred while running the command: \`${error.message}\``,
+                `An error occurred while running the command: \`${
+                    (error as Error).message
+                }\``,
                 "You shouldn't ever receive an error like this.",
                 "Please contact the bot admin.",
             ]);

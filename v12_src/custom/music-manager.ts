@@ -127,10 +127,10 @@ export default class MusicManager {
             id_start = link.indexOf(".be/") + 4;
         }
         const video_id: string = link.substring(id_start, id_start + 11);
-        link = `https://www.youtube.com/watch?v=${video_id}`;
+        const cleanLink = `https://www.youtube.com/watch?v=${video_id}`;
 
         try {
-            const info = await ytdl.getInfo(link);
+            const info = await ytdl.getInfo(cleanLink);
             const durationMin: number = Math.floor(
                 parseInt(info.videoDetails.lengthSeconds) / 60
             );
@@ -147,7 +147,7 @@ export default class MusicManager {
             log.debug(f("musicmanager", "Creating empty track object with youtube link"));
             return {
                 title: "title not available",
-                link: link,
+                link: cleanLink,
                 duration: "00:00",
             };
         }

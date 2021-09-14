@@ -34,12 +34,13 @@ const jokeCommand: Command = {
  * @returns {string} The joke with the emoji appended at the end
  */
 export function appendEmoji(joke: string): string {
+    let jokeWithEmoji = joke;
     if (Math.floor(Math.random() * 2) == 0) {
-        joke += " :rofl:";
+        jokeWithEmoji += " :rofl:";
     } else {
-        joke += " :joy:";
+        jokeWithEmoji += " :joy:";
     }
-    return joke;
+    return jokeWithEmoji;
 }
 
 export default jokeCommand;

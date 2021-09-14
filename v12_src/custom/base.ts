@@ -7,8 +7,10 @@ import { validateNumber, validateBoolean, validateUser } from "./validators";
 export interface Argument {
     /** The key to reference this argument */
     key: string;
-    /** The type of this argument (number|string|boolean|user) */
-    type: "number" | "string" | "boolean" | "user";
+    /**
+     * The type of this argument (number|string|strings|boolean|user)
+     */
+    type: "number" | "string" | "boolean" | "user" | "strings";
     /** The description of what this argument is */
     description: string;
     /** The default value of this argument if nothing is passed */
@@ -22,13 +24,15 @@ export interface Argument {
  * @property full - The full string of all the argument values passed in
  * @property remaining - If there are more args passed in than defined,
  * the remaining will be populated here
+ * @property fullarr - The full list of arguments will be populated here as a string[]
  * @property all other properties can be referenced by this.key
  * @example args.key1
  * @example args.full
+ * @exampl
  */
 export type ArgumentValues = {
     /** Key/Value pair of the argument */
-    [key: string]: string | number | boolean | GuildMember | undefined;
+    [key: string]: string | string[] | number | boolean | GuildMember | undefined;
 };
 
 /**
@@ -94,6 +98,19 @@ export async function parseArgs(
             case "user":
                 parsedValue = await validateUser(value, guild);
                 break;
+            case "strings":
+                // check if this is the last argument
+                if (argsInfo.length !== 0) {
+                    throw new ArgumentRuntimeError(
+                        "Argument of type strings can only be defined for the final argument."
+                    );
+                }
+                argValues.unshift(value);
+                parsedValue = argValues.join(" ");
+                while (argValues.length > 0) {
+                    argValues.shift();
+                }
+                break;
             default:
                 // Shouldn't ever enter here
                 throw new Error(
@@ -113,6 +130,7 @@ export async function parseArgs(
         if (arg.validator) {
             const valid = arg.validator(parsedValue);
             if (valid == false) {
+                // caught in command execution
                 throw new ArgumentCustomValidationError(arg, value);
             }
         }
@@ -132,7 +150,13 @@ export interface Command {
     description: string;
     /** The configuration information about the arguments of the command */
     arguments: Argument[];
-    /** The function to run when the command is triggerd */
+    /**
+     * The function to run when the command is triggered
+     *
+     * @param { Message } message The message that invoked this command
+     * @param { ArgumentValues } args The arguments that were passed to this command
+     * @returns { Promise<null> } null if no error is thrown
+     */
     run: (message: Message, args: ArgumentValues) => Promise<null>;
     /** The aliases that can also trigger the command */
     aliases?: string[];
