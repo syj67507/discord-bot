@@ -2,6 +2,7 @@ import { Message } from "discord.js";
 import { Command } from "../../custom/base";
 import axios from "axios";
 import { logger as log, format as f } from "../../custom/logger";
+import * as thisModule from "./joke";
 
 const jokeCommand: Command = {
     name: "joke",
@@ -19,7 +20,7 @@ const jokeCommand: Command = {
         let joke: string = res.data.attachments[0].text;
 
         log.debug(f("joke", "Processing response..."));
-        joke = appendEmoji(joke);
+        joke = thisModule.appendEmoji(joke);
         log.debug(f("joke", `Joke: ${joke}`));
 
         log.debug(f("joke", "Sending to channel..."));
