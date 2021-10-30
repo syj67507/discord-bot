@@ -4,6 +4,7 @@ import { parseArgs } from "./custom/base";
 import { loadCommands } from "./custom/loadCommands";
 import { ArgumentUsageError } from "./errors/ArgumentUsageError";
 import { ArgumentCustomValidationError } from "./errors/ArgumentCustomValidationError";
+import registerGCP from "./custom/register-gcp";
 
 const client = new Client();
 const token = process.env.TOKEN;
@@ -11,6 +12,8 @@ const prefix = process.env.PREFIX!;
 
 export const { commands, commandAliases, commandGroups } = loadCommands(__dirname);
 console.log("Loaded");
+
+registerGCP();
 
 client.once("ready", () => {
     console.log(`Logged in ${client?.user?.id} as ${client?.user?.tag}`);

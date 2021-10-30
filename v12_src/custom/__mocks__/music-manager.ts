@@ -1,5 +1,5 @@
 import { Client } from "discord.js";
-const ActualMusicManager = jest.requireActual("../music-manager");
+// const ActualMusicManager = jest.requireActual("../music-manager");
 
 export default class MusicManager {
     private static instance: MusicManager;
