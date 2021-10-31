@@ -1,6 +1,6 @@
 import fs from "fs";
 import { logger as log } from "./logger";
-require("dotenv").config();
+import "dotenv/config";
 
 /**
  * Registers GCP authentication/credentials using environment.
@@ -8,7 +8,7 @@ require("dotenv").config();
  *  GOOGLE_APPLICATION_CREDENTIALS_JSON to be set to the raw service account json details
  *  GOOGLE_APPLICATION_CREDENTIALS to be set "googleApplicationCredentials.json"
  */
-export default function registerGCP() {
+export default function registerGCP(): void {
     const googleApplicationCredentialsJson: any =
         process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
     fs.writeFileSync(
