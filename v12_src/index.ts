@@ -5,13 +5,15 @@ import { loadCommands } from "./custom/loadCommands";
 import { ArgumentUsageError } from "./errors/ArgumentUsageError";
 import { ArgumentCustomValidationError } from "./errors/ArgumentCustomValidationError";
 import registerGCP from "./custom/register-gcp";
+import { logger as log, format as f } from "./custom/logger";
 
 const client = new Client();
 const token = process.env.TOKEN;
 const prefix = process.env.PREFIX!;
 
+log.debug(f("main", "Loading commands..."));
 export const { commands, commandAliases, commandGroups } = loadCommands(__dirname);
-console.log("Loaded");
+log.debug(f("main", "Commands loaded."));
 
 registerGCP();
 
@@ -33,13 +35,17 @@ client.on("message", async (message) => {
         ]);
         return;
     }
+    log.debug(f("main", `Message Contents: ${message.content}`));
 
     // Parse through message.content
     const rawArgs = message.content.toLowerCase().slice(prefix.length).split(/[ ]+/);
     const rawCommand = rawArgs.shift();
+    log.debug(f("main", `Command: ${rawCommand}`));
+    log.debug(f("main", `Raw Arguments: ${rawArgs}`));
 
     // If the command is not found in the aliases
     if (!(rawCommand && commandAliases.has(rawCommand))) {
+        log.debug(f("main", `Command '${rawCommand}' not found.`));
         message.reply(`Unknown command \`${prefix}${rawCommand}\` not found.`);
         return;
     }
@@ -47,9 +53,11 @@ client.on("message", async (message) => {
     // Retrieve command definition
     const commandAlias = commandAliases.get(rawCommand)!;
     const command = commands.get(commandAlias)!;
+    log.debug(f("main", `Command '${rawCommand}' alias detected as ${command.name}`));
 
     // If command is disabled stop here
     if (command.enabled === false) {
+        log.debug(f("main", `Command '${rawCommand}' is disabled.`));
         message.channel.send(`\`${prefix}${rawCommand}\` is disabled.`);
         return;
     }
@@ -57,6 +65,7 @@ client.on("message", async (message) => {
     // Attempt to parse args and run the command
     try {
         const args = await parseArgs(rawArgs, command.arguments, message.guild!);
+        log.debug(f("main", `Parsed arguments: ${JSON.stringify(args, null, 2)}`));
         await command.run(message, args);
     } catch (error) {
         if (error instanceof ArgumentUsageError) {
@@ -77,7 +86,7 @@ client.on("message", async (message) => {
             ]);
         }
         process.stderr.write("CommandExecutionError: ");
-        console.error(error);
+        log.error(error);
     }
 });
 
