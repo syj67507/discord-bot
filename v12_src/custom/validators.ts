@@ -38,6 +38,14 @@ export function validateBoolean(value: string): boolean | undefined {
     return undefined;
 }
 
+/**
+ * Validates the incoming value to see if its a Discord user value. If it is not a
+ * Discord user, it will returned undefined.
+ *
+ * @param value The string value that contains the Discord user's '@' in the format <@!{id}>
+ * @param guild The guild that this user belongs to
+ * @returns The GuildMember object representing the Discord user
+ */
 export async function validateUser(
     value: string,
     guild: Guild | any

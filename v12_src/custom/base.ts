@@ -1,6 +1,6 @@
 import { Guild, GuildMember, Message } from "discord.js";
 import { ArgumentCustomValidationError } from "../errors/ArgumentCustomValidationError";
-import { ArgumentRuntimeError } from "../errors/ArgumentRuntimeError";
+import { ArgumentDefinitionError } from "../errors/ArgumentDefinitionError";
 import { ArgumentUsageError } from "../errors/ArgumentUsageError";
 import { validateNumber, validateBoolean, validateUser } from "./validators";
 
@@ -18,6 +18,10 @@ export interface Argument {
     /** A validator function to run on the argument.
      * Expects the parameter type to be the same as the argument.type*/
     validator?: (value: any) => boolean;
+    /** Whether or not this argument takes infinite number of values.
+     * Will return an array of the defined type.
+     */
+    infinite?: boolean;
 }
 
 /**
@@ -48,17 +52,25 @@ export async function parseArgs(
     argumentsInfo: Argument[],
     guild: Guild | any
 ): Promise<ArgumentValues> {
-    // Check if keys are valid, otherwise throw ArgumentKeyError
+    // Check if keys are valid, otherwise throw ArgumentDefinitionError
     const keyCheck = argumentsInfo.map((argumentInfo) => {
         return argumentInfo.key;
     });
     if (new Set(keyCheck).size !== keyCheck.length) {
         // Duplicate keys
-        throw new ArgumentRuntimeError(keyCheck.toString());
+        throw new ArgumentDefinitionError(
+            `Argument Keys: [${keyCheck.toString()}] are not valid.` +
+                "There may be duplicates.",
+            argumentsInfo
+        );
     }
     if (keyCheck.includes("full") || keyCheck.includes("remaining")) {
         // Reserved
-        throw new ArgumentRuntimeError(keyCheck.toString());
+        throw new ArgumentDefinitionError(
+            `Argument Keys: [${keyCheck.toString()}] are not valid. ` +
+                "The keys [full, remaining] are reserved.",
+            argumentsInfo
+        );
     }
 
     // Need a copy to prevent modification of original command argument definition
@@ -83,25 +95,45 @@ export async function parseArgs(
             throw new ArgumentUsageError(arg, value);
         }
 
+        // If infinite, combine argument values and loop through
+        if (arg.infinite === true) {
+            if (argsInfo.length !== 0) {
+                throw new ArgumentDefinitionError(
+                    "Arguments with the infinite flag must be set only for the final argument.",
+                    arg
+                );
+            }
+            argValues.unshift(value);
+            value = argValues.join(" ");
+            while (argValues.length > 0) {
+                argValues.shift();
+            }
+        }
+
         // Validate and parse the value
-        let parsedValue: string | number | boolean | GuildMember | undefined;
+        let parsedValue: any[] | string;
         switch (arg.type) {
             case "string":
-                parsedValue = value;
+                parsedValue = value.split(" ");
                 break;
             case "number":
-                parsedValue = validateNumber(value);
+                parsedValue = value.split(" ").map((val) => validateNumber(val));
                 break;
             case "boolean":
-                parsedValue = validateBoolean(value);
+                parsedValue = value.split(" ").map((val) => validateBoolean(val));
                 break;
             case "user":
-                parsedValue = await validateUser(value, guild);
+                parsedValue = [];
+                for (const val of value.split(" ")) {
+                    (parsedValue as (GuildMember | undefined)[]).push(
+                        await validateUser(val, guild)
+                    );
+                }
                 break;
             case "strings":
                 // check if this is the last argument
                 if (argsInfo.length !== 0) {
-                    throw new ArgumentRuntimeError(
+                    throw new ArgumentDefinitionError(
                         "Argument of type strings can only be defined for the final argument."
                     );
                 }
@@ -119,11 +151,23 @@ export async function parseArgs(
                 );
         }
 
+        // Parse values as an array if argument expected infinite
         // Throw usage error if validators returned undefined
-        if (parsedValue !== undefined) {
-            result[arg.key] = parsedValue;
+        if (arg.infinite === false) {
+            if (parsedValue[0] !== undefined) {
+                result[arg.key] = parsedValue[0];
+            } else {
+                throw new ArgumentUsageError(arg, value);
+            }
         } else {
-            throw new ArgumentUsageError(arg, value);
+            result[arg.key] = [];
+            for (const val of parsedValue) {
+                if (val !== undefined) {
+                    (result[arg.key] as any[]).push(val);
+                } else {
+                    throw new ArgumentUsageError(arg, value);
+                }
+            }
         }
 
         // Uses custom validator if one is passed

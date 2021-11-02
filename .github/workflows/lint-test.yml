@@ -27,6 +27,3 @@ jobs:
 
             - name: Check for linting errors
               run: npm run lint
-
-            - name: Run unit tests
-              run: npm run test
