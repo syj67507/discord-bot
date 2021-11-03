@@ -14,12 +14,13 @@ const sayCommand: Command = {
     arguments: [
         {
             key: "text",
-            type: "strings",
+            type: "string",
             description: "The text to convert to speech",
+            infinite: true,
         },
     ],
     async run(message: Message, args: ArgumentValues) {
-        const text = args.text as string;
+        const text = (args.text as string[]).join(" ");
         message.channel.send(`Say! ${text}`);
 
         const mm = MusicManager.getInstance(message.client);

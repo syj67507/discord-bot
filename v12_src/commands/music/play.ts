@@ -11,17 +11,18 @@ const playCommand: Command = {
     arguments: [
         {
             key: "track",
-            type: "strings",
+            type: "string",
             description:
                 "The search phrase for YouTube search or the direct YouTube link",
             default: "",
+            infinite: true,
         },
     ],
     async run(message: Message, args: ArgumentValues) {
         const client = message.client;
         const mm = MusicManager.getInstance(client);
 
-        const trackString = args.track as string;
+        const trackString = (args.track as string[]).join(" ");
 
         if (mm.isPlaying() && !trackString) {
             message.reply("I am currently playing... use next to skip to the next song");

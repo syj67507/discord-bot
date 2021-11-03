@@ -10,19 +10,21 @@ const queueCommand: Command = {
     arguments: [
         {
             key: "track",
-            type: "strings",
+            type: "string",
             description:
                 "The search phrase for YouTube search or the direct YouTube link",
             default: "",
+            infinite: true,
         },
     ],
     enabled: true,
     async run(message: Message, args: ArgumentValues): Promise<null> {
         const mm = MusicManager.getInstance(message.client);
+        const trackString = (args.track as string[]).join(" ");
 
         // Displays queue on no track name passed
         const playlist = ["Currently Queued: "];
-        if (args.track === "") {
+        if (trackString === "") {
             log.debug(f("queue", "Displaying queue..."));
             if (mm.queueLength() === 0) {
                 message.reply("No tracks left in queue.");
@@ -38,7 +40,7 @@ const queueCommand: Command = {
         }
 
         // Clears queue if specified
-        if (args.track === "clear") {
+        if (trackString === "clear") {
             log.debug(f("queue", "Clearing queue..."));
             mm.clearQueue();
             log.debug(f("queue", "Queue cleared."));
@@ -48,10 +50,10 @@ const queueCommand: Command = {
 
         log.debug(f("queue", "Checking if argument is a YouTube link"));
         let track: Track;
-        if (mm.isYTLink(args.track as string)) {
+        if (mm.isYTLink(trackString)) {
             log.debug(f("queue", "Argument is a YouTube link"));
             try {
-                track = await mm.createTrackFromYTLink(args.track as string);
+                track = await mm.createTrackFromYTLink(trackString);
                 mm.queue(track);
             } catch (error) {
                 if (error instanceof Error) {
@@ -73,9 +75,9 @@ const queueCommand: Command = {
             return null;
         } else {
             log.debug(f("queue", "Argument is NOT a link"));
-            log.debug(f("queue", `Searching YT for ${args.track}`));
+            log.debug(f("queue", `Searching YT for ${trackString}`));
             try {
-                track = await mm.search(args.track as string);
+                track = await mm.search(trackString);
                 mm.queue(track);
                 log.debug(f("queue", `Queued: ${track.link}`));
                 message.reply(`Queued: ${track.title}`);
@@ -87,7 +89,7 @@ const queueCommand: Command = {
                     log.error(f("queue", "Unknown error."));
                 }
                 message.reply([
-                    `Couldn't find a link for \`${args.track}\``,
+                    `Couldn't find a link for \`${trackString}\``,
                     "Either the search had no results or the search failed.",
                     "A restart may be necessary...@Bonk",
                 ]);

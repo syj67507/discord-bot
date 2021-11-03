@@ -8,9 +8,9 @@ export interface Argument {
     /** The key to reference this argument */
     key: string;
     /**
-     * The type of this argument (number|string|strings|boolean|user)
+     * The type of this argument (number|string|boolean|user)
      */
-    type: "number" | "string" | "boolean" | "user" | "strings";
+    type: "number" | "string" | "boolean" | "user";
     /** The description of what this argument is */
     description: string;
     /** The default value of this argument if nothing is passed */
@@ -36,7 +36,16 @@ export interface Argument {
  */
 export type ArgumentValues = {
     /** Key/Value pair of the argument */
-    [key: string]: string | string[] | number | boolean | GuildMember | undefined;
+    [key: string]:
+        | string
+        | string[]
+        | number
+        | number[]
+        | boolean
+        | boolean[]
+        | GuildMember
+        | GuildMember[]
+        | undefined;
 };
 
 /**
@@ -128,19 +137,6 @@ export async function parseArgs(
                     (parsedValue as (GuildMember | undefined)[]).push(
                         await validateUser(val, guild)
                     );
-                }
-                break;
-            case "strings":
-                // check if this is the last argument
-                if (argsInfo.length !== 0) {
-                    throw new ArgumentDefinitionError(
-                        "Argument of type strings can only be defined for the final argument."
-                    );
-                }
-                argValues.unshift(value);
-                parsedValue = argValues.join(" ");
-                while (argValues.length > 0) {
-                    argValues.shift();
                 }
                 break;
             default:
