@@ -6,16 +6,36 @@ import { ArgumentUsageError } from "./errors/ArgumentUsageError";
 import { ArgumentCustomValidationError } from "./errors/ArgumentCustomValidationError";
 import registerGCP from "./custom/register-gcp";
 import { logger as log, format as f } from "./custom/logger";
+import { setNicknameCycle } from "./custom/nicknameCycle";
 
 const client = new Client();
 const token = process.env.TOKEN;
 const prefix = process.env.PREFIX!;
 
-log.debug(f("main", "Loading commands..."));
+log.info(f("main", "Loading commands..."));
 export const { commands, commandAliases, commandGroups } = loadCommands(__dirname);
-log.debug(f("main", "Commands loaded."));
+log.info(f("main", "Commands loaded."));
 
 registerGCP();
+
+const hourInMilliseconds = 3600000;
+const guildIds = process.env.NICKNAME_CYCLE_GUILD_IDS?.split("/") || [];
+const nicknames = process.env.NICKNAME_CYCLE_NAMES?.split("/") || [];
+if (guildIds.length === nicknames.length) {
+    for (let i = 0; i < guildIds.length; i++) {
+        const guildId = guildIds[i];
+        const names = nicknames[i].split(",");
+        setNicknameCycle(
+            client,
+            guildIds[i],
+            nicknames[i].split(","),
+            hourInMilliseconds
+        );
+        log.info(`Nickname cycle set for ${guildId} with the names: ${names}`);
+    }
+} else {
+    log.error(f("main", "Unable to set up the nicknames cycles for differing lengths."));
+}
 
 client.once("ready", () => {
     console.log(`Logged in ${client?.user?.id} as ${client?.user?.tag}`);
