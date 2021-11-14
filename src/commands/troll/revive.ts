@@ -1,37 +1,27 @@
 import { KillIntervals } from "../../custom/storage";
-import { Command, CommandoClient, CommandoMessage } from "discord.js-commando";
-import { GuildMember, User } from "discord.js";
+import { GuildMember, Message } from "discord.js";
+import { ArgumentValues, Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
 
-module.exports = class ReviveCommand extends (
-    Command
-) {
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "revive",
-            group: "troll",
-            memberName: "revive",
-            description: "Revives a member from that is being killed.",
-            argsPromptLimit: 0,
-            args: [
-                {
-                    key: "members",
-                    prompt: "Who is to be revived?",
-                    error: "Provide a member",
-                    type: "member",
-                    infinite: true,
-                },
-            ],
-        });
-    }
-    run(message: CommandoMessage, args: any) {
+const reviveCommand: Command = {
+    name: "revive",
+    description: "Revives a member from that is being killed.",
+    enabled: true,
+    arguments: [
+        {
+            key: "members",
+            description: "Who is to be revived?",
+            type: "user",
+        },
+    ],
+    async run(message: Message, args: ArgumentValues): Promise<null> {
         const intervals = KillIntervals.getInstance();
-        const owners: string[] = [];
-        for (const user of this.client.owners) {
-            owners.push(user.id);
-        }
+        const owners: string[] = ["108726505688862720"];
+        // for (const user of message.client.owners) {
+        //     owners.push(user.id);
+        // }
 
-        for (const member of args.members) {
+        for (const member of [args.members as GuildMember]) {
             log.debug(f("revive", `Member ID: ${member}`));
             if (owners.includes(message.member!.id)) {
                 log.debug(f("revive", "Client owner override."));
@@ -40,19 +30,23 @@ module.exports = class ReviveCommand extends (
                 member.id === message.member!.id &&
                 !owners.includes(message.member!.id)
             ) {
-                return message.reply("You cannot revive yourself");
+                message.reply("You cannot revive yourself");
+                return null;
             }
             if (!intervals.has(member.id)) {
-                return message.reply(`${member} not being killed.`);
+                message.reply(`${member} not being killed.`);
+                return null;
             }
 
             // Member found, revive...
             const interval = intervals.get(member.id);
-            this.client.clearInterval(interval!);
+            message.client.clearInterval(interval!);
             log.debug(f("revive", `Interval cleared: ${member.id}`));
-            message.say(`${member} revived.`);
+            message.channel.send(`${member} revived.`);
             intervals.delete(member.id);
         }
         return null;
-    }
+    },
 };
+
+export default reviveCommand;

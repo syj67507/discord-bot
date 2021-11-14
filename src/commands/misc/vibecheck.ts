@@ -1,29 +1,20 @@
-import {
-    CommandoMessage,
-    Command,
-    CommandoClient,
-    ArgumentInfo,
-} from "discord.js-commando";
-import { logger as log, format as f } from "../../custom/logger";
+import { Message } from "discord.js";
+import { Command } from "../../custom/base";
 
-module.exports = class PokemondCommand extends (
-    Command
-) {
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "vibecheck",
-            aliases: ["roll", "vc"],
-            group: "misc",
-            memberName: "vibecheck",
-            description: "See how much we vibin'!",
-        });
-    }
-
-    async run(message: CommandoMessage) {
+const vibecheckCommand: Command = {
+    name: "vibecheck",
+    aliases: ["roll", "vc"],
+    description: "Rolls a d20 to see how much we vibin'! ",
+    arguments: [],
+    enabled: true,
+    async run(message: Message) {
         let response = `${Math.ceil(Math.random() * 20)}`;
         if (response === "20") {
             response = `${response} (~‾▿‾)~`;
         }
-        return message.reply(response);
-    }
+        message.reply(response);
+        return null;
+    },
 };
+
+export default vibecheckCommand;

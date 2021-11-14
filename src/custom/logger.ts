@@ -1,6 +1,6 @@
 // Creating a logger file that will be available for the rest of the
 // project to use.
-const winston = require("winston");
+import winston from "winston";
 export const logger = winston.createLogger({
     level: "debug",
     format: winston.format.combine(
@@ -11,6 +11,6 @@ export const logger = winston.createLogger({
     transports: [new winston.transports.Console()],
 });
 
-export function format(prefix: string, message: string) {
+export function format(prefix: string, message: string): string {
     return prefix.toUpperCase() + ": " + message;
 }

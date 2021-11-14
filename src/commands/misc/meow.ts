@@ -1,16 +1,16 @@
-import { CommandoMessage, Command, CommandoClient } from "discord.js-commando";
+import { Message } from "discord.js";
+import { Command } from "../../custom/base";
 
-module.exports = class MeowCommand extends Command {
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "meow",
-            group: "misc",
-            memberName: "meow",
-            description: "Replies with a meow, kitty cat.",
-        });
-    }
-
-    run(message: CommandoMessage) {
-        return message.say("Meow!");
-    }
+const meowCommand: Command = {
+    name: "meow",
+    description: "Kitty Cat replies with Meow!",
+    aliases: ["cat", "kitten", "kit"],
+    enabled: true,
+    arguments: [],
+    async run(message: Message) {
+        message.channel.send("Meow!");
+        return null;
+    },
 };
+
+export default meowCommand;

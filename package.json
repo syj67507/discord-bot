@@ -4,18 +4,60 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "clean": "tsc --build --clean && rimraf -rf dist && rimraf -f googleApplicationCredentials.json rimraf -f media/say.mp3",
-        "build": "tsc",
+        "build": "tsc -p ./tsconfig.json",
+        "clean": "tsc --build --clean && npm run clean-media && npm run clean-build && npm run clean-gcp && npm run clean-test",
+        "clean-media": "rimraf -f media/say.mp3",
+        "clean-build": "rimraf -rf dist",
+        "clean-gcp": "rimraf -f googleApplicationCredentials.json",
+        "clean-test": "rimraf -rf coverage",
+        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/index.js\"",
+        "format-check": "prettier --config .prettierrc --check ./src ./tests ./types",
+        "format-write": "prettier --config .prettierrc --write ./src ./tests ./types",
+        "lint": "eslint .",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/index.js",
-        "test": "jest --passWithNoTests",
-        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/index.js\""
+        "test": "npm run clean-build && npm run clean-test && jest tests --silent"
+    },
+    "lint-staged": {
+        "{src,tests}/**/*": [
+            "npm run format-write",
+            "npm run lint"
+        ]
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
     },
     "author": "",
     "license": "ISC",
+    "babel": {
+        "presets": [
+            [
+                "@babel/preset-env",
+                {
+                    "targets": {
+                        "node": "current"
+                    }
+                }
+            ],
+            "@babel/preset-typescript"
+        ]
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "collectCoverage": true,
+        "collectCoverageFrom": [
+            "src/**/*.ts"
+        ],
+        "coveragePathIgnorePatterns": [
+            "src/index.ts"
+        ]
+    },
     "dependencies": {
         "@discordjs/opus": "^0.3.2",
         "@google-cloud/text-to-speech": "^3.2.0",
+        "axios": "^0.21.1",
         "discord.js": "^12.2.0",
         "discord.js-commando": "github:discordjs/Commando",
         "dotenv": "^8.2.0",
@@ -27,10 +69,22 @@
         "ytsr": "^3.5.2"
     },
     "devDependencies": {
+        "@babel/core": "^7.15.0",
+        "@babel/preset-env": "^7.15.0",
+        "@babel/preset-typescript": "^7.15.0",
+        "@types/jest": "^27.0.1",
         "@types/node": "^14.14.20",
+        "@typescript-eslint/eslint-plugin": "^4.29.3",
+        "@typescript-eslint/parser": "^4.29.3",
+        "babel-jest": "^27.0.6",
         "eslint": "^7.8.1",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-prettier": "^3.4.1",
+        "husky": "^4.3.8",
         "jest": "^26.5.2",
+        "lint-staged": "^11.1.2",
         "nodemon": "^2.0.7",
+        "prettier": "^2.3.2",
         "typescript": "^4.1.3"
     }
 }

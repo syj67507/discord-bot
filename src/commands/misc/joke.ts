@@ -1,37 +1,32 @@
-import {
-    CommandoMessage,
-    Command,
-    CommandoClient,
-    ArgumentInfo,
-} from "discord.js-commando";
+import { Message } from "discord.js";
+import { Command } from "../../custom/base";
 import axios from "axios";
 import { logger as log, format as f } from "../../custom/logger";
+import * as thisModule from "./joke";
 
-module.exports = class JokeCommand extends (
-    Command
-) {
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "joke",
-            aliases: ["jokes", "dadjoke"],
-            group: "misc",
-            memberName: "joke",
-            description: "Sends a dad joke!",
-        });
-    }
-
-    async run(message: CommandoMessage) {
+const jokeCommand: Command = {
+    name: "joke",
+    aliases: ["dadjoke", "jokes"],
+    description: "Sends a dad joke!",
+    arguments: [],
+    enabled: true,
+    async run(message: Message) {
         log.debug(f("joke", "Fetching the joke..."));
-        const res = await axios.get("https://icanhazdadjoke.com/slack");
+        const res = await axios.get("https://icanhazdadjoke.com/slack", {
+            headers: {
+                "User-Agent": "No Hands Discord Bot",
+            },
+        });
         let joke: string = res.data.attachments[0].text;
 
         log.debug(f("joke", "Processing response..."));
-        joke = appendEmoji(joke);
+        joke = thisModule.appendEmoji(joke);
         log.debug(f("joke", `Joke: ${joke}`));
 
         log.debug(f("joke", "Sending to channel..."));
-        return message.reply(joke);
-    }
+        message.reply(joke);
+        return null;
+    },
 };
 
 /**
@@ -39,11 +34,14 @@ module.exports = class JokeCommand extends (
  * @param {string} joke The joke returned from the axios call
  * @returns {string} The joke with the emoji appended at the end
  */
-function appendEmoji(joke: string): string {
+export function appendEmoji(joke: string): string {
+    let jokeWithEmoji = joke;
     if (Math.floor(Math.random() * 2) == 0) {
-        joke += " :rofl:";
+        jokeWithEmoji += " :rofl:";
     } else {
-        joke += " :joy:";
+        jokeWithEmoji += " :joy:";
     }
-    return joke;
+    return jokeWithEmoji;
 }
+
+export default jokeCommand;
