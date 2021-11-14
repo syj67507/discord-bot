@@ -1,56 +1,50 @@
-import { CommandoMessage, Command, CommandoClient } from "discord.js-commando";
+import { Message } from "discord.js";
+import { ArgumentValues, Command } from "../../custom/base";
 import texttospeech from "@google-cloud/text-to-speech";
 import * as protos from "@google-cloud/text-to-speech/build/protos/protos";
-import util from "util";
-import fs from "fs";
 import MusicManager from "../../custom/music-manager";
 import { logger as log, format as f } from "../../custom/logger";
+import fs from "fs";
 
-module.exports = class SayCommand extends Command {
-    ttsClient: any;
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "say",
-            group: "misc",
-            memberName: "say",
-            description:
-                "Takes some text and synthesizes speech to the voice channel.",
-            aliases: ["tts", "texttospeech", "text-to-speech"],
-            args: [
-                {
-                    key: "text",
-                    prompt: "What do you want me to say?",
-                    type: "string",
-                    validate: (text: string) => text.length <= 1000,
-                },
-            ],
-            argsPromptLimit: 0,
-        });
-        this.ttsClient = new texttospeech.TextToSpeechClient();
-    }
+const sayCommand: Command = {
+    name: "say",
+    description: "Takes some text and synthesizes speech to the voice channel.",
+    aliases: ["tts", "texttospeech", "text-to-speech"],
+    enabled: true,
+    arguments: [
+        {
+            key: "text",
+            type: "string",
+            description: "The text to convert to speech",
+            infinite: true,
+        },
+    ],
+    async run(message: Message, args: ArgumentValues) {
+        const text = (args.text as string[]).join(" ");
 
-    async run(message: CommandoMessage, args: any) {
-        const mm = MusicManager.getInstance(this.client);
+        const mm = MusicManager.getInstance(message.client);
         if (mm.isPlaying()) {
-            return message.reply(
+            message.reply(
                 "You must first stop playing music before calling this command."
             );
+            return null;
         }
 
         const file = "media/say.mp3";
         try {
-            await this.synthesizeSpeech(args.text, file);
+            await synthesizeSpeech(text, file);
         } catch (error) {
             log.error(f("say", "Error in synthesizing speech"));
-            log.error(f("say", error));
-            return message.reply(
-                "There was problem in speech synthesis. Try again later."
-            );
+            if (error instanceof Error) {
+                log.error(f("say", error.message));
+            } else {
+                log.error(f("say", "Unknown error."));
+            }
+            message.reply("There was problem in speech synthesis. Try again later.");
+            return null;
         }
 
-        log.debug(
-            f("say", "Joining voice channel and streaming synthesized text.")
-        );
+        log.debug(f("say", "Joining voice channel and streaming synthesized text."));
         try {
             const connection = await message.member!.voice.channel?.join();
             const dispatcher = connection?.play(file);
@@ -59,38 +53,45 @@ module.exports = class SayCommand extends Command {
                 message.member!.voice.channel?.leave();
             });
         } catch (error) {
-            log.error(f("say", error));
-            return message.reply([
+            if (error instanceof Error) {
+                log.error(f("say", error.message));
+            } else {
+                log.error(f("say", "Unknown error."));
+            }
+            message.reply([
                 "An error occurred.",
                 "Make sure to be in a voice channel before calling this command.",
-                "If errors still continue, contact the bot admin: " +
-                    `${this.client.owners[0]}`,
+                "If errors still continue, contact the bot admin: @Bonk",
             ]);
+            return null;
         }
+
         return null;
-    }
-
-    async synthesizeSpeech(text: string, mp3Output: string): Promise<void> {
-        log.debug(f("say", `Creating request with text: ${text}`));
-        const request = {
-            input: { text: text },
-            voice: {
-                languageCode: "en-US",
-                ssmlGender:
-                    protos.google.cloud.texttospeech.v1.SsmlVoiceGender.FEMALE,
-            },
-            audioConfig: {
-                audioEncoding:
-                    protos.google.cloud.texttospeech.v1.AudioEncoding.MP3,
-                volumeGainDb: 10.0,
-                speakingRate: 0.85,
-            },
-        };
-
-        log.debug(f("say", "Awaiting response..."));
-        const [response] = await this.ttsClient.synthesizeSpeech(request);
-        log.debug(f("say", "Response retrieved."));
-        fs.writeFileSync(mp3Output, response.audioContent!, "binary");
-        log.debug(f("say", "Audio content written to file: " + mp3Output));
-    }
+    },
 };
+
+async function synthesizeSpeech(text: string, mp3Output: string): Promise<void> {
+    log.debug(f("say", `Creating request with text: ${text}`));
+    const request = {
+        input: { text: text },
+        voice: {
+            languageCode: "en-US",
+            ssmlGender: protos.google.cloud.texttospeech.v1.SsmlVoiceGender.FEMALE,
+        },
+        audioConfig: {
+            audioEncoding: protos.google.cloud.texttospeech.v1.AudioEncoding.MP3,
+            volumeGainDb: 10.0,
+            speakingRate: 0.85,
+        },
+    };
+
+    log.debug(f("say", "Awaiting response..."));
+    const [response] = await new texttospeech.TextToSpeechClient().synthesizeSpeech(
+        request
+    );
+    log.debug(f("say", "Response retrieved."));
+    fs.writeFileSync(mp3Output, response.audioContent!, "binary");
+    log.debug(f("say", "Audio content written to file: " + mp3Output));
+}
+
+export default sayCommand;

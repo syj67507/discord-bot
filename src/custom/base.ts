@@ -96,7 +96,7 @@ export async function parseArgs(
 
         // If no value passed but a default is defined
         if (!value && arg.default !== undefined) {
-            value = arg.default;
+            value = `${arg.default}`;
         }
 
         // If no value passed and no default defined
@@ -147,9 +147,21 @@ export async function parseArgs(
                 );
         }
 
+        // Uses custom validator if one is passed
+        let valid = true;
+        for (const val of parsedValue) {
+            if (arg.validator) {
+                valid = valid && arg.validator(val);
+                if (valid === false) {
+                    // caught in command execution
+                    throw new ArgumentCustomValidationError(arg, value);
+                }
+            }
+        }
+
         // Parse values as an array if argument expected infinite
         // Throw usage error if validators returned undefined
-        if (arg.infinite === false) {
+        if (arg.infinite !== true) {
             if (parsedValue[0] !== undefined) {
                 result[arg.key] = parsedValue[0];
             } else {
@@ -163,15 +175,6 @@ export async function parseArgs(
                 } else {
                     throw new ArgumentUsageError(arg, value);
                 }
-            }
-        }
-
-        // Uses custom validator if one is passed
-        if (arg.validator) {
-            const valid = arg.validator(parsedValue);
-            if (valid == false) {
-                // caught in command execution
-                throw new ArgumentCustomValidationError(arg, value);
             }
         }
     }

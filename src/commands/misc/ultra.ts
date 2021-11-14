@@ -1,23 +1,19 @@
-import { CommandoMessage, Command, CommandoClient } from "discord.js-commando";
+import { Message } from "discord.js";
+import { Command } from "../../custom/base";
 import { logger as log, format as f } from "../../custom/logger";
 
-module.exports = class UltraCommand extends (
-    Command
-) {
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "ultra",
-            group: "misc",
-            memberName: "ultra",
-            description: "Endeavor...",
-        });
-    }
-
-    async run(message: CommandoMessage) {
+const ultraCommand: Command = {
+    name: "ultra",
+    aliases: ["plusultra", "burn"],
+    description: "Endeavor...",
+    arguments: [],
+    enabled: true,
+    async run(message: Message): Promise<null> {
         // Validation checks
         log.debug(f("ultra", "Validating..."));
         if (message.member!.voice.channel == null) {
-            return message.reply("You must join a voice channel.");
+            message.reply("You must join a voice channel.");
+            return null;
         }
         log.debug(f("ultra", "Validated"));
 
@@ -48,5 +44,7 @@ module.exports = class UltraCommand extends (
             log.debug(f("ultra", "Left the channel"));
         });
         return null;
-    }
+    },
 };
+
+export default ultraCommand;

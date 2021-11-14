@@ -10,16 +10,16 @@
         "clean-build": "rimraf -rf dist",
         "clean-gcp": "rimraf -f googleApplicationCredentials.json",
         "clean-test": "rimraf -rf coverage",
-        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/v12_src/index.js\"",
-        "format-check": "prettier --config .prettierrc --check ./v12_src ./tests ./types",
-        "format-write": "prettier --config .prettierrc --write ./v12_src ./tests ./types",
+        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/index.js\"",
+        "format-check": "prettier --config .prettierrc --check ./src ./tests ./types",
+        "format-write": "prettier --config .prettierrc --write ./src ./tests ./types",
         "lint": "eslint .",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
-        "start": "node dist/v12_src/index.js",
+        "start": "node dist/index.js",
         "test": "npm run clean-build && npm run clean-test && jest tests --silent"
     },
     "lint-staged": {
-        "{v12_src,tests}/**/*": [
+        "{src,tests}/**/*": [
             "npm run format-write",
             "npm run lint"
         ]
@@ -48,10 +48,10 @@
         "testEnvironment": "node",
         "collectCoverage": true,
         "collectCoverageFrom": [
-            "v12_src/**/*.ts"
+            "src/**/*.ts"
         ],
         "coveragePathIgnorePatterns": [
-            "v12_src/index.ts"
+            "src/index.ts"
         ]
     },
     "dependencies": {
