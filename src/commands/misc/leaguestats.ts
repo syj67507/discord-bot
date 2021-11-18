@@ -1,32 +1,24 @@
-import {
-    CommandoMessage,
-    Command,
-    CommandoClient,
-    ArgumentInfo,
-} from "discord.js-commando";
+import { Message } from "discord.js";
+import { ArgumentValues, Command } from "../../custom/base";
 
-module.exports = class LeagueStatsCommand extends (Command) {
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "leaguestats",
-            group: "misc",
-            memberName: "leaguestats",
-            description: "Sends the op.gg profile of requested user (North American Region)",
-            aliases: ["ls", "opgg"],
-            args: [{
-                type: "string",
-                key: "leagueUsernameInput",
-                default: "",
-                prompt: "Username of requested league account.",
-            },]
-        });
-    }
-
-    async run(message: CommandoMessage, args: any) {
-        const leagueURL: URL = searchLeagueName(args.leagueUsernameInput);
-        message.say(leagueURL.href);
+const leagueStatsCommand: Command = {
+    name: "leaguestats",
+    description: "Sends the op.gg profile of requested user (North American Region)",
+    aliases: ["ls", "opgg"],
+    arguments: [
+        {
+            key: "leagueUsernameInput",
+            type: "string",
+            description: "Username of requested league account.",
+        },
+    ],
+    enabled: true,
+    async run(message: Message, args: ArgumentValues) {
+        const input = args.leagueUsernameInput as string;
+        const leagueURL: URL = searchLeagueName(input);
+        message.channel.send(leagueURL.href);
         return null;
-    }
+    },
 };
 
 /**
@@ -34,8 +26,9 @@ module.exports = class LeagueStatsCommand extends (Command) {
  * @param {string} input The username inputted by the user
  * @returns {URL} The new URL with the summoner name attached to the end
  */
-function searchLeagueName(input: string) {
-    const leagueURL = new URL('https://na.op.gg/summoner/userName=' + input);
+export function searchLeagueName(input: string): URL {
+    const leagueURL = new URL("https://na.op.gg/summoner/userName=" + input);
     return leagueURL;
 }
 
+export default leagueStatsCommand;

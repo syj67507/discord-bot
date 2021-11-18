@@ -1,26 +1,33 @@
 {
     "env": {
-        "node": true,
-        "commonjs": true,
         "es2021": true,
-        "jest/globals": true
+        "node": true,
+        "jest": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "prettier"
+    ],
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "ecmaVersion": 12
+        "ecmaVersion": 12,
+        "sourceType": "module"
     },
+    "plugins": [
+        "@typescript-eslint",
+        "prettier"
+    ],
     "rules": {
         "brace-style": ["error", "1tbs", { "allowSingleLine": true }],
-        "comma-dangle": ["error", "always-multiline"],
         "comma-spacing": "error",
         "comma-style": "error",
         "curly": ["error", "multi-line", "consistent"],
         "dot-location": ["error", "property"],
         "handle-callback-err": "off",
-        "indent": ["error", 4],
+        "indent": ["error", 4, { "SwitchCase": 1 }],
         "max-nested-callbacks": ["error", { "max": 4 }],
         "max-statements-per-line": ["error", { "max": 2 }],
-        "no-console": "off",
         "no-empty-function": "error",
         "no-floating-decimal": "error",
         "no-inline-comments": "off",
@@ -30,12 +37,16 @@
             "error",
             { "max": 2, "maxEOF": 1, "maxBOF": 0 }
         ],
+        "no-param-reassign": ["error", { "props": true }],
         "no-shadow": ["error", { "allow": ["err", "resolve", "reject"] }],
         "no-trailing-spaces": ["error"],
         "no-var": "error",
-        "no-unused-vars": "warn",
+        "no-unused-vars": "off",
         "object-curly-spacing": ["error", "always"],
         "prefer-const": "error",
+        "prettier/prettier": ["error", {
+            "endOfLine": "auto"
+        }],
         "quotes": ["error", "double"],
         "semi": ["error", "always"],
         "space-before-blocks": "error",
@@ -51,6 +62,9 @@
         "space-infix-ops": "error",
         "space-unary-ops": "error",
         "spaced-comment": "error",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-unused-vars": ["warn", { "args": "after-used" }],
         "yoda": "error"
     }
 }

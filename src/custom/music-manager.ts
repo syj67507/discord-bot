@@ -1,10 +1,11 @@
 import {
+    Client,
+    Message,
     StreamDispatcher,
     VoiceChannel,
     VoiceConnection,
     VoiceState,
 } from "discord.js";
-import { CommandoClient, CommandoMessage } from "discord.js-commando";
 
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
@@ -18,7 +19,7 @@ export interface Track {
 
 export default class MusicManager {
     private static instance: MusicManager;
-    static getInstance(client: CommandoClient): MusicManager {
+    static getInstance(client: Client): MusicManager {
         if (!MusicManager.instance) {
             MusicManager.instance = new MusicManager(client);
         }
@@ -26,11 +27,11 @@ export default class MusicManager {
     }
 
     playlist: Track[];
-    private client: CommandoClient;
+    private client: Client;
     private voiceChannel: VoiceChannel | null;
     private voiceConnection: VoiceConnection | null;
     private dispatcher: StreamDispatcher | null;
-    private constructor(client: CommandoClient) {
+    private constructor(client: Client) {
         this.playlist = [];
         this.client = client;
         this.voiceChannel = null;
@@ -48,7 +49,7 @@ export default class MusicManager {
                         this.dispatcher = null;
                     } else {
                         this.voiceChannel = newState.channel;
-                        this.voiceConnection = newState.connection; //this.client.voice!.connections.first();
+                        this.voiceConnection = newState.connection;
                     }
                     console.log("debug: MUSICMANAGER - Voice Updated:");
                     console.log(
@@ -96,6 +97,7 @@ export default class MusicManager {
     isPlaying(): boolean {
         return this.dispatcher !== null;
     }
+
     /**
      * Determines if the passed in argument is a YouTube link
      *
@@ -103,32 +105,9 @@ export default class MusicManager {
      * @returns Boolean
      */
     isYTLink(link: string): boolean {
-        let pattern: RegExp = /^(https:\/\/|http:\/\/)?(www.)?youtu(be.com\/watch\?v=|.be\/){1}[a-zA-Z0-9_-]{11}$/;
+        const pattern =
+            /^(https:\/\/|http:\/\/)?(www.)?youtu(be.com\/watch\?v=|.be\/){1}[a-zA-Z0-9_-]{11}$/;
         return link.match(pattern) != null;
-    }
-
-    /**
-     * Convenience method to return if a string is a link
-     * @param link
-     * @returns True if the parameter is a link, otherwise false
-     */
-    isLink(link: string): boolean {
-        const linkValues = [
-            "http://",
-            "https://",
-            "www",
-            ".com",
-            ".net",
-            ".org",
-            ".gov",
-            ".be",
-        ];
-        for (const value of linkValues) {
-            if (link.includes(value)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -138,9 +117,7 @@ export default class MusicManager {
      */
     async createTrackFromYTLink(link: string): Promise<Track> {
         if (!this.isYTLink(link)) {
-            throw Error(
-                `MusicManagerError: The link ${link} is not a youtube link.`
-            );
+            throw Error(`MusicManagerError: The link ${link} is not a youtube link.`);
         }
 
         // Use video id to create a new link (ytdl doesn't like youtube share links)
@@ -151,15 +128,15 @@ export default class MusicManager {
             id_start = link.indexOf(".be/") + 4;
         }
         const video_id: string = link.substring(id_start, id_start + 11);
-        link = `https://www.youtube.com/watch?v=${video_id}`;
+        const cleanLink = `https://www.youtube.com/watch?v=${video_id}`;
 
         try {
-            const info = await ytdl.getInfo(link);
-            let durationMin: number = Math.floor(
+            const info = await ytdl.getInfo(cleanLink);
+            const durationMin: number = Math.floor(
                 parseInt(info.videoDetails.lengthSeconds) / 60
             );
-            let durationSecond: number =
-                parseInt(info.videoDetails.lengthSeconds) % 60;
+            console.log(info);
+            const durationSecond: number = parseInt(info.videoDetails.lengthSeconds) % 60;
             return {
                 title: info.videoDetails.title,
                 link: info.videoDetails.video_url,
@@ -167,16 +144,11 @@ export default class MusicManager {
             };
         } catch (error) {
             log.error(f("musicmanager", "Error in receiving video details."));
-            log.error(f("musicmanager", error));
-            log.debug(
-                f(
-                    "musicmanager",
-                    "Creating empty track object with youtube link"
-                )
-            );
+            log.error(f("musicmanager", `${error}`));
+            log.debug(f("musicmanager", "Creating empty track object with youtube link"));
             return {
                 title: "title not available",
-                link: link,
+                link: cleanLink,
                 duration: "00:00",
             };
         }
@@ -197,6 +169,7 @@ export default class MusicManager {
         try {
             await channel.join();
         } catch (error) {
+            log.error(f("MUSICMANAGER", `Error in joining channel ${channel}`));
             throw error;
         }
     }
@@ -227,6 +200,7 @@ export default class MusicManager {
         try {
             searchFilters = await ytsr.getFilters(searchString);
         } catch (error) {
+            log.error(f("MUSICMANAGER", "Fetching search filters returned an error."));
             throw error;
         }
         searchFilters = searchFilters.get("Type");
@@ -247,6 +221,7 @@ export default class MusicManager {
                 limit: 1,
             });
         } catch (error) {
+            log.error(f("MUSICMANAGER", "Fetching search results returned and error."));
             throw error;
         }
 
@@ -272,7 +247,7 @@ export default class MusicManager {
      *
      * @param {Discord.Message} message The message that invoked this command.
      */
-    play(message: CommandoMessage): void {
+    play(message: Message): void {
         // Validation checks before playing
         if (!this.voiceChannel || !this.voiceConnection) {
             throw new Error(
@@ -301,9 +276,7 @@ export default class MusicManager {
         // Plays the next song or leaves if there isn't one
         this.dispatcher.on("finish", () => {
             log.debug(f("dispatcher", "Song has finished."));
-            log.debug(
-                f("dispatcher", "Songs left in queue: " + this.queueLength())
-            );
+            log.debug(f("dispatcher", "Songs left in queue: " + this.queueLength()));
 
             if (this.playlist.length > 0) {
                 log.debug(f("dispatcher", "Fetching next song in queue..."));
@@ -319,10 +292,7 @@ export default class MusicManager {
         });
 
         this.dispatcher.on("error", (error) => {
-            message.reply([
-                "There was a playback error.",
-                `A restart is recommended... ${this.client.owners[0]}`,
-            ]);
+            message.reply(["There was a playback error.", "A restart is recommended."]);
             log.debug(f("dispatcher", `${error}`));
             this.disconnect();
             log.debug(f("play", "Left the voice channel."));

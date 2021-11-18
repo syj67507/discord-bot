@@ -1,22 +1,19 @@
-import { CommandoMessage, Command, CommandoClient } from "discord.js-commando";
+import { Message } from "discord.js";
+import { Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
 import MusicManager from "../../custom/music-manager";
 
-module.exports = class NextCommand extends Command {
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "next",
-            group: "music",
-            memberName: "next",
-            description: "Plays the next song in the queue.",
-        });
-    }
-
-    async run(message: CommandoMessage, args: any) {
-        const mm = MusicManager.getInstance(this.client);
+const nextCommand: Command = {
+    name: "next",
+    description: "Plays the next song in the queue.",
+    enabled: true,
+    arguments: [],
+    async run(message: Message): Promise<null> {
+        const mm = MusicManager.getInstance(message.client);
         log.debug(f("next", `Queue length: ${mm.queueLength()}`));
         if (mm.queueLength() < 1) {
-            return message.reply("There are no tracks in the queue.");
+            message.reply("There are no tracks in the queue.");
+            return null;
         }
         try {
             if (!mm.isPlaying()) {
@@ -30,5 +27,7 @@ module.exports = class NextCommand extends Command {
             message.reply("Unable to skip to next song.");
         }
         return null;
-    }
+    },
 };
+
+export default nextCommand;

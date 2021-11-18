@@ -1,38 +1,23 @@
 import { Collection, Message, MessageEmbed } from "discord.js";
-import {
-    CommandoMessage,
-    Command,
-    CommandoClient,
-    ArgumentInfo,
-} from "discord.js-commando";
-import GphApiClient from "giphy-js-sdk-core";
-import { logger as log, format as f } from "../../custom/logger";
 import Pokedex from "pokedex-promise-v2";
+import { Command } from "../../custom/base";
+import { logger as log, format as f } from "../../custom/logger";
 
-module.exports = class PokemondCommand extends (
-    Command
-) {
-    constructor(client: CommandoClient) {
-        super(client, {
-            name: "pokemon",
-            aliases: ["pkmn"],
-            group: "misc",
-            memberName: "pokemon",
-            description: "Pokemon Trivia!",
-            argsPromptLimit: 0,
-            args: [
-                {
-                    key: "type",
-                    prompt: "Choose a trivia category: `type`?",
-                    error: "Error: Choose a trivia category: `type`?",
-                    type: "string",
-                    oneOf: ["type"],
-                },
-            ],
-        });
-    }
-
-    async run(message: CommandoMessage, args: any) {
+const pokemonCommand: Command = {
+    name: "pokemon",
+    aliases: ["pkmn"],
+    description: "Pokemon Trivia!",
+    enabled: true,
+    arguments: [
+        {
+            key: "type",
+            type: "string",
+            description: "Choose a trivia category: `type`?",
+            validator: (value: string) => ["type"].includes(value),
+            default: undefined,
+        },
+    ],
+    async run(message: Message) {
         log.debug(f("pokemon", "Fetching random pokemon..."));
         const pkmnInfo = await fetchRandomPokemon();
 
@@ -59,20 +44,19 @@ module.exports = class PokemondCommand extends (
             time: 30000,
             max: 1,
         };
-        let userGuess = await message.channel.awaitMessages(
-            filter,
-            answerTimeout
-        );
-        let guess = processGuess(userGuess);
+        const userGuess = await message.channel.awaitMessages(filter, answerTimeout);
+        const guess = processGuess(userGuess);
         log.debug(f("pokemon", `Guess: ${guess}`));
 
         log.debug(f("pokemon", "Processing answer..."));
-        if (guess === []) {
-            return message.reply("I didn't get an answer.");
+        if (guess.length === 0) {
+            message.reply("I didn't get an answer.");
+            return null;
         }
         const msg = verifyAnswer(guess, answer);
-        return message.reply(msg);
-    }
+        message.reply(msg);
+        return null;
+    },
 };
 
 /**
@@ -80,13 +64,13 @@ module.exports = class PokemondCommand extends (
  *
  * @returns A JSON structure of the random Pokemon.
  */
-async function fetchRandomPokemon() {
+export async function fetchRandomPokemon(): Promise<any> {
     // Fetch a random pokemon
     const pokeClient = new Pokedex();
     const pkmnList = await pokeClient.getPokemonsList();
     const rdx = Math.floor(Math.random() * pkmnList.count);
     const pkmnName: string = pkmnList.results[rdx].name;
-    const pkmnInfo: object = await pokeClient.getPokemonByName(pkmnName);
+    const pkmnInfo = await pokeClient.getPokemonByName(pkmnName);
     return pkmnInfo;
 }
 
@@ -96,9 +80,10 @@ async function fetchRandomPokemon() {
  * @param {object}          pkmnInfo    The random Pokemon in JSON object form
  * @param {Discord.Message} message     The message that invoked this command.
  *
- * @returns {object} An object representing the trivia type question.
+ * @returns {any} An object representing the trivia type question.
  */
-function makeTypeQuestion(pkmnInfo: any) {
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export function makeTypeQuestion(pkmnInfo: any): any {
     // Make the question and ask
     let pkmnName: string = pkmnInfo.name;
     pkmnName = pkmnName.substring(0, 1).toUpperCase() + pkmnName.substring(1);
@@ -122,7 +107,7 @@ function makeTypeQuestion(pkmnInfo: any) {
  *
  * @returns {Array}                  An array that represents what the user guessed.
  */
-function processGuess(guess: Collection<string, Message>): string[] {
+export function processGuess(guess: Collection<string, Message>): string[] {
     const g = guess.first();
     if (g !== undefined) {
         return g.content.split(/[ ]+/);
@@ -139,7 +124,7 @@ function processGuess(guess: Collection<string, Message>): string[] {
  *
  * @returns {string[]}         The message to notify if the user got it right.
  */
-function verifyAnswer(guess: string[], answer: string[]): string[] {
+export function verifyAnswer(guess: string[], answer: string[]): string[] {
     if (guess.length == answer.length) {
         if (JSON.stringify(guess.sort()) === JSON.stringify(answer.sort())) {
             return ["That's correct!"];
@@ -147,3 +132,5 @@ function verifyAnswer(guess: string[], answer: string[]): string[] {
     }
     return ["Sorry, that's incorrect.", `The correct answer is ${answer}`];
 }
+
+export default pokemonCommand;
