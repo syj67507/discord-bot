@@ -3,11 +3,27 @@ import ytsr from "ytsr";
 import ytpl from "ytpl";
 import { Track } from "./music-manager";
 
+type handleTypes = "playlist" | "link" | "search";
+
+/**
+ * YTClient provides a set of utility functions that aid in
+ * communicating with all YouTube APIs.
+ */
 export class YTClient {
+    /**
+     * YTClient provides a set of utility functions that aid in
+     * communicating with all YouTube APIs.
+     */
     constructor() {
         // Do nothing
     }
 
+    /**
+     * Search YouTube with a provided search string and return the first
+     * video result as a Track.
+     * @param searchString The search string value to look through YouTube
+     * @returns Track
+     */
     async search(searchString: string): Promise<Track> {
         let filters;
         try {
@@ -47,13 +63,17 @@ export class YTClient {
         return {
             title: title,
             link: url,
-            duration: duration ? duration : "--:--",
+            duration: duration ? duration : "--:--:--",
         };
     }
 
+    /**
+     * Takes a direct YouTube link or YouTube video ID and returns a Track
+     * @param linkOrId Direct YouTube link or YouTube Video ID
+     * @returns Track
+     */
     async getVideo(linkOrId: string): Promise<Track> {
         const videoId = ytdl.getVideoID(linkOrId);
-        console.log(videoId);
 
         const response = await ytdl.getBasicInfo(videoId);
         const { title, video_url, lengthSeconds } = response.videoDetails;
@@ -65,6 +85,13 @@ export class YTClient {
         };
     }
 
+    /**
+     * Takes a YouTube link and tries parsing it for a YouTube playlist.
+     * If successful, it returns an array of Tracks, with each Track representing a
+     * YouTube video
+     * @param linkOrId Direct YouTube link or ID of YouTube playlist
+     * @returns Track[]
+     */
     async getPlaylist(linkOrId: string): Promise<Track[]> {
         const playlistId = await ytpl.getPlaylistID(linkOrId);
 
@@ -93,12 +120,5 @@ export class YTClient {
 
     private padDurationNumbers(num: number): string {
         return num.toString().padStart(2, "0");
-    }
-
-    async test() {
-        console.log(
-            await this.getPlaylist("https://www.youtube.com/watch?v=P6ODTQKhaXk")
-        );
-        console.log("asdf");
     }
 }

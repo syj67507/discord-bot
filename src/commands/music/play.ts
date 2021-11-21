@@ -1,8 +1,8 @@
 import { Message } from "discord.js";
 import { ArgumentValues, Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
-import MusicManager from "../../custom/music-manager";
-import { Track } from "../../custom/music-manager";
+import MusicManager, { Track } from "../../custom/music-manager";
+import { YTClient } from "../../custom/ytclient";
 
 const playCommand: Command = {
     name: "play",
@@ -23,51 +23,68 @@ const playCommand: Command = {
         const mm = MusicManager.getInstance(client);
 
         const trackString = (args.track as string[]).join(" ");
+        log.debug(f("play", `trackString: '${trackString}'`));
 
         if (mm.isPlaying() && !trackString) {
             message.reply("I am currently playing... use next to skip to the next song");
             return null;
         }
 
-        // Get a track based on argument
-        let track: Track;
-        if (trackString) {
-            log.debug(f("play", "Checking if argument is a YouTube link"));
+        const yt = new YTClient();
 
-            if (mm.isYTLink(trackString)) {
-                log.debug(f("play", "Argument is a link"));
+        // Try to get a Track for what the user provides and add it to the queue
+        if (trackString) {
+            let track: Track | null = null;
+
+            // Try to get the video directly
+            if (!track) {
+                log.debug(
+                    f("play", `Trying to get a direct video from '${trackString}'`)
+                );
                 try {
-                    track = await mm.createTrackFromYTLink(trackString);
-                    mm.queue(track);
+                    track = await yt.getVideo(trackString);
                 } catch (error) {
-                    log.error(f("play", `${error}`));
-                    log.error(
-                        f("play", "Unable to create Track object" + " from youtube link.")
+                    log.debug(
+                        f(
+                            "play",
+                            `Unable to retrieve video from direct link: ${
+                                (error as Error).message
+                            }`
+                        )
                     );
-                    message.reply(
-                        "Unable to play with the provided link. " +
-                            "Only YouTube links are supported. " +
-                            "If the link is a youtube link, make sure it is valid."
-                    );
-                    return null;
-                }
-            } else {
-                log.debug(f("play", "Argument is NOT a link"));
-                log.debug(f("play", `Searching YT for ${trackString}`));
-                try {
-                    track = await mm.search(trackString);
-                    mm.queue(track, 0);
-                    log.debug(f("play", `Queued: ${track.link}`));
-                } catch (error) {
-                    log.error(f("play", `${error}`));
-                    message.reply([
-                        `Couldn't find a link for \`${trackString}\``,
-                        "Either the search had no results or the search failed.",
-                        "A restart may be necessary... @Bonk",
-                    ]);
-                    return null;
                 }
             }
+
+            // Try to search for the video
+            if (!track) {
+                log.debug(f("play", `Trying to search YouTube for '${trackString}'`));
+                try {
+                    track = await yt.search(trackString);
+                } catch (error) {
+                    log.debug(
+                        f(
+                            "play",
+                            `Unable to retrieve a video search result: ${
+                                (error as Error).message
+                            }`
+                        )
+                    );
+                }
+            }
+
+            // Send error message if no Track could be found
+            if (!track) {
+                log.debug(f("play", `Couldn't get a Track for '${trackString}'`));
+                message.reply([
+                    `Couldn't find a link for \`${trackString}\``,
+                    "Either the search had no results or the search failed.",
+                    "A restart may be necessary... @Bonk",
+                ]);
+                return null;
+            }
+
+            mm.queue(track);
+            log.debug(f("play", `Queued track: ${JSON.stringify(track)}`));
         }
 
         // Exits if the queue is empty and no track was provided
