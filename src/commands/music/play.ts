@@ -3,9 +3,11 @@ import { ArgumentValues, Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
 import MusicManager, { Track } from "../../custom/music-manager";
 import { YTClient } from "../../custom/ytclient";
+import queueCommand from "./queue";
 
 const playCommand: Command = {
     name: "play",
+    aliases: ["p"],
     enabled: true,
     description: "Plays a music track.",
     arguments: [
@@ -32,59 +34,9 @@ const playCommand: Command = {
 
         const yt = new YTClient();
 
-        // Try to get a Track for what the user provides and add it to the queue
+        // Try to queue up a track using the queue command
         if (trackString) {
-            let track: Track | null = null;
-
-            // Try to get the video directly
-            if (!track) {
-                log.debug(
-                    f("play", `Trying to get a direct video from '${trackString}'`)
-                );
-                try {
-                    track = await yt.getVideo(trackString);
-                } catch (error) {
-                    log.debug(
-                        f(
-                            "play",
-                            `Unable to retrieve video from direct link: ${
-                                (error as Error).message
-                            }`
-                        )
-                    );
-                }
-            }
-
-            // Try to search for the video
-            if (!track) {
-                log.debug(f("play", `Trying to search YouTube for '${trackString}'`));
-                try {
-                    track = await yt.search(trackString);
-                } catch (error) {
-                    log.debug(
-                        f(
-                            "play",
-                            `Unable to retrieve a video search result: ${
-                                (error as Error).message
-                            }`
-                        )
-                    );
-                }
-            }
-
-            // Send error message if no Track could be found
-            if (!track) {
-                log.debug(f("play", `Couldn't get a Track for '${trackString}'`));
-                message.reply([
-                    `Couldn't find a link for \`${trackString}\``,
-                    "Either the search had no results or the search failed.",
-                    "A restart may be necessary... @Bonk",
-                ]);
-                return null;
-            }
-
-            mm.queue(track);
-            log.debug(f("play", `Queued track: ${JSON.stringify(track)}`));
+            await queueCommand.run(message, args);
         }
 
         // Exits if the queue is empty and no track was provided
