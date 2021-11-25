@@ -3,7 +3,15 @@ import ytsr from "ytsr";
 import ytpl from "ytpl";
 import { Track } from "./music-manager";
 
-type handleTypes = "playlist" | "link" | "search";
+export const ytsrWrapper = {
+    ytsr,
+    getFilters: ytsr.getFilters,
+};
+
+export const ytplWrapper = {
+    ytpl,
+    getPlaylistID: ytpl.getPlaylistID,
+};
 
 /**
  * YTClient provides a set of utility functions that aid in
@@ -27,7 +35,7 @@ export class YTClient {
     async search(searchString: string): Promise<Track> {
         let filters;
         try {
-            filters = await ytsr.getFilters(searchString);
+            filters = await ytsrWrapper.getFilters(searchString);
         } catch (error) {
             const e = new Error("Search API returned an error with filters.");
             if (error instanceof Error) {
@@ -36,19 +44,14 @@ export class YTClient {
             throw e;
         }
 
-        const typeFilters = filters.get("Type");
-        if (!typeFilters) {
-            throw new Error("Unable to get search filters: Type");
-        }
-
-        const videoFilters = typeFilters.get("Video");
+        const videoFilters = filters.get("Type")?.get("Video");
         if (!videoFilters) {
             throw new Error("Unable to get search filters: Video");
         }
 
         let searchResults;
         try {
-            searchResults = await ytsr(videoFilters!.url!, {
+            searchResults = await ytsrWrapper.ytsr(videoFilters.url!, {
                 limit: 1,
             });
         } catch (error) {
@@ -93,9 +96,9 @@ export class YTClient {
      * @returns Track[]
      */
     async getPlaylist(linkOrId: string): Promise<Track[]> {
-        const playlistId = await ytpl.getPlaylistID(linkOrId);
+        const playlistId = await ytplWrapper.getPlaylistID(linkOrId);
 
-        const response = await ytpl(playlistId);
+        const response = await ytplWrapper.ytpl(playlistId);
         const playlist = response.items.map((item) => {
             const { title, url, duration } = item;
             return {

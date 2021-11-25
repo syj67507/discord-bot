@@ -24,6 +24,17 @@ const queueCommand: Command = {
         const mm = MusicManager.getInstance(message.client);
         const trackString = (args.track as string[]).join(" ");
 
+        // Different behavior if this was called from play command internally
+        const prefix = process.env.PREFIX!;
+        const ogCommand = message.content
+            .slice(prefix.length)
+            .split(/[ ]+/)
+            .shift()!
+            .toLowerCase();
+        const calledFromPlay =
+            (ogCommand === this.name || this.aliases?.includes(ogCommand)) === false;
+        const queuePosition = calledFromPlay ? 0 : mm.queueLength();
+
         // Displays queue on no track name passed
         const playlist = ["Currently Queued: "];
         if (trackString === "") {
@@ -99,17 +110,11 @@ const queueCommand: Command = {
             return null;
         }
 
-        mm.queue(track);
+        mm.queue(track, queuePosition);
         log.debug(f("queue", `Queued track: ${JSON.stringify(track)}`));
 
         // Only display queue message to channel if not called internally by play command
-        const prefix = process.env.PREFIX!;
-        const ogCommand = message.content
-            .slice(prefix.length)
-            .split(/[ ]+/)
-            .shift()!
-            .toLowerCase();
-        if (ogCommand === this.name || this.aliases?.includes(ogCommand)) {
+        if (!calledFromPlay) {
             message.reply(`Queued: ${track.title}`);
         }
         return null;
