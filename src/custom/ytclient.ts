@@ -62,7 +62,7 @@ export class YTClient {
             throw e;
         }
 
-        let { title, url, duration } = searchResults.items[0] as ytsr.Video;
+        const { title, url, duration } = searchResults.items[0] as ytsr.Video;
         return {
             title: title,
             link: url,
@@ -115,9 +115,12 @@ export class YTClient {
         const hours = Math.floor(lengthSecondsInt / 3600);
         const minutes = Math.floor((lengthSecondsInt - hours * 3600) / 60);
         const seconds = Math.floor((lengthSecondsInt - hours * 3600 - minutes * 60) % 60);
-        let result = `${this.padDurationNumbers(hours)}:${this.padDurationNumbers(
-            minutes
-        )}:${this.padDurationNumbers(seconds)}`;
+        const result =
+            this.padDurationNumbers(hours) +
+            ":" +
+            this.padDurationNumbers(minutes) +
+            ":" +
+            this.padDurationNumbers(seconds);
         return result;
     }
 

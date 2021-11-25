@@ -1,8 +1,7 @@
 import { Message } from "discord.js";
 import { ArgumentValues, Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
-import MusicManager, { Track } from "../../custom/music-manager";
-import { YTClient } from "../../custom/ytclient";
+import MusicManager from "../../custom/music-manager";
 import queueCommand from "./queue";
 
 const playCommand: Command = {
@@ -31,8 +30,6 @@ const playCommand: Command = {
             message.reply("I am currently playing... use next to skip to the next song");
             return null;
         }
-
-        const yt = new YTClient();
 
         // Try to queue up a track using the queue command
         if (trackString) {
