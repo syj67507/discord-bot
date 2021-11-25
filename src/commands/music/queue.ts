@@ -2,6 +2,8 @@ import { Message } from "discord.js";
 import { ArgumentValues, Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
 import MusicManager, { Track } from "../../custom/music-manager";
+import { YTClient } from "../../custom/ytclient";
+import "dotenv/config";
 
 const queueCommand: Command = {
     name: "queue",
@@ -21,6 +23,17 @@ const queueCommand: Command = {
     async run(message: Message, args: ArgumentValues): Promise<null> {
         const mm = MusicManager.getInstance(message.client);
         const trackString = (args.track as string[]).join(" ");
+
+        // Different behavior if this was called from play command internally
+        const prefix = process.env.PREFIX!;
+        const ogCommand = message.content
+            .slice(prefix.length)
+            .split(/[ ]+/)
+            .shift()!
+            .toLowerCase();
+        const calledFromPlay =
+            (ogCommand === this.name || this.aliases?.includes(ogCommand)) === false;
+        const queuePosition = calledFromPlay ? 0 : mm.queueLength();
 
         // Displays queue on no track name passed
         const playlist = ["Currently Queued: "];
@@ -48,54 +61,63 @@ const queueCommand: Command = {
             return null;
         }
 
-        log.debug(f("queue", "Checking if argument is a YouTube link"));
-        let track: Track;
-        if (mm.isYTLink(trackString)) {
-            log.debug(f("queue", "Argument is a YouTube link"));
+        // Try to get a Track for what the user provides and add it to the queue
+        const yt = new YTClient();
+        let track: Track | null = null;
+
+        // Try to get the video directly
+        if (!track) {
+            log.debug(f("queue", `Trying to get a direct video from '${trackString}'`));
             try {
-                track = await mm.createTrackFromYTLink(trackString);
-                mm.queue(track);
+                track = await yt.getVideo(trackString);
             } catch (error) {
-                if (error instanceof Error) {
-                    log.error(f("queue", error.message));
-                } else {
-                    log.error(f("queue", "Unknown error."));
-                }
-                log.error(
-                    f("queue", "Unable to create Track object" + " from youtube link.")
+                log.debug(
+                    f(
+                        "queue",
+                        `Unable to retrieve video from direct link: ${
+                            (error as Error).message
+                        }`
+                    )
                 );
-                message.reply(
-                    "Unable to queue with the provided link. " +
-                        "Only YouTube links are supported. " +
-                        "If the link is a youtube link, make sure it is valid."
-                );
-                return null;
-            }
-            message.reply(`Queued: ${track.title}`);
-            return null;
-        } else {
-            log.debug(f("queue", "Argument is NOT a link"));
-            log.debug(f("queue", `Searching YT for ${trackString}`));
-            try {
-                track = await mm.search(trackString);
-                mm.queue(track);
-                log.debug(f("queue", `Queued: ${track.link}`));
-                message.reply(`Queued: ${track.title}`);
-                return null;
-            } catch (error) {
-                if (error instanceof Error) {
-                    log.error(f("queue", error.message));
-                } else {
-                    log.error(f("queue", "Unknown error."));
-                }
-                message.reply([
-                    `Couldn't find a link for \`${trackString}\``,
-                    "Either the search had no results or the search failed.",
-                    "A restart may be necessary...@Bonk",
-                ]);
-                return null;
             }
         }
+
+        // Try to search for the video
+        if (!track) {
+            log.debug(f("queue", `Trying to search YouTube for '${trackString}'`));
+            try {
+                track = await yt.search(trackString);
+            } catch (error) {
+                log.debug(
+                    f(
+                        "queue",
+                        `Unable to retrieve a video search result: ${
+                            (error as Error).message
+                        }`
+                    )
+                );
+            }
+        }
+
+        // Send error message if no Track could be found
+        if (!track) {
+            log.debug(f("queue", `Couldn't get a Track for '${trackString}'`));
+            message.reply([
+                `Couldn't find a link for \`${trackString}\``,
+                "Either the search had no results or the search failed.",
+                "A restart may be necessary... @Bonk",
+            ]);
+            return null;
+        }
+
+        mm.queue(track, queuePosition);
+        log.debug(f("queue", `Queued track: ${JSON.stringify(track)}`));
+
+        // Only display queue message to channel if not called internally by play command
+        if (!calledFromPlay) {
+            message.reply(`Queued: ${track.title}`);
+        }
+        return null;
     },
 };
 

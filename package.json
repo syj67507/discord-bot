@@ -16,7 +16,7 @@
         "lint": "eslint .",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/index.js",
-        "test": "npm run clean-build && npm run clean-test && jest tests --silent"
+        "test": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts --silent --verbose"
     },
     "lint-staged": {
         "{src,tests}/**/*": [
@@ -66,6 +66,7 @@
         "pokedex-promise-v2": "^3.2.0",
         "winston": "^3.3.3",
         "ytdl-core": "^4.9.1",
+        "ytpl": "^2.2.3",
         "ytsr": "^3.5.2"
     },
     "devDependencies": {

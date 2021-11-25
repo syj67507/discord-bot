@@ -58,8 +58,8 @@ client.on("message", async (message) => {
     log.debug(f("main", `Message Contents: ${message.content}`));
 
     // Parse through message.content
-    const rawArgs = message.content.toLowerCase().slice(prefix.length).split(/[ ]+/);
-    const rawCommand = rawArgs.shift();
+    const rawArgs = message.content.slice(prefix.length).split(/[ ]+/);
+    const rawCommand = rawArgs.shift()!.toLowerCase();
     log.debug(f("main", `Command: ${rawCommand}`));
     log.debug(f("main", `Raw Arguments: ${rawArgs}`));
 
