@@ -1,8 +1,9 @@
 import { Client, Guild, GuildMember } from "discord.js";
-import { Argument, parseArgs } from "../../v12_src/custom/base";
-import { ArgumentCustomValidationError } from "../../v12_src/errors/ArgumentCustomValidationError";
-import { ArgumentRuntimeError } from "../../v12_src/errors/ArgumentRuntimeError";
-import { ArgumentUsageError } from "../../v12_src/errors/ArgumentUsageError";
+import { Argument, parseArgs } from "../../src/custom/base";
+import * as validators from "../../src/custom/validators";
+import { ArgumentCustomValidationError } from "../../src/errors/ArgumentCustomValidationError";
+import { ArgumentDefinitionError } from "../../src/errors/ArgumentDefinitionError";
+import { ArgumentUsageError } from "../../src/errors/ArgumentUsageError";
 
 describe("Testing base.ts/parseArgs()", () => {
     let c: Client;
@@ -11,6 +12,33 @@ describe("Testing base.ts/parseArgs()", () => {
         c = new Client();
         guild = new Guild(c, {});
         c.destroy();
+    });
+
+    beforeEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it("parseArgs should have a side effect of altering parameters", async () => {
+        const rawArgs = ["4"];
+        const argumentsInfo: Argument[] = [
+            {
+                key: "key",
+                type: "number",
+                description: "description",
+            },
+        ];
+
+        await parseArgs(rawArgs, argumentsInfo, guild);
+
+        // rawArgs shouldn't have side effects
+        expect(rawArgs).toEqual(["4"]);
+        expect(argumentsInfo).toEqual([
+            {
+                key: "key",
+                type: "number",
+                description: "description",
+            },
+        ]);
     });
 
     it("parseArgs should get the number", async () => {
@@ -29,15 +57,6 @@ describe("Testing base.ts/parseArgs()", () => {
 
         const result = await parseArgs(rawArgs, argumentsInfo, guild);
         expect(result).toEqual(expected);
-
-        expect(rawArgs).toEqual(["4"]); // rawArgs shouldn't have side effects
-        expect(argumentsInfo).toEqual([
-            {
-                key: "key",
-                type: "number",
-                description: "description",
-            },
-        ]);
     });
 
     it("parseArgs should get the string", async () => {
@@ -57,14 +76,6 @@ describe("Testing base.ts/parseArgs()", () => {
         const result = await parseArgs(rawArgs, argumentsInfo, guild);
 
         expect(result).toEqual(expected);
-        expect(rawArgs).toEqual(["teststring"]);
-        expect(argumentsInfo).toEqual([
-            {
-                key: "key1",
-                type: "string",
-                description: "description",
-            },
-        ]);
     });
 
     it("parseArgs should get the boolean", async () => {
@@ -90,19 +101,6 @@ describe("Testing base.ts/parseArgs()", () => {
         const result = await parseArgs(rawArgs, argumentsInfo, guild);
 
         expect(result).toEqual(expected);
-        expect(rawArgs).toEqual(["y", "n"]);
-        expect(argumentsInfo).toEqual([
-            {
-                key: "key1",
-                type: "boolean",
-                description: "description",
-            },
-            {
-                key: "key2",
-                type: "boolean",
-                description: "description",
-            },
-        ]);
     });
 
     it("parseArgs should get the user", async () => {
@@ -116,34 +114,22 @@ describe("Testing base.ts/parseArgs()", () => {
         ];
         const guildMember = new GuildMember(c, {}, guild);
 
-        // Mock the
-        const mockGuild = {
-            members: {
-                fetch(): GuildMember {
-                    return guildMember;
-                },
-            },
-        };
+        // Mock the user/guildMember validator (requires connection)
+        jest.spyOn(validators, "validateUser").mockImplementation(async () => {
+            return guildMember;
+        });
 
         const expected = {
             full: "<@!123456789123456789>",
             key1: guildMember,
         };
-        const result = await parseArgs(rawArgs, argumentsInfo, mockGuild);
+        const result = await parseArgs(rawArgs, argumentsInfo, guild);
 
         expect(result).toEqual(expected);
-        expect(rawArgs).toEqual(["<@!123456789123456789>"]);
-        expect(argumentsInfo).toEqual([
-            {
-                key: "key1",
-                type: "user",
-                description: "description",
-            },
-        ]);
     });
 
     it("parseArgs should error when getting the number", async () => {
-        const rawArgs = ["Not a number"];
+        const rawArgs = ["NaN"];
         const argumentsInfo: Argument[] = [
             {
                 key: "key",
@@ -173,7 +159,7 @@ describe("Testing base.ts/parseArgs()", () => {
     });
 
     it("parseArgs should error when getting the boolean", async () => {
-        const rawArgs: string[] = ["not a boolean"];
+        const rawArgs: string[] = ["notABoolean"];
         const argumentsInfo: Argument[] = [
             {
                 key: "key",
@@ -187,7 +173,7 @@ describe("Testing base.ts/parseArgs()", () => {
         );
     });
 
-    it("parseArgs should get the user", async () => {
+    it("parseArgs should error when getting the user", async () => {
         const rawArgs = ["<@!invalidId>"];
         const argumentsInfo: Argument[] = [
             {
@@ -196,6 +182,11 @@ describe("Testing base.ts/parseArgs()", () => {
                 description: "description",
             },
         ];
+
+        // Mock the user/guildMember validator (requires connection)
+        jest.spyOn(validators, "validateUser").mockImplementation(async () => {
+            return undefined;
+        });
 
         return expect(parseArgs(rawArgs, argumentsInfo, guild)).rejects.toThrowError(
             ArgumentUsageError
@@ -236,7 +227,7 @@ describe("Testing base.ts/parseArgs()", () => {
             },
         ];
         return expect(parseArgs(rawArgs, argumentsInfo, guild)).rejects.toThrowError(
-            ArgumentRuntimeError
+            ArgumentDefinitionError
         );
     });
 
@@ -256,7 +247,7 @@ describe("Testing base.ts/parseArgs()", () => {
         ];
 
         return expect(parseArgs(rawArgs, argumentsInfo, guild)).rejects.toThrowError(
-            ArgumentRuntimeError
+            ArgumentDefinitionError
         );
     });
 
@@ -278,7 +269,7 @@ describe("Testing base.ts/parseArgs()", () => {
         expect(result).toEqual(expected);
     });
 
-    it("parseArgs should use the validator and return successfully", async () => {
+    it("parseArgs should use the validator and throw error when validator fails", async () => {
         const rawArgs = ["5"];
         const argumentsInfo: Argument[] = [
             {
@@ -344,88 +335,43 @@ describe("Testing base.ts/parseArgs()", () => {
         );
     });
 
-    it("parseArgs should get all the arguments in a string[]", async () => {
-        const rawArgs = ["teststring", "teststring 2"];
+    it("should parse an array of values when infinite is true", async () => {
+        const rawArgs = ["4"];
         const argumentsInfo: Argument[] = [
             {
-                key: "key1",
-                type: "strings",
-                description: "description",
-            },
-        ];
-
-        const expected = {
-            full: "teststring teststring 2",
-            key1: "teststring teststring 2",
-        };
-        const result = await parseArgs(rawArgs, argumentsInfo, guild);
-
-        expect(result).toEqual(expected);
-        expect(rawArgs).toEqual(["teststring", "teststring 2"]);
-        expect(argumentsInfo).toEqual([
-            {
-                key: "key1",
-                type: "strings",
-                description: "description",
-            },
-        ]);
-    });
-
-    it("parseArgs should get all the remaining arguments in a string[]", async () => {
-        const rawArgs = ["4", "teststring 2", "teststring 3"];
-        const argumentsInfo: Argument[] = [
-            {
-                key: "key1",
+                key: "key",
                 type: "number",
                 description: "description",
-            },
-            {
-                key: "key2",
-                type: "strings",
-                description: "description",
+                infinite: true,
             },
         ];
-
         const expected = {
-            full: "4 teststring 2 teststring 3",
-            key1: 4,
-            key2: "teststring 2 teststring 3",
+            full: "4",
+            key: [4],
         };
-        const result = await parseArgs(rawArgs, argumentsInfo, guild);
 
+        const result = await parseArgs(rawArgs, argumentsInfo, guild);
         expect(result).toEqual(expected);
-        expect(rawArgs).toEqual(["4", "teststring 2", "teststring 3"]);
-        expect(argumentsInfo).toEqual([
-            {
-                key: "key1",
-                type: "number",
-                description: "description",
-            },
-            {
-                key: "key2",
-                type: "strings",
-                description: "description",
-            },
-        ]);
     });
 
-    it("parseArgs should error if string[] is not the last argument definition", async () => {
-        const rawArgs = ["teststring", "teststring 2"];
+    it("should error if the infinite flag is true for any argument that isn't the last", async () => {
+        const rawArgs = ["1", "2", "string"];
         const argumentsInfo: Argument[] = [
             {
-                key: "key1",
-                type: "strings",
+                key: "first",
+                type: "number",
                 description: "description",
+                infinite: true,
             },
             {
-                key: "key2",
+                key: "second",
                 type: "string",
                 description: "description",
             },
         ];
 
         return expect(parseArgs(rawArgs, argumentsInfo, guild)).rejects.toThrowError(
-            "Argument Keys: [Argument of type strings can only be defined for the final argument.] are not valid. There are duplicates or keys contain reserved values 'full' or 'remaining'"
+            ArgumentDefinitionError
         );
     });
 });

@@ -16,7 +16,7 @@
         "lint": "eslint .",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/index.js",
-        "test": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts --silent --verbose"
+        "test": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts tests/custom/validators.test.ts tests/custom/base.test.ts --silent --verbose"
     },
     "lint-staged": {
         "{src,tests}/**/*": [

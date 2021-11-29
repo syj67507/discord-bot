@@ -140,12 +140,6 @@ export async function parseArgs(
                     parsedValue.push(await validateUser(val, guild));
                 }
                 break;
-            default:
-                // Shouldn't ever enter here
-                throw new Error(
-                    "Entered default switch case. You somehow entered an invalid argument type: " +
-                        arg.type
-                );
         }
 
         // Uses custom validator if one is passed
