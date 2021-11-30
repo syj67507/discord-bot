@@ -65,6 +65,28 @@ const queueCommand: Command = {
         const yt = new YTClient();
         let track: Track | null = null;
 
+        // If the user wants a playlist, try to get a playlist
+        const playlistFlag = "--playlist";
+        if (trackString.includes(playlistFlag)) {
+            const playlistLink = trackString.replace(playlistFlag, "").trim();
+            try {
+                const ytPlaylist = await yt.getPlaylist(playlistLink);
+                for (const ytplTrack of ytPlaylist) {
+                    mm.queue(ytplTrack, mm.queueLength());
+                }
+                message.channel.send(
+                    mm.playlist.slice(0, 5).map((t, index) => {
+                        return `${index + 1}. ${t.title}`;
+                    })
+                );
+            } catch (error) {
+                log.debug(
+                    f("queue", `Unable to retrieve playlist: ${(error as Error).message}`)
+                );
+            }
+            return null;
+        }
+
         // Try to get the video directly
         if (!track) {
             log.debug(f("queue", `Trying to get a direct video from '${trackString}'`));
