@@ -14,7 +14,7 @@ const queueCommand: Command = {
             key: "track",
             type: "string",
             description:
-                "The search phrase for YouTube search or the direct YouTube link",
+                "The search phrase for YouTube search, direct YouTube video link, or direct YouTube playlist link",
             default: "",
             infinite: true,
         },
@@ -33,22 +33,20 @@ const queueCommand: Command = {
             .toLowerCase();
         const calledFromPlay =
             (ogCommand === this.name || this.aliases?.includes(ogCommand)) === false;
+        // queues at beginning if called from play command to play the song right now
         const queuePosition = calledFromPlay ? 0 : mm.queueLength();
 
         // Displays queue on no track name passed
-        const playlist = ["Currently Queued: "];
         if (trackString === "") {
             log.debug(f("queue", "Displaying queue..."));
-            if (mm.queueLength() === 0) {
+            if (mm.queueLength() > 0) {
+                message.reply([
+                    `Currently Queued: ${mm.queueLength()}`,
+                    ...mm.getQueuePreview(),
+                ]);
+            } else {
                 message.reply("No tracks left in queue.");
-                return null;
             }
-
-            // Fetching all tracks in queue/playlist
-            for (const track of mm.playlist) {
-                playlist.push(track.title);
-            }
-            message.reply(playlist);
             return null;
         }
 
@@ -63,35 +61,29 @@ const queueCommand: Command = {
 
         // Try to get a Track for what the user provides and add it to the queue
         const yt = new YTClient();
-        let track: Track | null = null;
+        let tracks: Track[] | null = null;
 
         // If the user wants a playlist, try to get a playlist
         const playlistFlag = "--playlist";
-        if (trackString.includes(playlistFlag)) {
+        const playlistFlagPresent = trackString.includes(playlistFlag);
+        if (playlistFlagPresent) {
+            log.debug(f("queue", `Playlist Flag ${playlistFlag} detected`));
             const playlistLink = trackString.replace(playlistFlag, "").trim();
+            log.debug(f("queue", `Trying to get a playlist from '${playlistLink}'`));
             try {
-                const ytPlaylist = await yt.getPlaylist(playlistLink);
-                for (const ytplTrack of ytPlaylist) {
-                    mm.queue(ytplTrack, mm.queueLength());
-                }
-                message.channel.send(
-                    mm.playlist.slice(0, 5).map((t, index) => {
-                        return `${index + 1}. ${t.title}`;
-                    })
-                );
+                tracks = await yt.getPlaylist(playlistLink);
             } catch (error) {
                 log.debug(
                     f("queue", `Unable to retrieve playlist: ${(error as Error).message}`)
                 );
             }
-            return null;
         }
 
         // Try to get the video directly
-        if (!track) {
+        if (!tracks && !playlistFlagPresent) {
             log.debug(f("queue", `Trying to get a direct video from '${trackString}'`));
             try {
-                track = await yt.getVideo(trackString);
+                tracks = [await yt.getVideo(trackString)];
             } catch (error) {
                 log.debug(
                     f(
@@ -105,10 +97,10 @@ const queueCommand: Command = {
         }
 
         // Try to search for the video
-        if (!track) {
+        if (!tracks && !playlistFlagPresent) {
             log.debug(f("queue", `Trying to search YouTube for '${trackString}'`));
             try {
-                track = await yt.search(trackString);
+                tracks = [await yt.search(trackString)];
             } catch (error) {
                 log.debug(
                     f(
@@ -121,23 +113,28 @@ const queueCommand: Command = {
             }
         }
 
-        // Send error message if no Track could be found
-        if (!track) {
-            log.debug(f("queue", `Couldn't get a Track for '${trackString}'`));
+        // Send error message if no Track(s) could be found
+        if (!tracks) {
+            log.debug(f("queue", `Couldn't find anything for '${trackString}'`));
             message.reply([
-                `Couldn't find a link for \`${trackString}\``,
+                `Couldn't find anything for \`${trackString}\``,
                 "Either the search had no results or the search failed.",
                 "A restart may be necessary... @Bonk",
             ]);
             return null;
         }
-
-        mm.queue(track, queuePosition);
-        log.debug(f("queue", `Queued track: ${JSON.stringify(track)}`));
+        for (const i in tracks) {
+            console.log(parseInt(i));
+            mm.queue(tracks[i], queuePosition + parseInt(i));
+        }
+        log.debug(f("queue", `Queued track(s): ${JSON.stringify(tracks)}`));
 
         // Only display queue message to channel if not called internally by play command
         if (!calledFromPlay) {
-            message.reply(`Queued: ${track.title}`);
+            message.reply([
+                `Currently Queued: ${mm.queueLength()}`,
+                ...mm.getQueuePreview(),
+            ]);
         }
         return null;
     },

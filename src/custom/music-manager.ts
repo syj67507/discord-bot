@@ -6,9 +6,7 @@ import {
     VoiceConnection,
     VoiceState,
 } from "discord.js";
-
 import ytdl from "ytdl-core";
-import ytsr from "ytsr";
 import { logger as log, format as f } from "../custom/logger";
 
 export interface Track {
@@ -85,6 +83,24 @@ export default class MusicManager {
     }
 
     /**
+     * Returns an array of strings that represent a preview of what is in
+     * the queued playlist.
+     */
+    getQueuePreview(): string[] {
+        let queuedPreview = this.playlist.map(
+            (track, index) => `${index + 1}. ${track.title}`
+        );
+        if (queuedPreview.length > 5) {
+            queuedPreview = [
+                ...queuedPreview.slice(0, 3),
+                "...",
+                ...queuedPreview.slice(-1),
+            ];
+        }
+        return queuedPreview;
+    }
+
+    /**
      * Resets to the queue to be empty.
      */
     clearQueue(): void {
@@ -96,62 +112,6 @@ export default class MusicManager {
      */
     isPlaying(): boolean {
         return this.dispatcher !== null;
-    }
-
-    /**
-     * Determines if the passed in argument is a YouTube link
-     *
-     * @param {string} link The link to the track
-     * @returns Boolean
-     */
-    isYTLink(link: string): boolean {
-        const pattern =
-            /^(https:\/\/|http:\/\/)?(www.)?youtu(be.com\/watch\?v=|.be\/){1}[a-zA-Z0-9_-]{11}$/;
-        return link.match(pattern) != null;
-    }
-
-    /**
-     * Creates a track object from the provided youtube link.
-     * @param link A YouTube link
-     * @returns A Track object of the youtube link
-     */
-    async createTrackFromYTLink(link: string): Promise<Track> {
-        if (!this.isYTLink(link)) {
-            throw Error(`MusicManagerError: The link ${link} is not a youtube link.`);
-        }
-
-        // Use video id to create a new link (ytdl doesn't like youtube share links)
-        let id_start: number;
-        if (link.includes("?v=")) {
-            id_start = link.indexOf("?v=") + 3;
-        } else {
-            id_start = link.indexOf(".be/") + 4;
-        }
-        const video_id: string = link.substring(id_start, id_start + 11);
-        const cleanLink = `https://www.youtube.com/watch?v=${video_id}`;
-
-        try {
-            const info = await ytdl.getInfo(cleanLink);
-            const durationMin: number = Math.floor(
-                parseInt(info.videoDetails.lengthSeconds) / 60
-            );
-            console.log(info);
-            const durationSecond: number = parseInt(info.videoDetails.lengthSeconds) % 60;
-            return {
-                title: info.videoDetails.title,
-                link: info.videoDetails.video_url,
-                duration: `${durationMin}:${durationSecond}`,
-            };
-        } catch (error) {
-            log.error(f("musicmanager", "Error in receiving video details."));
-            log.error(f("musicmanager", `${error}`));
-            log.debug(f("musicmanager", "Creating empty track object with youtube link"));
-            return {
-                title: "title not available",
-                link: cleanLink,
-                duration: "00:00",
-            };
-        }
     }
 
     /**
@@ -182,62 +142,6 @@ export default class MusicManager {
         }
     }
 
-    /**
-     * Returns an object that represents the first YouTube search result with the provided
-     * search
-     *
-     * @param {string} searchString Search string used to search on YouTube
-     * @throws {Error} Throws a generic error with custom messages based on the status
-     * of the search results
-     */
-    async search(searchString: string): Promise<Track> {
-        // Searching
-        let searchFilters = null;
-        let searchResults = null;
-
-        // Search filters inherently sort by relevance
-        // Getting a filter to only return "Videos"
-        try {
-            searchFilters = await ytsr.getFilters(searchString);
-        } catch (error) {
-            log.error(f("MUSICMANAGER", "Fetching search filters returned an error."));
-            throw error;
-        }
-        searchFilters = searchFilters.get("Type");
-        if (!searchFilters) {
-            throw new Error("Unable to get search filters: Type");
-        }
-        searchFilters = searchFilters.get("Video");
-        if (!searchFilters) {
-            throw new Error("Unable to get search filters: Video");
-        }
-
-        // Applying filter and getting results
-        if (!searchFilters.url) {
-            throw new Error("Unable to get search filters URL");
-        }
-        try {
-            searchResults = await ytsr(searchFilters.url, {
-                limit: 1,
-            });
-        } catch (error) {
-            log.error(f("MUSICMANAGER", "Fetching search results returned and error."));
-            throw error;
-        }
-
-        // Processing results
-        searchResults.items = searchResults.items.filter((item: any) => {
-            return item.type === "video";
-        });
-        if (searchResults.items.length === 0) {
-            throw new Error("Search results are empty.");
-        }
-        return {
-            title: (searchResults.items[0] as ytsr.Video).title,
-            link: (searchResults.items[0] as ytsr.Video).url,
-            duration: (searchResults.items[0] as ytsr.Video).duration,
-        };
-    }
     /**
      * Plays the next song found within the client's playlist and sends a message to the
      * text channel providing what it is playing. This function is called recursively until there
