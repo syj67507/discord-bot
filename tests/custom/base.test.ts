@@ -18,7 +18,7 @@ describe("Testing base.ts/parseArgs()", () => {
         jest.restoreAllMocks();
     });
 
-    it("parseArgs should have a side effect of altering parameters", async () => {
+    it("parseArgs should not have a side effect of altering parameters", async () => {
         const rawArgs = ["4"];
         const argumentsInfo: Argument[] = [
             {
@@ -335,7 +335,7 @@ describe("Testing base.ts/parseArgs()", () => {
         );
     });
 
-    it("should parse an array of values when infinite is true", async () => {
+    it("parseArgs should parse an array of values when infinite is true", async () => {
         const rawArgs = ["4"];
         const argumentsInfo: Argument[] = [
             {
@@ -354,7 +354,7 @@ describe("Testing base.ts/parseArgs()", () => {
         expect(result).toEqual(expected);
     });
 
-    it("should error if the infinite flag is true for any argument that isn't the last", async () => {
+    it("parseArgs should error if the infinite flag is true for any argument that isn't the last", async () => {
         const rawArgs = ["1", "2", "string"];
         const argumentsInfo: Argument[] = [
             {
