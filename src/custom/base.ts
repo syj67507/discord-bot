@@ -35,7 +35,6 @@ export interface Argument {
  * @property all other properties can be referenced by this.key
  * @example args.key1
  * @example args.full
- * @exampl
  */
 export type ArgumentValues = {
     /** Key/Value pair of the argument */
@@ -57,6 +56,7 @@ export type ArgumentValues = {
  * @param rawArgs The raw string containing all of the arguments to be parsed
  * @param argsInfo An array of the configuration argument information for each argument
  * @param guild The guild where the command was triggered from (used for fetching guildMembers for user arguments)
+ * @throws ArgumentUsageError | ArgumentDefinitionError | ArgumentCustomValidationError
  * @returns An ArgumentValues structure containing key value pairs for each argument definition.
  */
 export async function parseArgs(
