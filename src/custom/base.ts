@@ -4,6 +4,9 @@ import { ArgumentDefinitionError } from "../errors/ArgumentDefinitionError";
 import { ArgumentUsageError } from "../errors/ArgumentUsageError";
 import { validateNumber, validateBoolean, validateUser } from "./validators";
 
+/**
+ * Defines a Command argument and how to configure one
+ */
 export interface Argument {
     /** The key to reference this argument */
     key: string;
@@ -19,7 +22,8 @@ export interface Argument {
      * Expects the parameter type to be the same as the argument.type*/
     validator?: (value: any) => boolean;
     /** Whether or not this argument takes infinite number of values.
-     * Will return an array of the defined type.
+     * Will return an array of the defined type. Can only be defined
+     * for the last argument if there are multiple arguments defined.
      */
     infinite?: boolean;
 }
@@ -28,11 +32,9 @@ export interface Argument {
  * @property full - The full string of all the argument values passed in
  * @property remaining - If there are more args passed in than defined,
  * the remaining will be populated here
- * @property fullarr - The full list of arguments will be populated here as a string[]
  * @property all other properties can be referenced by this.key
  * @example args.key1
  * @example args.full
- * @exampl
  */
 export type ArgumentValues = {
     /** Key/Value pair of the argument */
@@ -54,6 +56,7 @@ export type ArgumentValues = {
  * @param rawArgs The raw string containing all of the arguments to be parsed
  * @param argsInfo An array of the configuration argument information for each argument
  * @param guild The guild where the command was triggered from (used for fetching guildMembers for user arguments)
+ * @throws ArgumentUsageError | ArgumentDefinitionError | ArgumentCustomValidationError
  * @returns An ArgumentValues structure containing key value pairs for each argument definition.
  */
 export async function parseArgs(
@@ -90,7 +93,7 @@ export async function parseArgs(
         full: argValues.join(" "),
     };
 
-    while (argsInfo.length) {
+    while (argsInfo.length > 0) {
         const arg = argsInfo.shift()!;
         let value = argValues.shift()!;
 
@@ -120,7 +123,7 @@ export async function parseArgs(
         }
 
         // Validate and parse the value
-        let parsedValue: any[] | string;
+        let parsedValue: any[];
         switch (arg.type) {
             case "string":
                 parsedValue = value.split(" ");
@@ -132,19 +135,11 @@ export async function parseArgs(
                 parsedValue = value.split(" ").map((val) => validateBoolean(val));
                 break;
             case "user":
-                parsedValue = [];
+                parsedValue = [] as (GuildMember | undefined)[];
                 for (const val of value.split(" ")) {
-                    (parsedValue as (GuildMember | undefined)[]).push(
-                        await validateUser(val, guild)
-                    );
+                    parsedValue.push(await validateUser(val, guild));
                 }
                 break;
-            default:
-                // Shouldn't ever enter here
-                throw new Error(
-                    "Entered default switch case. You somehow entered an invalid argument type: " +
-                        arg.type
-                );
         }
 
         // Uses custom validator if one is passed
@@ -159,24 +154,13 @@ export async function parseArgs(
             }
         }
 
-        // Parse values as an array if argument expected infinite
         // Throw usage error if validators returned undefined
-        if (arg.infinite !== true) {
-            if (parsedValue[0] !== undefined) {
-                result[arg.key] = parsedValue[0];
-            } else {
-                throw new ArgumentUsageError(arg, value);
-            }
-        } else {
-            result[arg.key] = [];
-            for (const val of parsedValue) {
-                if (val !== undefined) {
-                    (result[arg.key] as any[]).push(val);
-                } else {
-                    throw new ArgumentUsageError(arg, value);
-                }
-            }
+        if (parsedValue.includes(undefined)) {
+            throw new ArgumentUsageError(arg, value);
         }
+
+        // Parse values as an array if infinite flag is true
+        result[arg.key] = arg.infinite ? parsedValue : parsedValue[0];
     }
 
     if (argValues.length > 0) {
@@ -186,12 +170,17 @@ export async function parseArgs(
     return result;
 }
 
+/**
+ * Defines a Command and how to configure.
+ */
 export interface Command {
     /** The default name of the command */
     name: string;
     /** A short description of the command */
     description: string;
-    /** The configuration information about the arguments of the command */
+    /** The configuration information about the arguments of the command.
+     * See the Argument interface for more detailed information
+     */
     arguments: Argument[];
     /**
      * The function to run when the command is triggered
