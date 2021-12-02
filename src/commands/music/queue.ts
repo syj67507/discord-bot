@@ -124,7 +124,6 @@ const queueCommand: Command = {
             return null;
         }
         for (const i in tracks) {
-            console.log(parseInt(i));
             mm.queue(tracks[i], queuePosition + parseInt(i));
         }
         log.debug(f("queue", `Queued track(s): ${JSON.stringify(tracks)}`));

@@ -89,7 +89,7 @@ describe("Queue command tests", () => {
         expect(mm.playlist[1]).toEqual(track);
     });
 
-    it("queuCommand should add a track to the queue from a direct YouTube video link", async () => {
+    it("queueCommand should add a track to the queue from a direct YouTube video link", async () => {
         message.content = process.env.PREFIX! + "queue youtube.link";
         const args: ArgumentValues = await parseArgs(
             message.content.split(/[ ]+/).slice(1),
@@ -144,11 +144,11 @@ describe("Queue command tests", () => {
             {} as any
         );
 
-        const messageSpy = jest.spyOn(message, "reply");
+        const getQueuePreviewSpy = jest.spyOn(mm, "getQueuePreview");
 
         await queueCommand.run(message, args);
 
-        expect(messageSpy.mock.calls[0][0][0].includes("Currently Queued")).toBe(true);
+        expect(getQueuePreviewSpy).toHaveBeenCalledTimes(1);
         expect(mm.queueLength()).toBeGreaterThan(0);
     });
 
@@ -252,14 +252,14 @@ describe("Queue command tests", () => {
             {} as any
         );
 
-        const messageSpy = jest.spyOn(message, "reply");
+        const getQueuePreviewSpy = jest.spyOn(mm, "getQueuePreview");
         mmQueueSpy.mockClear();
 
         expect(mm.queueLength()).toBe(1);
 
         await queueCommand.run(message, args);
 
-        expect(messageSpy).not.toHaveBeenCalled();
+        expect(getQueuePreviewSpy).not.toHaveBeenCalled();
         expect(mmQueueSpy).toHaveBeenCalledTimes(1);
         expect(mm.queueLength()).toBe(2);
         expect(mm.playlist[0]).toEqual(track);
