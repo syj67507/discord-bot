@@ -142,7 +142,7 @@ describe("Testing help command", () => {
             });
 
             const result = makeHelpAllMessage(prefix, commands, commandGroups);
-            expect(result.join(" ").includes("~~")).toBe(true); // ~~word~~ is the way to cross out a word
+            expect(result.join(" ").includes("~~**sample")).toBe(true); // ~~**word~~ is the way to cross out a bolded word
         });
 
         it("should make a help message for the sample command with additional help info if specified", async () => {
