@@ -194,4 +194,9 @@ export interface Command {
     aliases?: string[];
     /** Defines whether the command is enabled for use */
     enabled: boolean | "fixed";
+    /**
+     * Additional information about the command that is displayed in the specific
+     * help message.
+     */
+    additionalHelpInfo?: string[];
 }

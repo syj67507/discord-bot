@@ -28,14 +28,14 @@ const helpCommand: Command = {
         let helpMessage: string[] = [];
 
         // Based on input, fill in the helpMessage
-        const { commandName } = args;
+        const commandName = args.commandName as string;
         if (args.commandName === "all") {
             helpMessage = makeHelpAllMessage(prefix, commands, commandGroups);
-        } else if (commands.has(commandName as string)) {
-            const command = commands.get(commandName as string)!;
+        } else if (commands.has(commandName)) {
+            const command = commands.get(commandName)!;
             helpMessage = makeSpecificHelpMessage(command);
-        } else if (commandAliases.has(commandName as string)) {
-            const cmdName = commandAliases.get(commandName as string)!;
+        } else if (commandAliases.has(commandName)) {
+            const cmdName = commandAliases.get(commandName)!;
             const command = commands.get(cmdName)!;
             helpMessage = makeSpecificHelpMessage(command);
         } else {
@@ -79,7 +79,7 @@ function makeHelpAllMessage(
     const helpMessage = [
         `To run a command, use \`${prefix}command\` in any text channel provided on the server.`,
         `Use \`${prefix}help <command>\` to view detailed information about a specific command.`,
-        "Any commands that ~~crossed out~~ are currently disabled.",
+        "Any commands that are ~~crossed out~~ are currently disabled.",
         "",
         "__**Available commands**__",
         "",
@@ -108,14 +108,29 @@ function makeHelpAllMessage(
  * @returns {string[]} An array of strings of all the command details
  */
 function makeSpecificHelpMessage(command: Command): string[] {
-    const { aliases, description, enabled, name, arguments: args } = command;
+    const {
+        aliases,
+        description,
+        enabled,
+        name,
+        arguments: args,
+        additionalHelpInfo,
+    } = command;
+
     const msg = [
         `__Command **${name}**__`,
         description,
         `Currently ${enabled === false ? "**disabled**" : "**enabled**"}`,
         "",
-        `**Aliases:** \`[${aliases}]\``,
     ];
+
+    if (aliases && aliases.length > 0) {
+        msg.push(`**Aliases:** \`[${aliases}]\``);
+    }
+
+    if (additionalHelpInfo && additionalHelpInfo.length > 0) {
+        msg.push("", ...additionalHelpInfo, "");
+    }
 
     if (args.length > 0) {
         const { usageArgs, argDetails } = makeArgDescriptions(args);
