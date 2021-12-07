@@ -14,7 +14,7 @@ const playCommand: Command = {
             key: "track",
             type: "string",
             description:
-                "The search phrase for YouTube search or the direct YouTube link",
+                "The search phrase for YouTube search, direct YouTube video link, or direct YouTube playlist link",
             default: "",
             infinite: true,
         },

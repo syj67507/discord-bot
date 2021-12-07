@@ -5,6 +5,7 @@ import MusicManager from "../../custom/music-manager";
 
 const nextCommand: Command = {
     name: "next",
+    aliases: ["skip"],
     description: "Plays the next song in the queue.",
     enabled: true,
     arguments: [],
