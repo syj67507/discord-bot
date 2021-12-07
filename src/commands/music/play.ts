@@ -31,8 +31,11 @@ const playCommand: Command = {
             return null;
         }
 
-        // Try to queue up a track using the queue command
+        // Try to queue up a track to front of queue using the queue command
         if (trackString) {
+            // eslint-disable-next-line no-param-reassign
+            message.content = message.content + " --position 1";
+            (args.track as string[]).push("--position", "1");
             await queueCommand.run(message, args);
         }
 
