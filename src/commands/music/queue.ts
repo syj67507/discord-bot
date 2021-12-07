@@ -22,7 +22,6 @@ const queueCommand: Command = {
     enabled: true,
     async run(message: Message, args: ArgumentValues): Promise<null> {
         const mm = MusicManager.getInstance(message.client);
-        const trackString = (args.track as string[]).join(" ");
 
         // Different behavior if this was called from play command internally
         const prefix = process.env.PREFIX!;
@@ -33,8 +32,36 @@ const queueCommand: Command = {
             .toLowerCase();
         const calledFromPlay =
             (ogCommand === this.name || this.aliases?.includes(ogCommand)) === false;
-        // queues at beginning if called from play command to play the song right now
-        const queuePosition = calledFromPlay ? 0 : mm.queueLength();
+
+        // determine the queue position/offset
+        const positionFlags = ["--position", "--pos"];
+        const queuePositionFlagIndex = (args.track as string[]).findIndex((val) =>
+            positionFlags.includes(val)
+        );
+        let queuePosition = mm.queueLength(); // default to the end of the queue
+
+        // Verify provided position paramter
+        if (queuePositionFlagIndex > -1) {
+            const parsedPosition = parseInt(
+                (args.track as string[])[queuePositionFlagIndex + 1]
+            );
+
+            if (isNaN(parsedPosition) || parsedPosition < 1) {
+                message.reply([
+                    `The provided position: \`${parsedPosition}\` is not valid.`,
+                    `If you provide a position flag \`${positionFlags}\`, then you must provide a number greater than 0.`,
+                ]);
+                return null;
+            }
+
+            // parsedPosition from user input will be one off so we must subtract by 1 to make it zero based indexing
+            queuePosition = parsedPosition - 1;
+
+            // Remove the position flag and parameter from the array for normal track string
+            (args.track as string[]).splice(queuePositionFlagIndex, 2);
+        }
+
+        const trackString = (args.track as string[]).join(" ");
 
         // Displays queue on no track name passed
         if (trackString === "") {
