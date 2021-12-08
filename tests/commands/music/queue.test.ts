@@ -238,14 +238,14 @@ describe("Queue command tests", () => {
         expect(mm.queueLength()).toBe(0);
     });
 
-    it("queueCommand should not display a message and it should queue at the beginning if called from the use of another command", async () => {
+    it("queueCommand should not display a message if called from the play command", async () => {
         mm.queue({
             title: "Previous title",
             link: "previous.link",
             duration: "4:20",
         });
 
-        message.content = process.env.PREFIX! + "play Test title";
+        message.content = process.env.PREFIX! + "play Test title --position 123";
         const args: ArgumentValues = await parseArgs(
             message.content.split(/[ ]+/).slice(1),
             queueCommand.arguments,
@@ -261,7 +261,40 @@ describe("Queue command tests", () => {
 
         expect(getQueuePreviewSpy).not.toHaveBeenCalled();
         expect(mmQueueSpy).toHaveBeenCalledTimes(1);
+        expect(mmQueueSpy.mock.calls[0][1]).toBe(122); // position is offset by 1 to be zero based
         expect(mm.queueLength()).toBe(2);
-        expect(mm.playlist[0]).toEqual(track);
+    });
+
+    it("queueCommand should send an error message if the position flag was not provided with a valid number parameter", async () => {
+        message.content = process.env.PREFIX! + "queue Test title --position";
+        const args: ArgumentValues = await parseArgs(
+            message.content.split(/[ ]+/).slice(1),
+            queueCommand.arguments,
+            {} as any
+        );
+
+        expect(mm.queueLength()).toBe(0);
+
+        await queueCommand.run(message, args);
+
+        expect(mmQueueSpy).not.toHaveBeenCalled();
+        expect(mm.queueLength()).toBe(0);
+    });
+
+    it("queueCommand should remove the positions flag and parameter if parsed successfully", async () => {
+        message.content = process.env.PREFIX! + "queue Test position title --position 1";
+        const args: ArgumentValues = await parseArgs(
+            message.content.split(/[ ]+/).slice(1),
+            queueCommand.arguments,
+            {} as any
+        );
+
+        expect(mm.queueLength()).toBe(0);
+
+        await queueCommand.run(message, args);
+
+        expect(ytClientSearchSpy).toHaveBeenLastCalledWith("Test position title");
+        expect(mmQueueSpy).toHaveBeenCalled();
+        expect(mm.queueLength()).toBe(1);
     });
 });

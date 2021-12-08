@@ -14,7 +14,7 @@ const playCommand: Command = {
             key: "track",
             type: "string",
             description:
-                "The search phrase for YouTube search or the direct YouTube link",
+                "The search phrase for YouTube search, direct YouTube video link, or direct YouTube playlist link",
             default: "",
             infinite: true,
         },
@@ -31,9 +31,16 @@ const playCommand: Command = {
             return null;
         }
 
-        // Try to queue up a track using the queue command
+        // Try to queue up a track to front of queue using the queue command
         if (trackString) {
+            // eslint-disable-next-line no-param-reassign
+            message.content = message.content + " --position 1";
+            (args.track as string[]).push("--position", "1");
+            log.info(
+                f("play", `Internally calling queueCommand with '${message.content}'`)
+            );
             await queueCommand.run(message, args);
+            log.info(f("play", "Returned back from queueCommand"));
         }
 
         // Exits if the queue is empty and no track was provided
