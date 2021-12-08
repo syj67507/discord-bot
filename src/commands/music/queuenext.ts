@@ -25,7 +25,12 @@ const queuenextCommand: Command = {
         // eslint-disable-next-line no-param-reassign
         message.content = message.content + " --position 1";
         (args.track as string[]).push("--position", "1");
+
+        log.info(
+            f("queuenext", `Internally calling queueCommand with '${message.content}'`)
+        );
         await queueCommand.run(message, args);
+        log.info(f("queuenext", "Returned back from queueCommand"));
 
         return null;
     },

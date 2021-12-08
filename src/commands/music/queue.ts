@@ -4,6 +4,7 @@ import { format as f, logger as log } from "../../custom/logger";
 import MusicManager, { Track } from "../../custom/music-manager";
 import { YTClient } from "../../custom/ytclient";
 import "dotenv/config";
+import playCommand from "./play";
 
 const queueCommand: Command = {
     name: "queue",
@@ -23,17 +24,8 @@ const queueCommand: Command = {
     async run(message: Message, args: ArgumentValues): Promise<null> {
         const mm = MusicManager.getInstance(message.client);
 
-        // Different behavior if this was called from play command internally
-        const prefix = process.env.PREFIX!;
-        const ogCommand = message.content
-            .slice(prefix.length)
-            .split(/[ ]+/)
-            .shift()!
-            .toLowerCase();
-        const calledFromPlay =
-            (ogCommand === this.name || this.aliases?.includes(ogCommand)) === false;
-
         // determine the queue position/offset
+        log.debug(f("queue", "Determining the queue position/offset"));
         const positionFlags = ["--position", "--pos"];
         const queuePositionFlagIndex = (args.track as string[]).findIndex((val) =>
             positionFlags.includes(val)
@@ -42,11 +34,18 @@ const queueCommand: Command = {
 
         // Verify provided position paramter
         if (queuePositionFlagIndex > -1) {
+            log.debug(
+                f(
+                    "queue",
+                    "Position flag detected. Parsing provided position parameter..."
+                )
+            );
             const parsedPosition = parseInt(
                 (args.track as string[])[queuePositionFlagIndex + 1]
             );
 
             if (isNaN(parsedPosition) || parsedPosition < 1) {
+                log.error(f("queue", "Error in parsing provided position"));
                 message.reply([
                     `The provided position: \`${parsedPosition}\` is not valid.`,
                     `If you provide a position flag \`${positionFlags}\`, then you must provide a number greater than 0.`,
@@ -55,11 +54,18 @@ const queueCommand: Command = {
             }
 
             // parsedPosition from user input will be one off so we must subtract by 1 to make it zero based indexing
+            // Remove position flags/parameters
+            log.debug(f("queue", `Successfully parsed: ${parsedPosition}`));
             queuePosition = parsedPosition - 1;
-
-            // Remove the position flag and parameter from the array for normal track string
+            log.debug(
+                f(
+                    "queue",
+                    "Removing the position flag and parameter from the array for normal track string"
+                )
+            );
             (args.track as string[]).splice(queuePositionFlagIndex, 2);
         }
+        log.debug(f("queue", `queue position/offset set at: ${queuePosition}`));
 
         const trackString = (args.track as string[]).join(" ");
 
@@ -156,6 +162,15 @@ const queueCommand: Command = {
         log.debug(f("queue", `Queued track(s): ${JSON.stringify(tracks)}`));
 
         // Only display queue message to channel if not called internally by play command
+        // Different behavior if this was called from play command internally
+        const prefix = process.env.PREFIX!;
+        const ogCommand = message.content
+            .slice(prefix.length)
+            .split(/[ ]+/)
+            .shift()!
+            .toLowerCase();
+        const calledFromPlay =
+            ogCommand === playCommand.name || playCommand.aliases?.includes(ogCommand);
         if (!calledFromPlay) {
             message.reply([
                 `Currently Queued: ${mm.queueLength()}`,

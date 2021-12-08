@@ -36,7 +36,11 @@ const playCommand: Command = {
             // eslint-disable-next-line no-param-reassign
             message.content = message.content + " --position 1";
             (args.track as string[]).push("--position", "1");
+            log.info(
+                f("play", `Internally calling queueCommand with '${message.content}'`)
+            );
             await queueCommand.run(message, args);
+            log.info(f("play", "Returned back from queueCommand"));
         }
 
         // Exits if the queue is empty and no track was provided
