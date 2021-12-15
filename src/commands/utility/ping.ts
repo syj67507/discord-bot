@@ -1,13 +1,13 @@
-import { Message } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import { Command } from "../../custom/base";
 
 const pingCommand: Command = {
     name: "ping",
     description: "Pings the bot",
-    arguments: [],
+    options: [],
     enabled: true,
-    async run(message: Message) {
-        message.reply("Pong!");
+    async run(interaction: CommandInteraction) {
+        await interaction.reply("Pong!");
         return null;
     },
 };

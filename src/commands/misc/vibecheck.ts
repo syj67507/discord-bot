@@ -1,18 +1,18 @@
-import { Message } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import { Command } from "../../custom/base";
 
 const vibecheckCommand: Command = {
     name: "vibecheck",
     aliases: ["roll", "vc"],
     description: "Rolls a d20 to see how much we vibin'! ",
-    arguments: [],
+    options: [],
     enabled: true,
-    async run(message: Message) {
+    async run(interaction: CommandInteraction) {
         let response = `${Math.ceil(Math.random() * 20)}`;
         if (response === "20") {
             response = `${response} (~‾▿‾)~`;
         }
-        message.reply(response);
+        await interaction.reply(response);
         return null;
     },
 };

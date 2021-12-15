@@ -25,14 +25,17 @@ export function loadCommands(commandFolderPath: string): LoadedCommands {
                 ""
             );
             const command: Command = require(path).default;
-            commandAliases.set(command.name, command.name);
-            if (command.aliases) {
-                for (const alias of command.aliases) {
-                    commandAliases.set(alias, command.name);
+            if (command) {
+                // TEMP
+                commandAliases.set(command.name, command.name);
+                if (command.aliases) {
+                    for (const alias of command.aliases) {
+                        commandAliases.set(alias, command.name);
+                    }
                 }
+                commandGroups.get(group)?.push(command.name);
+                commands.set(command.name, command);
             }
-            commandGroups.get(group)?.push(command.name);
-            commands.set(command.name, command);
         }
     }
     return {

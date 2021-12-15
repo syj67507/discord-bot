@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import { Command } from "../../custom/base";
 
 const meowCommand: Command = {
@@ -6,9 +6,9 @@ const meowCommand: Command = {
     description: "Kitty Cat replies with Meow!",
     aliases: ["cat", "kitten", "kit"],
     enabled: true,
-    arguments: [],
-    async run(message: Message) {
-        message.channel.send("Meow!");
+    options: [],
+    async run(interaction: CommandInteraction) {
+        await interaction.reply("Meow!");
         return null;
     },
 };

@@ -1,22 +1,24 @@
-import { Message } from "discord.js";
-import { ArgumentValues, Command } from "../../custom/base";
+import { CommandInteraction } from "discord.js";
+import { Command } from "../../custom/base";
+import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
 
 const leagueStatsCommand: Command = {
     name: "leaguestats",
     description: "Sends the op.gg profile of requested user (North American Region)",
     aliases: ["ls", "opgg"],
-    arguments: [
+    options: [
         {
-            key: "leagueUsernameInput",
-            type: "string",
+            name: "username",
             description: "Username of requested league account.",
+            required: false,
+            type: ApplicationCommandOptionTypes.STRING,
         },
     ],
     enabled: true,
-    async run(message: Message, args: ArgumentValues) {
-        const input = args.leagueUsernameInput as string;
+    async run(interaction: CommandInteraction, args: any) {
+        const input = args.username as string;
         const leagueURL: URL = searchLeagueName(input);
-        message.channel.send(leagueURL.href);
+        await interaction.reply(leagueURL.href);
         return null;
     },
 };

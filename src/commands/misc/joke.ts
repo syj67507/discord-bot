@@ -1,16 +1,15 @@
-import { Message } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import { Command } from "../../custom/base";
 import axios from "axios";
 import { logger as log, format as f } from "../../custom/logger";
 import * as thisModule from "./joke";
-
 const jokeCommand: Command = {
     name: "joke",
     aliases: ["dadjoke", "jokes"],
     description: "Sends a dad joke!",
-    arguments: [],
+    options: [],
     enabled: true,
-    async run(message: Message) {
+    async run(interaction: CommandInteraction) {
         log.debug(f("joke", "Fetching the joke..."));
         const res = await axios.get("https://icanhazdadjoke.com/slack", {
             headers: {
@@ -24,7 +23,7 @@ const jokeCommand: Command = {
         log.debug(f("joke", `Joke: ${joke}`));
 
         log.debug(f("joke", "Sending to channel..."));
-        message.reply(joke);
+        await interaction.reply(joke);
         return null;
     },
 };
