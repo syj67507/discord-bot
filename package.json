@@ -11,13 +11,14 @@
         "clean-gcp": "rimraf -f googleApplicationCredentials.json",
         "clean-test": "rimraf -rf coverage",
         "deploy": "node dist/deploy.js",
-        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && node dist/index.js\"",
+        "dev": "nodemon --ext ts --exec \"npm run clean && npm run build && npm run deploy && node dist/index.js\"",
         "format-check": "prettier --config .prettierrc --check ./src ./tests ./types",
         "format-write": "prettier --config .prettierrc --write ./src ./tests ./types",
         "lint": "eslint .",
-        "prestart": "npm i ytdl-core@latest ytsr@latest",
+        "prestart": "npm update ytdl-core ytsr",
         "start": "node dist/index.js",
-        "test": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts tests/custom/validators.test.ts tests/custom/base.test.ts tests/commands/music/queue.test.ts tests/commands/utility/help.test.ts tests/commands/music/queuenext.test.ts --silent --verbose"
+        "test": "npm run clean-build && npm run clean-test && jest --verbose tests/commands/misc/joke.test.ts",
+        "oldtest": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts tests/custom/validators.test.ts tests/custom/base.test.ts tests/commands/music/queue.test.ts tests/commands/utility/help.test.ts tests/commands/music/queuenext.test.ts --silent --verbose"
     },
     "lint-staged": {
         "{src,tests}/**/*": [

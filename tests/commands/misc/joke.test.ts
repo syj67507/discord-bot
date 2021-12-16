@@ -1,60 +1,51 @@
-import jokeCommand, { appendEmoji } from "../../../v12_src/commands/misc/joke";
+import jokeCommand from "../../../src/commands/misc/joke";
 import axios from "axios";
 
 describe("Testing the joke command", () => {
-    describe("Testing joke's helper functions", () => {
-        beforeEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        it("should append the emoji :rofl:", () => {
-            const joke = "This is the joke.";
-            const emoji = " :rofl:";
-            jest.spyOn(global.Math, "random").mockImplementation(() => 0.1);
-
-            const result = appendEmoji(joke);
-
-            expect(result).toBe(joke + emoji);
-        });
-
-        it("should append the emoji :joy:", () => {
-            const joke = "This is the joke.";
-            const emoji = " :joy:";
-            jest.spyOn(global.Math, "random").mockImplementation(() => 0.9);
-
-            const result = appendEmoji(joke);
-
-            expect(result).toBe(joke + emoji);
-        });
-    });
-
     describe("Testing the joke command's run function", () => {
-        const message: any = {
+        const interaction: any = {
             reply: jest.fn(),
         };
+        const mockedJoke = "This is a mocked joke.";
         beforeEach(() => {
-            jest.mock("axios");
             jest.restoreAllMocks();
-        });
-
-        it("Should run the run function", async () => {
             jest.spyOn(axios, "get").mockImplementation(async () => {
                 return {
                     data: {
                         attachments: [
                             {
-                                text: "This is a mocked joke.",
+                                text: mockedJoke,
                             },
                         ],
                     },
                 };
             });
-            const messageSpy = jest.spyOn(message, "reply");
+        });
+
+        it("Should reply with a joke with the :rofl: emoji", async () => {
+            const interactionSpy = jest.spyOn(interaction, "reply");
             jest.spyOn(global.Math, "random").mockImplementation(() => 0.1);
-            const args = {};
-            const result = await jokeCommand.run(message, args);
-            expect(result).toBeNull();
-            expect(messageSpy).toHaveBeenLastCalledWith("This is a mocked joke. :rofl:");
+
+            const options = {};
+
+            await jokeCommand.run(interaction, options);
+
+            expect(interactionSpy).toHaveBeenLastCalledWith(
+                "This is a mocked joke. :rofl:"
+            );
+        });
+
+        it("Should reply with a joke with the :joy: emoji", async () => {
+            const interactionSpy = jest.spyOn(interaction, "reply");
+            jest.spyOn(global.Math, "random").mockImplementation(() => 0.6);
+
+            const options = {};
+
+            await jokeCommand.run(interaction, options);
+
+            expect(interactionSpy).toHaveBeenLastCalledWith(
+                "This is a mocked joke. :joy:"
+            );
         });
     });
 });
