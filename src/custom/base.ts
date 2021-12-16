@@ -1,5 +1,4 @@
 import { CommandInteraction, GuildMember } from "discord.js";
-import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
 
 export interface Option {
     /** The default name of the option */
@@ -9,9 +8,19 @@ export interface Option {
     /** Whether the option is required for the command to function */
     required: boolean;
     /** The type of the option (uses Discord's API to fetch available types)
-     * import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
+     * import { OptionTypes } from "discord.js/typings/enums";
      */
-    type: ApplicationCommandOptionTypes;
+    type: OptionTypes;
+}
+
+// eslint bug where Enums fail to no-shadow has been turned off in favor of
+// typescript-no-shadow
+export enum OptionTypes {
+    STRING,
+    NUMBER,
+    INTEGER,
+    USER,
+    BOOLEAN,
 }
 
 export async function parseOptions(
@@ -34,13 +43,13 @@ export async function parseOptions(
         // If passed an appropriate option, then appropriately fetch the values
         if (parsedOption) {
             switch (option.type as number) {
-                case ApplicationCommandOptionTypes.BOOLEAN:
-                case ApplicationCommandOptionTypes.INTEGER:
-                case ApplicationCommandOptionTypes.NUMBER:
-                case ApplicationCommandOptionTypes.STRING:
+                case OptionTypes.BOOLEAN:
+                case OptionTypes.INTEGER:
+                case OptionTypes.NUMBER:
+                case OptionTypes.STRING:
                     parsedValue = parsedOption.value;
                     break;
-                case ApplicationCommandOptionTypes.USER:
+                case OptionTypes.USER:
                     parsedValue = parsedOption.member as GuildMember; // member object contains GuildMember and User object
                     break;
                 default:

@@ -10,9 +10,8 @@ import {
     SlashCommandStringOption,
 } from "@discordjs/builders";
 import { REST } from "@discordjs/rest";
-import { Command } from "./custom/base";
+import { Command, OptionTypes } from "./custom/base";
 import { Routes } from "discord-api-types/v9";
-import { ApplicationCommandOptionTypes } from "discord.js/typings/enums";
 
 const clientId = process.env.CLIENT_ID!;
 const guildId = process.env.GUILD_ID!;
@@ -39,7 +38,7 @@ for (const group of groups) {
             // build the options for each command
             for (const option of command.options) {
                 switch (option.type) {
-                    case ApplicationCommandOptionTypes.BOOLEAN:
+                    case OptionTypes.BOOLEAN:
                         builtCommand.addBooleanOption(
                             new SlashCommandBooleanOption()
                                 .setName(option.name)
@@ -47,7 +46,7 @@ for (const group of groups) {
                                 .setRequired(option.required)
                         );
                         break;
-                    case ApplicationCommandOptionTypes.NUMBER:
+                    case OptionTypes.NUMBER:
                         builtCommand.addNumberOption(
                             new SlashCommandNumberOption()
                                 .setName(option.name)
@@ -55,7 +54,7 @@ for (const group of groups) {
                                 .setRequired(option.required)
                         );
                         break;
-                    case ApplicationCommandOptionTypes.INTEGER:
+                    case OptionTypes.INTEGER:
                         builtCommand.addIntegerOption(
                             new SlashCommandIntegerOption()
                                 .setName(option.name)
@@ -63,7 +62,7 @@ for (const group of groups) {
                                 .setRequired(option.required)
                         );
                         break;
-                    case ApplicationCommandOptionTypes.STRING:
+                    case OptionTypes.STRING:
                         builtCommand.addStringOption(
                             new SlashCommandStringOption()
                                 .setName(option.name)
@@ -71,7 +70,7 @@ for (const group of groups) {
                                 .setRequired(option.required)
                         );
                         break;
-                    case ApplicationCommandOptionTypes.USER:
+                    case OptionTypes.USER:
                         builtCommand.addUserOption(
                             new SlashCommandUserOption()
                                 .setName(option.name)

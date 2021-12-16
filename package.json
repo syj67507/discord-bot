@@ -17,7 +17,7 @@
         "lint": "eslint .",
         "prestart": "npm update ytdl-core ytsr",
         "start": "node dist/index.js",
-        "test": "npm run clean-build && npm run clean-test && jest --verbose tests/commands/misc/joke.test.ts",
+        "test": "npm run clean-build && npm run clean-test && jest --verbose tests/commands/misc/opgg.test.ts",
         "oldtest": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts tests/custom/validators.test.ts tests/custom/base.test.ts tests/commands/music/queue.test.ts tests/commands/utility/help.test.ts tests/commands/music/queuenext.test.ts --silent --verbose"
     },
     "lint-staged": {
@@ -54,6 +54,10 @@
         ],
         "coveragePathIgnorePatterns": [
             "src/index.ts"
+        ],
+        "moduleDirectories": [
+            "node_modules",
+            "src"
         ]
     },
     "dependencies": {
@@ -89,6 +93,6 @@
         "lint-staged": "^11.1.2",
         "nodemon": "^2.0.7",
         "prettier": "^2.3.2",
-        "typescript": "^4.1.3"
+        "typescript": "^4.5.4"
     }
 }
