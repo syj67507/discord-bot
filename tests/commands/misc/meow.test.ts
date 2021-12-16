@@ -1,20 +1,20 @@
-import meowCommand from "../../../v12_src/commands/misc/meow";
+import meowCommand from "../../../src/commands/misc/meow";
 
 describe("Testing the meow command", () => {
     describe("Testing the meow command's run function", () => {
         // Marked as any for avoiding parameter checks in run()
-        const message: any = {
-            channel: {
-                send: jest.fn(),
-            },
+        const interaction: any = {
+            reply: jest.fn(),
         };
         it("should respond with meow", async () => {
-            const messageSpy = jest.spyOn(message.channel, "send");
-            const result = await meowCommand.run(message, {});
+            const interactionSpy = jest.spyOn(interaction, "reply");
+
+            const options: any = {};
+            const result = await meowCommand.run(interaction, options);
 
             expect(result).toBeNull();
-            expect(messageSpy).toHaveBeenCalledTimes(1);
-            expect(messageSpy).toHaveBeenLastCalledWith("Meow!");
+            expect(interactionSpy).toHaveBeenCalledTimes(1);
+            expect(interactionSpy).toHaveBeenLastCalledWith("Meow!");
         });
     });
 });
