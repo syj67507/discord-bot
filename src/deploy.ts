@@ -34,54 +34,59 @@ for (const group of groups) {
             const builtCommand = new SlashCommandBuilder()
                 .setName(command.name)
                 .setDescription(command.description);
+            if (command.options && command.options.length !== 0) {
+                console.log(command.options[0].choices);
+            }
 
             // build the options for each command
             for (const option of command.options) {
-                switch (option.type) {
-                    case OptionTypes.BOOLEAN:
-                        builtCommand.addBooleanOption(
-                            new SlashCommandBooleanOption()
-                                .setName(option.name)
-                                .setDescription(option.description)
-                                .setRequired(option.required)
-                        );
-                        break;
-                    case OptionTypes.NUMBER:
-                        builtCommand.addNumberOption(
-                            new SlashCommandNumberOption()
-                                .setName(option.name)
-                                .setDescription(option.description)
-                                .setRequired(option.required)
-                        );
-                        break;
-                    case OptionTypes.INTEGER:
-                        builtCommand.addIntegerOption(
-                            new SlashCommandIntegerOption()
-                                .setName(option.name)
-                                .setDescription(option.description)
-                                .setRequired(option.required)
-                        );
-                        break;
-                    case OptionTypes.STRING:
-                        builtCommand.addStringOption(
-                            new SlashCommandStringOption()
-                                .setName(option.name)
-                                .setDescription(option.description)
-                                .setRequired(option.required)
-                        );
-                        break;
-                    case OptionTypes.USER:
-                        builtCommand.addUserOption(
-                            new SlashCommandUserOption()
-                                .setName(option.name)
-                                .setDescription(option.description)
-                                .setRequired(option.required)
-                        );
-                        break;
-                    default:
-                        throw new Error(
-                            `Error in building the command. The defined Option type isn't allowed right now. ${option.type}`
-                        );
+                // Prepare choices if it exists
+                let choices: [name: string, value: any][] = [];
+                if (option.choices) {
+                    choices = option.choices.map((choice) => {
+                        return [choice.toString(), choice];
+                    });
+                }
+
+                if (option.type === OptionTypes.BOOLEAN) {
+                    builtCommand.addBooleanOption(
+                        new SlashCommandBooleanOption()
+                            .setName(option.name)
+                            .setDescription(option.description)
+                            .setRequired(option.required)
+                    );
+                } else if (option.type === OptionTypes.NUMBER) {
+                    builtCommand.addNumberOption(
+                        new SlashCommandNumberOption()
+                            .setName(option.name)
+                            .setDescription(option.description)
+                            .setRequired(option.required)
+                            .addChoices(choices)
+                    );
+                } else if (option.type === OptionTypes.INTEGER) {
+                    builtCommand.addIntegerOption(
+                        new SlashCommandIntegerOption()
+                            .setName(option.name)
+                            .setDescription(option.description)
+                            .setRequired(option.required)
+                            .addChoices(choices)
+                    );
+                } else if (option.type === OptionTypes.STRING) {
+                    const stringOption = new SlashCommandStringOption()
+                        .setName(option.name)
+                        .setDescription(option.description)
+                        .setRequired(option.required)
+                        .addChoices(choices);
+                    builtCommand.addStringOption(stringOption);
+                } else if (option.type === OptionTypes.USER) {
+                    builtCommand.addUserOption(
+                        new SlashCommandUserOption()
+                            .setName(option.name)
+                            .setDescription(option.description)
+                            .setRequired(option.required)
+                    );
+                } else {
+                    throw new Error(`OptionType not yet supported ${option.type}`);
                 }
             }
 

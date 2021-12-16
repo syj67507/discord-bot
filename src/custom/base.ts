@@ -11,6 +11,10 @@ export interface Option {
      * import { OptionTypes } from "discord.js/typings/enums";
      */
     type: OptionTypes;
+    /** Provides the user with choices to pick from
+     * Only works with STRING, NUMBER, INTEGER types
+     */
+    choices?: any[];
 }
 
 // eslint bug where Enums fail to no-shadow has been turned off in favor of
