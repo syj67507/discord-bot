@@ -1,10 +1,10 @@
 import { CommandInteraction } from "discord.js";
 import { Command } from "../../custom/base";
 
-const vibecheckCommand: Command = {
-    name: "vibecheck",
-    aliases: ["roll", "vc"],
-    description: "Rolls a d20 to see how much we vibin'! ",
+const rollCommand: Command = {
+    name: "roll",
+    aliases: ["vibecheck", "vc"],
+    description: "Rolls a d20, checking the vibe...",
     options: [],
     enabled: true,
     async run(interaction: CommandInteraction) {
@@ -17,4 +17,4 @@ const vibecheckCommand: Command = {
     },
 };
 
-export default vibecheckCommand;
+export default rollCommand;
