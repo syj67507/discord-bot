@@ -64,15 +64,19 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         await commands.get(i.commandName)!.run(i, options);
     } catch (error) {
         if (error instanceof Error) {
-            await interaction.reply(
-                [
-                    `An error occurred while running the command: \`${
-                        (error as Error).message
-                    }\``,
-                    "You shouldn't ever receive an error like this.",
-                    "Please contact the bot admin.",
-                ].join("\n")
-            );
+            const msg = [
+                `An error occurred while running the command: \`${
+                    (error as Error).message
+                }\``,
+                "You shouldn't ever receive an error like this.",
+                "Please contact the bot admin.",
+            ].join("\n");
+            if (interaction.deferred) {
+                await interaction.deleteReply();
+                await interaction.followUp({ content: msg, ephemeral: true });
+            } else {
+                await interaction.reply({ content: msg, ephemeral: true });
+            }
         }
         process.stderr.write("CommandExecutionError: ");
         log.error(error);
