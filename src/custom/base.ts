@@ -83,7 +83,7 @@ export interface Command {
      * The function to run when the command is triggered
      *
      * @param { Message } message The message that invoked this command
-     * @param { ArgumentValues } options The arguments that were passed to this command
+     * @param { any } options The arguments that were passed to this command
      * @returns { Promise<null> } null if no error is thrown
      */
     run: (interaction: CommandInteraction, options: any) => Promise<null>;

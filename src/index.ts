@@ -9,7 +9,11 @@ import { logger as log, format as f } from "./custom/logger";
 // // import { setNicknameCycle } from "./custom/nicknameCycle";
 
 const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+    intents: [
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_VOICE_STATES,
+    ],
 });
 const token = process.env.TOKEN;
 // const prefix = process.env.PREFIX!;
