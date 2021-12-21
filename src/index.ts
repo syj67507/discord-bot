@@ -19,7 +19,7 @@ const token = process.env.TOKEN;
 // const prefix = process.env.PREFIX!;
 
 log.info(f("main", "Loading commands..."));
-export const { commands, commandAliases, commandGroups } = loadCommands(__dirname);
+const { commands, commandGroups } = loadCommands(__dirname);
 log.info(f("main", "Commands loaded."));
 
 // registerGCP();
@@ -65,7 +65,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     try {
         const options = await parseOptions(i, commands.get(i.commandName)!);
         log.debug(f("main", `Parsed options: ${JSON.stringify(options, null, 2)}`));
-        await commands.get(i.commandName)!.run(i, options);
+        await commands.get(i.commandName)!.run(i, options, commands, commandGroups);
     } catch (error) {
         if (error instanceof Error) {
             const msg = [

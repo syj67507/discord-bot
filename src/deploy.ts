@@ -34,9 +34,6 @@ for (const group of groups) {
             const builtCommand = new SlashCommandBuilder()
                 .setName(command.name)
                 .setDescription(command.description);
-            if (command.options && command.options.length !== 0) {
-                console.log(command.options[0].choices);
-            }
 
             // build the options for each command
             for (const option of command.options) {

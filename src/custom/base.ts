@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember } from "discord.js";
+import { Collection, CommandInteraction, GuildMember } from "discord.js";
 
 export interface Option {
     /** The default name of the option */
@@ -84,9 +84,16 @@ export interface Command {
      *
      * @param { Message } message The message that invoked this command
      * @param { any } options The arguments that were passed to this command
+     * @param { Readonly<Collection<string, Command>> } commands A collection of all loaded client commands
+     * * @param { Readonly<Collection<string, string[]>> } commandGroups A collection describing each command associated with their group
      * @returns { Promise<null> } null if no error is thrown
      */
-    run: (interaction: CommandInteraction, options: any) => Promise<null>;
+    run: (
+        interaction: CommandInteraction,
+        options: any,
+        commands: Collection<string, Command>,
+        commandGroups: Collection<string, string[]>
+    ) => Promise<null>;
     /** The aliases that can also trigger the command */
     aliases?: string[];
     /** Defines whether the command is enabled for use */
