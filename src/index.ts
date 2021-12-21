@@ -15,7 +15,8 @@ const client = new Client({
         Intents.FLAGS.GUILD_VOICE_STATES,
     ],
 });
-const token = process.env.TOKEN;
+const token = process.env.TOKEN!;
+const guildId = process.env.GUILD_ID!;
 // const prefix = process.env.PREFIX!;
 
 log.info(f("main", "Loading commands..."));
@@ -43,7 +44,22 @@ log.info(f("main", "Commands loaded."));
 //     log.error(f("main", "Unable to set up the nicknames cycles for differing lengths."));
 // }
 
-client.once("ready", () => {
+client.once("ready", async () => {
+    console.log("Resetting disabled commands status...");
+    const fetchedGuild = await client.guilds.fetch({
+        guild: guildId,
+    });
+    const currentPermissions = await fetchedGuild.commands.permissions.fetch({});
+    currentPermissions.forEach(async (commandPerms, commandId) => {
+        for (const perm of commandPerms) {
+            (await client.guilds.fetch({ guild: guildId })).commands.permissions.remove({
+                command: commandId,
+                roles: perm.id,
+            });
+        }
+    });
+    console.log("Reset complete. Commands are all enabled.");
+
     console.log(`Logged in ${client?.user?.id} as ${client?.user?.tag}`);
 });
 

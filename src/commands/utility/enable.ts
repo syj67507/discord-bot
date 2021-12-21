@@ -1,46 +1,73 @@
-// import { Message } from "discord.js";
-// import { ArgumentValues, Command } from "../../custom/base";
-// import { commands, commandAliases } from "../..";
+import { Collection, CommandInteraction, Role, Permissions } from "discord.js";
+import { Command, OptionTypes } from "../../custom/base";
 
-// const enableCommand: Command = {
-//     name: "enable",
-//     description: "Enables a currently disabled command for use",
-//     enabled: true,
-//     arguments: [
-//         {
-//             key: "command",
-//             type: "string",
-//             description: "The command to enable",
-//         },
-//     ],
-//     async run(message: Message, args: ArgumentValues) {
-//         // Check if user has permissions to use this command
-//         if (!message.member?.permissions.has("ADMINISTRATOR")) {
-//             message.reply("You do not have permissions to enable commands.");
-//             return null;
-//         }
+const enableCommand: Command = {
+    name: "enable",
+    description: "Enables a currently disabled command for use",
+    enabled: true,
+    options: [
+        {
+            name: "command",
+            description: "The command to enable",
+            type: OptionTypes.STRING,
+            required: true,
+        },
+    ],
+    async run(
+        interaction: CommandInteraction,
+        options: any,
+        commands: Collection<string, Command>
+    ) {
+        // Check if user has permissions to use this command
+        if (
+            !(interaction.member!.permissions as Permissions).has(
+                Permissions.FLAGS.ADMINISTRATOR
+            )
+        ) {
+            interaction.reply("You do not have permissions to enable commands.");
+            return null;
+        }
 
-//         // Check to see if command exists
-//         if (commandAliases.has(args.command as string) === false) {
-//             message.reply(`Unable to enable: \`${args.command}\` not found.`);
-//             return null;
-//         }
+        const commandName = options.command as string;
 
-//         // Command exists, get definition
-//         const commandName = commandAliases.get(args.command as string)!;
-//         const command = commands.get(commandName)!;
+        // Check to see if command exists
+        if (commands.has(commandName) === false) {
+            interaction.reply(`Unable to enable: \`${options.command}\` not found.`);
+            return null;
+        }
 
-//         // Check if it is already enabled
-//         if (command.enabled === true) {
-//             message.reply(`\`${args.command}\` is already enabled.`);
-//             return null;
-//         }
+        // Command exists, get definition
+        const everyoneGuildRole = interaction.guild?.roles.cache.find(
+            (role: Role) => role.name === "@everyone"
+        );
+        let command = interaction.guild?.commands.cache.find((cmd) => {
+            return cmd.name === commandName;
+        });
+        if (!command) {
+            console.log("FETCHING");
+            command = (await interaction.guild?.commands.fetch())!.find((cmd) => {
+                return cmd.name === commandName;
+            });
+        }
 
-//         // Enable
-//         command.enabled = true;
-//         message.reply(`\`${args.command}\` enabled.`);
-//         return null;
-//     },
-// };
+        // Check if it is already enabled
+        const enabled =
+            (await command!.permissions.has({
+                permissionId: everyoneGuildRole!.id,
+            })) === false;
+        if (enabled === true) {
+            interaction.reply(`\`${commandName}\` is already enabled.`);
+            return null;
+        }
 
-// export default enableCommand;
+        // Enabled
+        await command?.permissions.remove({
+            roles: everyoneGuildRole!.id,
+        });
+
+        interaction.reply(`\`${commandName}\` enabled.`);
+        return null;
+    },
+};
+
+export default enableCommand;

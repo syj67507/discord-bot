@@ -1,53 +1,86 @@
-// import { Message } from "discord.js";
-// import { ArgumentValues, Command } from "../../custom/base";
-// import { commands, commandGroups, commandAliases } from "../..";
+import { Collection, CommandInteraction, Permissions, Role } from "discord.js";
+import { Command, OptionTypes } from "../../custom/base";
 
-// const disableCommand: Command = {
-//     name: "disable",
-//     description: "Disables a command from being used",
-//     enabled: true,
-//     arguments: [
-//         {
-//             key: "command",
-//             type: "string",
-//             description: "The command to disable",
-//         },
-//     ],
-//     async run(message: Message, args: ArgumentValues) {
-//         // Check if user has permissions to use this command
-//         if (!message.member!.permissions.has("ADMINISTRATOR")) {
-//             message.reply("You do not have permissions to disable commands.");
-//             return null;
-//         }
+const disableCommand: Command = {
+    name: "disable",
+    description: "Disables a command from being used",
+    enabled: true,
+    options: [
+        {
+            name: "command",
+            description: "The command to disable",
+            type: OptionTypes.STRING,
+            required: true,
+        },
+    ],
+    async run(
+        interaction: CommandInteraction,
+        options: any,
+        commands: Collection<string, Command>,
+        commandGroups: Collection<string, string[]>
+    ) {
+        // Check if user has permissions to use this command
+        if (
+            !(interaction.member!.permissions as Permissions).has(
+                Permissions.FLAGS.ADMINISTRATOR
+            )
+        ) {
+            interaction.reply("You do not have permissions to disable commands.");
+            return null;
+        }
 
-//         // Check to see if command exists
-//         if (commandAliases.has(args.command as string) === false) {
-//             message.reply(`Unable to disable: \`${args.command}\` not found.`);
-//             return null;
-//         }
+        const commandName = options.command as string;
 
-//         // Command exists, get definition
-//         const commandName = commandAliases.get(args.command as string)!;
-//         const command = commands.get(commandName)!;
+        // Check to see if command exists
+        if (commands.has(commandName) === false) {
+            interaction.reply(`Unable to disable: \`${options.command}\` not found.`);
+            return null;
+        }
 
-//         // Check if the command is a utiliy command
-//         // (not allowed to disable utility commands)
-//         if (commandGroups.get("utility")!.includes(command.name)) {
-//             message.reply("Can't disable a utility command.");
-//             return null;
-//         }
+        // Check if the command is a utiliy command
+        // (not allowed to disable utility commands)
+        if (commandGroups.get("utility")!.includes(commandName)) {
+            interaction.reply("Can't disable a utility command.");
+            return null;
+        }
 
-//         // Check if it is already enabled
-//         if (command.enabled === false) {
-//             message.reply(`\`${args.command}\` is already disabled.`);
-//             return null;
-//         }
+        // Command exists, get definition
+        const everyoneGuildRole = interaction.guild?.roles.cache.find(
+            (role: Role) => role.name === "@everyone"
+        );
+        let command = interaction.guild?.commands.cache.find((cmd) => {
+            return cmd.name === commandName;
+        });
+        if (!command) {
+            console.log("FETCHING");
+            command = (await interaction.guild?.commands.fetch())!.find((cmd) => {
+                return cmd.name === commandName;
+            });
+        }
 
-//         // Disable
-//         command.enabled = false;
-//         message.reply(`\`${args.command}\` disabled.`);
-//         return null;
-//     },
-// };
+        // Check if it is already enabled
+        const disabled = await command!.permissions.has({
+            permissionId: everyoneGuildRole!.id,
+        });
+        if (disabled === true) {
+            interaction.reply(`\`${commandName}\` is already disabled.`);
+            return null;
+        }
 
-// export default disableCommand;
+        // Disable
+        await command?.permissions.set({
+            permissions: [
+                {
+                    id: everyoneGuildRole!.id,
+                    type: "ROLE",
+                    permission: false,
+                },
+            ],
+        });
+
+        interaction.reply(`\`${commandName}\` disabled.`);
+        return null;
+    },
+};
+
+export default disableCommand;
