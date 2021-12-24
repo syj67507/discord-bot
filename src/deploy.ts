@@ -10,7 +10,8 @@ import {
     SlashCommandStringOption,
 } from "@discordjs/builders";
 import { REST } from "@discordjs/rest";
-import { Command, OptionTypes } from "./custom/base";
+import { Command } from "./custom/base";
+import { ApplicationCommandOptionType } from "discord-api-types";
 import { Routes } from "discord-api-types/v9";
 
 const clientId = process.env.CLIENT_ID!;
@@ -45,14 +46,14 @@ for (const group of groups) {
                     });
                 }
 
-                if (option.type === OptionTypes.BOOLEAN) {
+                if (option.type === ApplicationCommandOptionType.Boolean) {
                     builtCommand.addBooleanOption(
                         new SlashCommandBooleanOption()
                             .setName(option.name)
                             .setDescription(option.description)
                             .setRequired(option.required)
                     );
-                } else if (option.type === OptionTypes.NUMBER) {
+                } else if (option.type === ApplicationCommandOptionType.Number) {
                     builtCommand.addNumberOption(
                         new SlashCommandNumberOption()
                             .setName(option.name)
@@ -60,7 +61,7 @@ for (const group of groups) {
                             .setRequired(option.required)
                             .addChoices(choices)
                     );
-                } else if (option.type === OptionTypes.INTEGER) {
+                } else if (option.type === ApplicationCommandOptionType.Integer) {
                     builtCommand.addIntegerOption(
                         new SlashCommandIntegerOption()
                             .setName(option.name)
@@ -68,14 +69,14 @@ for (const group of groups) {
                             .setRequired(option.required)
                             .addChoices(choices)
                     );
-                } else if (option.type === OptionTypes.STRING) {
+                } else if (option.type === ApplicationCommandOptionType.String) {
                     const stringOption = new SlashCommandStringOption()
                         .setName(option.name)
                         .setDescription(option.description)
                         .setRequired(option.required)
                         .addChoices(choices);
                     builtCommand.addStringOption(stringOption);
-                } else if (option.type === OptionTypes.USER) {
+                } else if (option.type === ApplicationCommandOptionType.User) {
                     builtCommand.addUserOption(
                         new SlashCommandUserOption()
                             .setName(option.name)

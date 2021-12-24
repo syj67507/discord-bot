@@ -1,5 +1,6 @@
 import { Collection, CommandInteraction, Permissions, Role } from "discord.js";
-import { Command, OptionTypes } from "../../custom/base";
+import { Command } from "../../custom/base";
+import { ApplicationCommandOptionType } from "discord-api-types";
 
 const disableCommand: Command = {
     name: "disable",
@@ -9,7 +10,7 @@ const disableCommand: Command = {
         {
             name: "command",
             description: "The command to disable",
-            type: OptionTypes.STRING,
+            type: ApplicationCommandOptionType.String,
             required: true,
         },
     ],

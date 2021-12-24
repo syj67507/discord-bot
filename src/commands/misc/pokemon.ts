@@ -1,7 +1,8 @@
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";
 import Pokedex from "pokedex-promise-v2";
-import { Command, OptionTypes } from "../../custom/base";
+import { Command } from "../../custom/base";
 import { logger as log, format as f } from "../../custom/logger";
+import { ApplicationCommandOptionType } from "discord-api-types";
 
 /**
  * Represents a set of Trivia data
@@ -23,7 +24,7 @@ const pokemonCommand: Command = {
             name: "category",
             description: "The kind of trivia question",
             required: false,
-            type: OptionTypes.STRING,
+            type: ApplicationCommandOptionType.String,
             choices: ["type", "who"],
         },
     ],
