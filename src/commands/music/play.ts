@@ -2,10 +2,11 @@ import { Message } from "discord.js";
 import { ArgumentValues, Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
 import MusicManager from "../../custom/music-manager";
-import { Track } from "../../custom/music-manager";
+import queueCommand from "./queue";
 
 const playCommand: Command = {
     name: "play",
+    aliases: ["p"],
     enabled: true,
     description: "Plays a music track.",
     arguments: [
@@ -13,7 +14,7 @@ const playCommand: Command = {
             key: "track",
             type: "string",
             description:
-                "The search phrase for YouTube search or the direct YouTube link",
+                "The search phrase for YouTube search, direct YouTube video link, or direct YouTube playlist link",
             default: "",
             infinite: true,
         },
@@ -23,51 +24,23 @@ const playCommand: Command = {
         const mm = MusicManager.getInstance(client);
 
         const trackString = (args.track as string[]).join(" ");
+        log.debug(f("play", `trackString: '${trackString}'`));
 
         if (mm.isPlaying() && !trackString) {
             message.reply("I am currently playing... use next to skip to the next song");
             return null;
         }
 
-        // Get a track based on argument
-        let track: Track;
+        // Try to queue up a track to front of queue using the queue command
         if (trackString) {
-            log.debug(f("play", "Checking if argument is a YouTube link"));
-
-            if (mm.isYTLink(trackString)) {
-                log.debug(f("play", "Argument is a link"));
-                try {
-                    track = await mm.createTrackFromYTLink(trackString);
-                    mm.queue(track);
-                } catch (error) {
-                    log.error(f("play", `${error}`));
-                    log.error(
-                        f("play", "Unable to create Track object" + " from youtube link.")
-                    );
-                    message.reply(
-                        "Unable to play with the provided link. " +
-                            "Only YouTube links are supported. " +
-                            "If the link is a youtube link, make sure it is valid."
-                    );
-                    return null;
-                }
-            } else {
-                log.debug(f("play", "Argument is NOT a link"));
-                log.debug(f("play", `Searching YT for ${trackString}`));
-                try {
-                    track = await mm.search(trackString);
-                    mm.queue(track, 0);
-                    log.debug(f("play", `Queued: ${track.link}`));
-                } catch (error) {
-                    log.error(f("play", `${error}`));
-                    message.reply([
-                        `Couldn't find a link for \`${trackString}\``,
-                        "Either the search had no results or the search failed.",
-                        "A restart may be necessary... @Bonk",
-                    ]);
-                    return null;
-                }
-            }
+            // eslint-disable-next-line no-param-reassign
+            message.content = message.content + " --position 1";
+            (args.track as string[]).push("--position", "1");
+            log.info(
+                f("play", `Internally calling queueCommand with '${message.content}'`)
+            );
+            await queueCommand.run(message, args);
+            log.info(f("play", "Returned back from queueCommand"));
         }
 
         // Exits if the queue is empty and no track was provided

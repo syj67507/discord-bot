@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { Collection } from "discord.js";
-import { Command } from "../../../v12_src/custom/base";
+import { Command } from "../../../src/custom/base";
 
 describe("Testing help command", () => {
     // mocking Discord.Message
@@ -22,6 +22,7 @@ describe("Testing help command", () => {
         },
         author: {
             createDM: async () => {
+                message.author.dmChannel = dmChannel;
                 return dmChannel;
             },
             dmChannel: null,
@@ -38,7 +39,7 @@ describe("Testing help command", () => {
     const helpAllMessageSnapshot = [
         "To run a command, use `-command` in any text channel provided on the server.",
         "Use `-help <command>` to view detailed information about a specific command.",
-        "Any commands that ~~crossed out~~ are currently disabled.",
+        "Any commands that are ~~crossed out~~ are currently disabled.",
         "",
         "__**Available commands**__",
         "",
@@ -61,31 +62,6 @@ describe("Testing help command", () => {
         "`<key1>` argument description, default: `0`",
     ];
 
-    const helpAllMessageDisabledSnapshot = [
-        "To run a command, use `-command` in any text channel provided on the server.",
-        "Use `-help <command>` to view detailed information about a specific command.",
-        "Any commands that ~~crossed out~~ are currently disabled.",
-        "",
-        "__**Available commands**__",
-        "",
-        "__Misc__",
-        "~~**sample:** Sample Description~~",
-        "",
-        "__Utility__",
-        "**sampleUtility:** Sample Utility Description",
-        "",
-    ];
-    const helpSampleCommandDisabledSnapshot = [
-        "__Command **sample**__",
-        "Sample Description",
-        "Currently **disabled**",
-        "",
-        "**Aliases:** `[alias]`",
-        "**Usage:** `sample <key1> `",
-        "",
-        "**Arguments:**",
-        "`<key1>` argument description, default: `0`",
-    ];
     const helpArgDescriptionSnapshot = {
         argDetails: ["`<key1>` argument description, default: `0`"],
         usageArgs: "<key1> ",
@@ -99,16 +75,21 @@ describe("Testing help command", () => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
 
-        jest.mock("../../../v12_src/index");
+        // mocking the loadCommands for all commands/aliases/groups and its export (src/__mocks__/index.ts)
+        jest.mock("../../../src/index");
         jest.resetModules(); // future imports of the same module will be replaced with the new instance on the import call
 
-        const loadedCommands = await import("../../../v12_src/index");
+        const loadedCommands = await import("../../../src/index");
         commands = loadedCommands.commands;
         commandGroups = loadedCommands.commandGroups;
 
-        const module = await import("../../../v12_src/commands/utility/help");
+        // help command imported here to use the mocked imports of the loadedCommands in index.ts
+        const module = await import("../../../src/commands/utility/help");
         helpCommand = module.default;
         helpCommandHelpers = module.helpers;
+
+        // reset the message's dmChannel
+        message.author.dmChannel = null;
     });
 
     describe("Testing helper functions", () => {
@@ -138,41 +119,58 @@ describe("Testing help command", () => {
             const prefix = process.env.PREFIX!;
             const result = makeHelpAllMessage(prefix, commands, commandGroups);
             expect(result).toEqual(helpAllMessageSnapshot);
+            expect(result.join(" ").includes("Available commands")).toBe(true);
         });
 
-        it("Should make a help message for the sample command", () => {
+        it("Should make a help message for the sample command containing the usage and description", () => {
             const { makeSpecificHelpMessage } = helpCommandHelpers;
             const result = makeSpecificHelpMessage(commands.get("sample"));
-            expect(result).toEqual(helpSampleCommandSnapshot);
+            expect(result.join(" ").includes("Usage")).toBe(true);
+            expect(result.join(" ").includes(commands.get("sample").description)).toBe(
+                true
+            );
         });
 
-        it("Should make a help message with sample crossed out when disabled", async () => {
+        it("Should make a help message with sample crossed out when disabled in help all message", async () => {
             const { makeHelpAllMessage } = helpCommandHelpers;
             const prefix = process.env.PREFIX!;
 
-            const disableCommand = (
-                await import("../../../v12_src/commands/utility/disable")
-            ).default;
+            const disableCommand = (await import("../../../src/commands/utility/disable"))
+                .default;
             await disableCommand.run(message, {
                 command: "sample",
             });
 
             const result = makeHelpAllMessage(prefix, commands, commandGroups);
-            expect(result).toEqual(helpAllMessageDisabledSnapshot);
+            expect(result.join(" ").includes("~~**sample")).toBe(true); // ~~**word~~ is the way to cross out a bolded word
         });
 
-        it("Should say this command is currently disabled out when disabled", async () => {
+        it("should make a help message for the sample command with additional help info if specified", async () => {
             const { makeSpecificHelpMessage } = helpCommandHelpers;
 
-            const disableCommand = (
-                await import("../../../v12_src/commands/utility/disable")
-            ).default;
+            const sampleCommand = commands.get("sample")!;
+            sampleCommand.additionalHelpInfo = ["Sample Additional Info"];
+            commands.set("sample", sampleCommand);
+
+            const result = makeSpecificHelpMessage(commands.get("sample"));
+            expect(
+                result
+                    .join(" ")
+                    .includes(commands.get("sample").additionalHelpInfo.join(" "))
+            ).toBe(true);
+        });
+
+        it("Should say this command is currently disabled when disabled in specific help message", async () => {
+            const { makeSpecificHelpMessage } = helpCommandHelpers;
+
+            const disableCommand = (await import("../../../src/commands/utility/disable"))
+                .default;
             await disableCommand.run(message, {
                 command: "sample",
             });
 
             const result = makeSpecificHelpMessage(commands.get("sample"));
-            expect(result).toEqual(helpSampleCommandDisabledSnapshot);
+            expect(result.join(" ").includes("disabled")).toBe(true);
         });
     });
 
@@ -186,6 +184,19 @@ describe("Testing help command", () => {
             await helpCommand.run(message, args);
             expect(sendSpy).toHaveBeenCalledTimes(1);
             expect(sendSpy).toHaveBeenLastCalledWith(helpAllMessageSnapshot);
+        });
+
+        it("should not create a new dmChannel if one already exists", async () => {
+            const args = {
+                commandName: "all",
+            };
+
+            message.author.dmChannel = dmChannel;
+            const createDMSpy = jest.spyOn(message.author, "createDM");
+
+            await helpCommand.run(message, args);
+
+            expect(createDMSpy).toHaveBeenCalledTimes(0);
         });
 
         it("should send a detailed description of the sample command", async () => {

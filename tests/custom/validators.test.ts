@@ -3,7 +3,7 @@ import {
     validateBoolean,
     validateNumber,
     validateUser,
-} from "../../v12_src/custom/validators";
+} from "../../src/custom/validators";
 
 describe("validateNumber", () => {
     it("validateNumber should parse and return the number if a number is passed", () => {

@@ -2,6 +2,9 @@ import { Message } from "discord.js";
 import { ArgumentValues, Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
 import MusicManager, { Track } from "../../custom/music-manager";
+import { YTClient } from "../../custom/ytclient";
+import "dotenv/config";
+import playCommand from "./play";
 
 const queueCommand: Command = {
     name: "queue",
@@ -12,7 +15,7 @@ const queueCommand: Command = {
             key: "track",
             type: "string",
             description:
-                "The search phrase for YouTube search or the direct YouTube link",
+                "The search phrase for YouTube search, direct YouTube video link, or direct YouTube playlist link",
             default: "",
             infinite: true,
         },
@@ -20,22 +23,63 @@ const queueCommand: Command = {
     enabled: true,
     async run(message: Message, args: ArgumentValues): Promise<null> {
         const mm = MusicManager.getInstance(message.client);
-        const trackString = (args.track as string[]).join(" ");
 
-        // Displays queue on no track name passed
-        const playlist = ["Currently Queued: "];
-        if (trackString === "") {
-            log.debug(f("queue", "Displaying queue..."));
-            if (mm.queueLength() === 0) {
-                message.reply("No tracks left in queue.");
+        // determine the queue position/offset
+        log.debug(f("queue", "Determining the queue position/offset"));
+        const positionFlags = ["--position", "--pos"];
+        const queuePositionFlagIndex = (args.track as string[]).findIndex((val) =>
+            positionFlags.includes(val)
+        );
+        let queuePosition = mm.queueLength(); // default to the end of the queue
+
+        // Verify provided position paramter
+        if (queuePositionFlagIndex > -1) {
+            log.debug(
+                f(
+                    "queue",
+                    "Position flag detected. Parsing provided position parameter..."
+                )
+            );
+            const parsedPosition = parseInt(
+                (args.track as string[])[queuePositionFlagIndex + 1]
+            );
+
+            if (isNaN(parsedPosition) || parsedPosition < 1) {
+                log.error(f("queue", "Error in parsing provided position"));
+                message.reply([
+                    `The provided position: \`${parsedPosition}\` is not valid.`,
+                    `If you provide a position flag \`${positionFlags}\`, then you must provide a number greater than 0.`,
+                ]);
                 return null;
             }
 
-            // Fetching all tracks in queue/playlist
-            for (const track of mm.playlist) {
-                playlist.push(track.title);
+            // parsedPosition from user input will be one off so we must subtract by 1 to make it zero based indexing
+            // Remove position flags/parameters
+            log.debug(f("queue", `Successfully parsed: ${parsedPosition}`));
+            queuePosition = parsedPosition - 1;
+            log.debug(
+                f(
+                    "queue",
+                    "Removing the position flag and parameter from the array for normal track string"
+                )
+            );
+            (args.track as string[]).splice(queuePositionFlagIndex, 2);
+        }
+        log.debug(f("queue", `queue position/offset set at: ${queuePosition}`));
+
+        const trackString = (args.track as string[]).join(" ");
+
+        // Displays queue on no track name passed
+        if (trackString === "") {
+            log.debug(f("queue", "Displaying queue..."));
+            if (mm.queueLength() > 0) {
+                message.reply([
+                    `Currently Queued: ${mm.queueLength()}`,
+                    ...mm.getQueuePreview(),
+                ]);
+            } else {
+                message.reply("No tracks left in queue.");
             }
-            message.reply(playlist);
             return null;
         }
 
@@ -48,54 +92,92 @@ const queueCommand: Command = {
             return null;
         }
 
-        log.debug(f("queue", "Checking if argument is a YouTube link"));
-        let track: Track;
-        if (mm.isYTLink(trackString)) {
-            log.debug(f("queue", "Argument is a YouTube link"));
+        // Try to get a Track for what the user provides and add it to the queue
+        const yt = new YTClient();
+        let tracks: Track[] | null = null;
+
+        // If the user wants a playlist, try to get a playlist
+        const playlistFlag = "--playlist";
+        const playlistFlagPresent = trackString.includes(playlistFlag);
+        if (playlistFlagPresent) {
+            log.debug(f("queue", `Playlist Flag ${playlistFlag} detected`));
+            const playlistLink = trackString.replace(playlistFlag, "").trim();
+            log.debug(f("queue", `Trying to get a playlist from '${playlistLink}'`));
             try {
-                track = await mm.createTrackFromYTLink(trackString);
-                mm.queue(track);
+                tracks = await yt.getPlaylist(playlistLink);
             } catch (error) {
-                if (error instanceof Error) {
-                    log.error(f("queue", error.message));
-                } else {
-                    log.error(f("queue", "Unknown error."));
-                }
-                log.error(
-                    f("queue", "Unable to create Track object" + " from youtube link.")
+                log.debug(
+                    f("queue", `Unable to retrieve playlist: ${(error as Error).message}`)
                 );
-                message.reply(
-                    "Unable to queue with the provided link. " +
-                        "Only YouTube links are supported. " +
-                        "If the link is a youtube link, make sure it is valid."
-                );
-                return null;
-            }
-            message.reply(`Queued: ${track.title}`);
-            return null;
-        } else {
-            log.debug(f("queue", "Argument is NOT a link"));
-            log.debug(f("queue", `Searching YT for ${trackString}`));
-            try {
-                track = await mm.search(trackString);
-                mm.queue(track);
-                log.debug(f("queue", `Queued: ${track.link}`));
-                message.reply(`Queued: ${track.title}`);
-                return null;
-            } catch (error) {
-                if (error instanceof Error) {
-                    log.error(f("queue", error.message));
-                } else {
-                    log.error(f("queue", "Unknown error."));
-                }
-                message.reply([
-                    `Couldn't find a link for \`${trackString}\``,
-                    "Either the search had no results or the search failed.",
-                    "A restart may be necessary...@Bonk",
-                ]);
-                return null;
             }
         }
+
+        // Try to get the video directly
+        if (!tracks && !playlistFlagPresent) {
+            log.debug(f("queue", `Trying to get a direct video from '${trackString}'`));
+            try {
+                tracks = [await yt.getVideo(trackString)];
+            } catch (error) {
+                log.debug(
+                    f(
+                        "queue",
+                        `Unable to retrieve video from direct link: ${
+                            (error as Error).message
+                        }`
+                    )
+                );
+            }
+        }
+
+        // Try to search for the video
+        if (!tracks && !playlistFlagPresent) {
+            log.debug(f("queue", `Trying to search YouTube for '${trackString}'`));
+            try {
+                tracks = [await yt.search(trackString)];
+            } catch (error) {
+                log.debug(
+                    f(
+                        "queue",
+                        `Unable to retrieve a video search result: ${
+                            (error as Error).message
+                        }`
+                    )
+                );
+            }
+        }
+
+        // Send error message if no Track(s) could be found
+        if (!tracks) {
+            log.debug(f("queue", `Couldn't find anything for '${trackString}'`));
+            message.reply([
+                `Couldn't find anything for \`${trackString}\``,
+                "Either the search had no results or the search failed.",
+                "A restart may be necessary... @Bonk",
+            ]);
+            return null;
+        }
+        for (const i in tracks) {
+            mm.queue(tracks[i], queuePosition + parseInt(i));
+        }
+        log.debug(f("queue", `Queued track(s): ${JSON.stringify(tracks)}`));
+
+        // Only display queue message to channel if not called internally by play command
+        // Different behavior if this was called from play command internally
+        const prefix = process.env.PREFIX!;
+        const ogCommand = message.content
+            .slice(prefix.length)
+            .split(/[ ]+/)
+            .shift()!
+            .toLowerCase();
+        const calledFromPlay =
+            ogCommand === playCommand.name || playCommand.aliases?.includes(ogCommand);
+        if (!calledFromPlay) {
+            message.reply([
+                `Currently Queued: ${mm.queueLength()}`,
+                ...mm.getQueuePreview(),
+            ]);
+        }
+        return null;
     },
 };
 
