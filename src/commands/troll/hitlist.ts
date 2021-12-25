@@ -1,24 +1,16 @@
 import { KillIntervals } from "../../custom/storage";
-import {
-    CommandoMessage,
-    Command,
-    CommandoClient,
-    ArgumentInfo,
-} from "discord.js-commando";
+import { Message } from "discord.js";
+import { ArgumentValues, Command } from "../../custom/base";
 
-module.exports = class HitListCommand extends (Command) {
-    constructor(client: CommandoClient) {
-        super(client, {
+const HitListCommand: Command = {
             name: "hitlist",
-            group: "troll",
-            memberName: "hitlist",
-            aliases: ["hl", "killList"],
             description: "Displays killed people in the server in a hitlist.",
-        });
-    }
-
-    async run(message: CommandoMessage, args: any) {
-        return message.say("People currently killed in the server: " + killedPeople());
+            aliases: ["hl", "killList"],
+            arguments: [],
+        enabled: true,
+        async run(message: Message, args: any) {
+             message.channel.send("People currently killed in the server: " + killedPeople());
+             return null;
     }
 };
 
@@ -28,7 +20,7 @@ module.exports = class HitListCommand extends (Command) {
  * @returns {string[]} array of killed users in a server.
  */
 
-function killedPeople() {
+export function killedPeople() {
     const intervals = KillIntervals.getInstance();
     const keys = intervals.keys();
     const members = [];
