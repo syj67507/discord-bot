@@ -7,6 +7,11 @@ import queueCommand from "./queue";
 const playCommand: Command = {
     name: "play",
     aliases: ["p"],
+    additionalHelpInfo: [
+        "**Special Cases:**",
+        "`!play --playlist playlistLink` will play a youtube playlist",
+        "`!play` will play from the queue if not empty",
+    ],
     enabled: true,
     description: "Plays a music track.",
     arguments: [

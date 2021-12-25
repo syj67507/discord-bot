@@ -10,6 +10,12 @@ const queueCommand: Command = {
     name: "queue",
     description: "Queues a music track.",
     aliases: ["q"],
+    additionalHelpInfo: [
+        "**Special Cases:**",
+        "`!queue` with no arguments displays a preview of the queue",
+        "`!queue clear` clears/empties the queue",
+        "`!queue --playlist playlistLink` will queue up a youtube playlist",
+    ],
     arguments: [
         {
             key: "track",
