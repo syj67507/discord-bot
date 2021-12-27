@@ -37,8 +37,8 @@ describe("Testing help command", () => {
 
     // snapshots
     const helpAllMessageSnapshot = [
-        "To run a command, use `-command` in any text channel provided on the server.",
-        "Use `-help <command>` to view detailed information about a specific command.",
+        "To run a command, use `!command` in any text channel provided on the server.",
+        "Use `!help <command>` to view detailed information about a specific command.",
         "Any commands that are ~~crossed out~~ are currently disabled.",
         "",
         "__**Available commands**__",
