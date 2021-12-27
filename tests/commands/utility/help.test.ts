@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Collection } from "discord.js";
 import { Command } from "../../../src/custom/base";
 
+const prefix = process.env.PREFIX!;
 describe("Testing help command", () => {
     // mocking Discord.Message
     const dmChannel: any = {
@@ -37,8 +38,8 @@ describe("Testing help command", () => {
 
     // snapshots
     const helpAllMessageSnapshot = [
-        "To run a command, use `!command` in any text channel provided on the server.",
-        "Use `!help <command>` to view detailed information about a specific command.",
+        `To run a command, use \`${prefix}command\` in any text channel provided on the server.`,
+        `Use \`${prefix}help <command>\` to view detailed information about a specific command.`,
         "Any commands that are ~~crossed out~~ are currently disabled.",
         "",
         "__**Available commands**__",
@@ -116,7 +117,6 @@ describe("Testing help command", () => {
 
         it("Should make a help all message", () => {
             const { makeHelpAllMessage } = helpCommandHelpers;
-            const prefix = process.env.PREFIX!;
             const result = makeHelpAllMessage(prefix, commands, commandGroups);
             expect(result).toEqual(helpAllMessageSnapshot);
             expect(result.join(" ").includes("Available commands")).toBe(true);
@@ -133,7 +133,6 @@ describe("Testing help command", () => {
 
         it("Should make a help message with sample crossed out when disabled in help all message", async () => {
             const { makeHelpAllMessage } = helpCommandHelpers;
-            const prefix = process.env.PREFIX!;
 
             const disableCommand = (await import("../../../src/commands/utility/disable"))
                 .default;
