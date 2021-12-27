@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import { ArgumentValues, Command } from "../../custom/base";
+import { logger as log, format as f } from "../../custom/logger";
 
 const leagueStatsCommand: Command = {
     name: "leaguestats",
@@ -14,8 +15,13 @@ const leagueStatsCommand: Command = {
     ],
     enabled: true,
     async run(message: Message, args: ArgumentValues) {
+        log.debug(f("leaguestats", "Fetching user info..."));
         const input = args.leagueUsernameInput as string;
+        log.debug(f("leaguestats", "Entering into URL..."));
         const leagueURL: URL = searchLeagueName(input);
+
+        log.debug(f("leaguestats", `LeagueURL: ${leagueURL}`));
+        log.debug(f("leaguestats", "Printing to channel..."));
         message.channel.send(leagueURL.href);
         return null;
     },
