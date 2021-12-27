@@ -6,10 +6,19 @@ import { YTClient } from "../../custom/ytclient";
 import "dotenv/config";
 import playCommand from "./play";
 
+const prefix = process.env.PREFIX!;
+const name = "queue";
+
 const queueCommand: Command = {
-    name: "queue",
+    name: name,
     description: "Queues a music track.",
     aliases: ["q"],
+    additionalHelpInfo: [
+        "**Special Cases:**",
+        `\`${prefix}${name}\` with no arguments displays a preview of the queue`,
+        `\`${prefix}${name}\` clears/empties the queue`,
+        `\`${prefix}${name} --playlist playlistLink\` will queue up a youtube playlist`,
+    ],
     arguments: [
         {
             key: "track",
@@ -163,7 +172,6 @@ const queueCommand: Command = {
 
         // Only display queue message to channel if not called internally by play command
         // Different behavior if this was called from play command internally
-        const prefix = process.env.PREFIX!;
         const ogCommand = message.content
             .slice(prefix.length)
             .split(/[ ]+/)

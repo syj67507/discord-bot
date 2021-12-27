@@ -3,10 +3,19 @@ import { ArgumentValues, Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
 import MusicManager from "../../custom/music-manager";
 import queueCommand from "./queue";
+import "dotenv/config";
+
+const prefix = process.env.PREFIX;
+const name = "play";
 
 const playCommand: Command = {
-    name: "play",
+    name: name,
     aliases: ["p"],
+    additionalHelpInfo: [
+        "**Special Cases:**",
+        `\`${prefix}${name}--playlist playlistLink\` will play a youtube playlist`,
+        `\`${prefix}${name}\` will play from the queue if not empty`,
+    ],
     enabled: true,
     description: "Plays a music track.",
     arguments: [

@@ -1,6 +1,6 @@
 import { KillIntervals } from "../../custom/storage";
 import { Message } from "discord.js";
-import { ArgumentValues, Command } from "../../custom/base";
+import { Command } from "../../custom/base";
 
 const HitListCommand: Command = {
     name: "hitlist",
@@ -9,7 +9,7 @@ const HitListCommand: Command = {
     arguments: [],
     enabled: true,
 
-    async run(message: Message, args: any) {
+    async run(message: Message) {
         const intervals = KillIntervals.getInstance();
         const keys = intervals.keys();
         const members = [];
