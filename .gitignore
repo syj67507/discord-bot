@@ -6,3 +6,4 @@ dist
 credentials*
 googleApplicationCredentials.json
 coverage
+.vs

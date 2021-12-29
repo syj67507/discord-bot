@@ -4,11 +4,19 @@
 // import MusicManager from "../../custom/music-manager";
 // import queueCommand from "./queue";
 
+// const prefix = process.env.PREFIX;
+// const name = "play";
+
 // const playCommand: Command = {
-//     name: "play",
+//     name: name,
 //     aliases: ["p"],
 //     enabled: true,
 //     description: "Plays a music track.",
+// additionalHelpInfo: [
+//     "**Special Cases:**",
+//     `\`${prefix}${name}--playlist playlistLink\` will play a youtube playlist`,
+//     `\`${prefix}${name}\` will play from the queue if not empty`,
+// ],
 //     arguments: [
 //         {
 //             key: "track",

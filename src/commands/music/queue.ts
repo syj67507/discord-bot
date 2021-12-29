@@ -6,9 +6,18 @@
 // import "dotenv/config";
 // import playCommand from "./play";
 
+// const prefix = process.env.PREFIX!;
+// const name = "queue";
+
 // const queueCommand: Command = {
-//     name: "queue",
+//     name: name,
 //     description: "Queues a music track.",
+// additionalHelpInfo: [
+//     "**Special Cases:**",
+//     `\`${prefix}${name}\` with no arguments displays a preview of the queue`,
+//     `\`${prefix}${name}\` clears/empties the queue`,
+//     `\`${prefix}${name} --playlist playlistLink\` will queue up a youtube playlist`,
+// ],
 //     aliases: ["q"],
 //     arguments: [
 //         {
@@ -23,7 +32,6 @@
 //     enabled: true,
 //     async run(message: Message, args: ArgumentValues): Promise<null> {
 //         const mm = MusicManager.getInstance(message.client);
-
 //         // determine the queue position/offset
 //         log.debug(f("queue", "Determining the queue position/offset"));
 //         const positionFlags = ["--position", "--pos"];
@@ -160,10 +168,8 @@
 //             mm.queue(tracks[i], queuePosition + parseInt(i));
 //         }
 //         log.debug(f("queue", `Queued track(s): ${JSON.stringify(tracks)}`));
-
 //         // Only display queue message to channel if not called internally by play command
 //         // Different behavior if this was called from play command internally
-//         const prefix = process.env.PREFIX!;
 //         const ogCommand = message.content
 //             .slice(prefix.length)
 //             .split(/[ ]+/)
