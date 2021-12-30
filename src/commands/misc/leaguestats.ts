@@ -11,14 +11,16 @@ const leagueStatsCommand: Command = {
             key: "leagueUsernameInput",
             type: "string",
             description: "Username of requested league account.",
+            infinite: true,
         },
     ],
     enabled: true,
     async run(message: Message, args: ArgumentValues) {
         log.debug(f("leaguestats", "Fetching user info..."));
-        const input = args.leagueUsernameInput as string;
+        const input = args.leagueUsernameInput as string[];
+        const newInput = input.join(" ");
         log.debug(f("leaguestats", "Entering into URL..."));
-        const leagueURL: URL = searchLeagueName(input);
+        const leagueURL: URL = searchLeagueName(newInput);
 
         log.debug(f("leaguestats", `LeagueURL: ${leagueURL}`));
         log.debug(f("leaguestats", "Printing to channel..."));
