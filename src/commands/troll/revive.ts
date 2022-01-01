@@ -2,7 +2,6 @@ import { KillIntervals } from "../../custom/storage";
 import { CommandInteraction, GuildMember } from "discord.js";
 import { Command } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
-import { clearInterval } from "timers";
 import { ApplicationCommandOptionType } from "discord-api-types";
 
 const reviveCommand: Command = {
