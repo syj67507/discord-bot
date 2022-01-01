@@ -1,10 +1,9 @@
 import { KillIntervals } from "../../custom/storage";
 import { Command } from "../../custom/base";
 import { ApplicationCommandOptionType } from "discord-api-types";
-import { GuildMemberRoleManager } from "discord.js";
-import { CommandInteraction, Collection, GuildMember } from "discord.js";
+import { Collection, GuildMemberRoleManager } from "discord.js";
+import { CommandInteraction, GuildMember } from "discord.js";
 import { format as f, logger as log } from "../../custom/logger";
-import { clearInterval, setInterval } from "timers";
 
 const killCommand: Command = {
     name: "kill",
@@ -62,30 +61,10 @@ const killCommand: Command = {
         // Init kill interval
         log.debug(f("kill", `Member ID: ${target.id}`));
         const killInterval = setInterval(
-            async (
-                member: GuildMember,
-                i: CommandInteraction,
-                intrvls: Collection<string, NodeJS.Timer>
-            ) => {
-                try {
-                    const channel = member.voice.channel;
-                    if (channel) {
-                        log.debug(f("kill", `${member.user.tag} in #${channel.name}`));
-                        log.debug(f("kill", "Kicking member..."));
-                        await member.voice.setChannel(null);
-                        log.debug(f("kill", "Member kicked."));
-                    }
-                } catch (error) {
-                    i.channel!.send(`Can't kill ${member}, removing from hit list`);
-                    const intervalToClear = intrvls.get(member.id);
-                    clearInterval(intervalToClear!);
-                    intrvls.delete(member.id);
-                    log.debug(f("kill error", `Interval cleared: ${member.id}`));
-                }
-            },
+            (i: any, t: any, int: any) => KillHelper.kick(i, t, int),
             (interval as number) * 1000,
-            target,
             interaction,
+            target,
             intervals
         );
         // Store the interval for use in revival
@@ -95,5 +74,29 @@ const killCommand: Command = {
         return null;
     },
 };
+
+export class KillHelper {
+    static async kick(
+        interaction: CommandInteraction,
+        target: GuildMember,
+        intervals: Collection<string, NodeJS.Timeout>
+    ): Promise<void> {
+        try {
+            const channel = target.voice.channel;
+            if (channel) {
+                log.debug(f("kill", `${target.user.tag} in #${channel.name}`));
+                log.debug(f("kill", "Kicking member..."));
+                await target.voice.setChannel(null);
+                log.debug(f("kill", "Member kicked."));
+            }
+        } catch (e) {
+            interaction.channel!.send(`Can't kill ${target}, removing from hit list`);
+            const intervalToClear = intervals.get(target.id);
+            clearInterval(intervalToClear!);
+            intervals.delete(target.id);
+            log.debug(f("kill error", `Interval cleared: ${target.id}`));
+        }
+    }
+}
 
 export default killCommand;
