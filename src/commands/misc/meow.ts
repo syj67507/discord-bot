@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import { Command } from "../../custom/base";
+import { Messages } from "../../custom/messages";
 
 const meowCommand: Command = {
     name: "meow",
@@ -8,7 +9,8 @@ const meowCommand: Command = {
     enabled: true,
     arguments: [],
     async run(message: Message) {
-        message.channel.send("Meow!");
+        const m = new Messages();
+        message.channel.send(m.get("meow"));
         return null;
     },
 };
