@@ -2,6 +2,7 @@ import { Message } from "discord.js";
 import { Command } from "../../custom/base";
 import axios from "axios";
 import { logger as log, format as f } from "../../custom/logger";
+import { Messages } from "../../custom/messages";
 
 const pubsubCommand: Command = {
     name: "pubsub",
@@ -11,11 +12,13 @@ const pubsubCommand: Command = {
     arguments: [],
     async run(message: Message) {
         const response = await axios.get("https://arepublixchickentendersubsonsale.com/");
+        ("");
         log.debug(f("pubsub", response.data));
+        const m = new Messages();
         if (response.data.includes("Not this week my dudes")) {
-            message.channel.send("The Publix chicken tender sandwich is NOT on sale.");
+            message.channel.send(m.get("pubsubNotOnSale"));
         } else {
-            message.channel.send("The publix chicken tender sandwich is on sale.");
+            message.channel.send(m.get("pubsubOnSale"));
         }
         return null;
     },
