@@ -75,6 +75,18 @@ export interface Track {
 //         this.playlist.splice(position, 0, track);
 //     }
 
+// /**
+//  * Takes current playlist and shuffles it.
+//  * If playlist is empty, then command returns a message saying
+//  * it cannot shuffle an empty playlist.
+//  */
+//  shuffle(): void {
+//     for (let i = this.playlist.length - 1; i > 0; i--) {
+//         const j = Math.floor(Math.random() * (i + 1));
+//         [this.playlist[i], this.playlist[j]] = [this.playlist[j], this.playlist[i]];
+//     }
+// }
+
 //     /**
 //      * Returns the number of tracks left in the queue.
 //      */
