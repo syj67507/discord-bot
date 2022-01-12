@@ -16,7 +16,8 @@
         "lint": "eslint .",
         "prestart": "npm i ytdl-core@latest ytsr@latest",
         "start": "node dist/index.js",
-        "test": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts tests/custom/validators.test.ts tests/custom/base.test.ts tests/commands/music/queue.test.ts tests/commands/utility/help.test.ts tests/commands/music/queuenext.test.ts --silent --verbose"
+        "test": "npm run clean-build && npm run clean-test && jest tests/custom/spotifyclient.test.ts --silent --verbose",
+        "oldtest": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts tests/custom/validators.test.ts tests/custom/base.test.ts tests/commands/music/queue.test.ts tests/commands/utility/help.test.ts tests/commands/music/queuenext.test.ts --silent --verbose"
     },
     "lint-staged": {
         "{src,tests}/**/*": [
@@ -65,9 +66,9 @@
         "giphy-js-sdk-core": "^1.0.6",
         "pokedex-promise-v2": "^3.2.0",
         "winston": "^3.3.3",
-        "ytdl-core": "^4.9.1",
+        "ytdl-core": "^4.10.0",
         "ytpl": "^2.2.3",
-        "ytsr": "^3.5.2"
+        "ytsr": "^3.6.0"
     },
     "devDependencies": {
         "@babel/core": "^7.15.0",
