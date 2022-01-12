@@ -9,8 +9,8 @@ describe("Testing utility/disable command", () => {
             set: jest.fn(),
         },
     };
-    const commandsCollection: Collection<any, any> = new Collection();
-    commandsCollection.set("sample", command);
+    const commandsCache: Collection<any, any> = new Collection();
+    commandsCache.set("sample", command);
 
     const rolesCache: Collection<any, any> = new Collection();
     rolesCache.set("everyoneRole", {
@@ -31,9 +31,9 @@ describe("Testing utility/disable command", () => {
                 cache: rolesCache,
             },
             commands: {
-                cache: commandsCollection,
+                cache: commandsCache,
                 fetch() {
-                    return commandsCollection;
+                    return commandsCache;
                 },
             },
         },
@@ -143,5 +143,28 @@ describe("Testing utility/disable command", () => {
         );
 
         expect(replySpy).toHaveBeenLastCalledWith("`sample` is already disabled.");
+    });
+
+    it("should disable command even if not found in the guild's cache", async () => {
+        const replySpy = jest.spyOn(interaction, "reply");
+        interaction.guild.commands.cache = new Collection<any, any>();
+
+        const options = {
+            command: "sample",
+        };
+        await disableCommand.run(
+            interaction,
+            options,
+            global["commands"],
+            global["commandGroups"]
+        );
+
+        expect(replySpy).toHaveBeenCalledTimes(1);
+        expect(
+            (replySpy.mock.calls[replySpy.mock.calls.length - 1][0] as string).endsWith(
+                "disabled."
+            )
+        ).toBeTruthy();
+        interaction.guild.commands.cache = commandsCache;
     });
 });
