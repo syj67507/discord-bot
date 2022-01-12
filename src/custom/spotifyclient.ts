@@ -10,6 +10,7 @@ class SpotifyClient {
     private accessToken: string;
 
     constructor() {
+        console.log("Constructed SpotifyClient");
         this.accessToken = "initialAccessToken";
     }
 
@@ -27,8 +28,16 @@ class SpotifyClient {
      */
     async refreshAccessToken(): Promise<void> {
         console.log("Access token needs to be refreshed...");
+
+        console.log("Loading clientId and clientSecret from environment...");
         const clientId: string = process.env.SPOTIFY_CLIENT_ID!;
         const clientSecret: string = process.env.SPOTIFY_CLIENT_SECRET!;
+        if (clientId === undefined || clientSecret === undefined) {
+            throw new SpotifyClientError(
+                "Unable to load client credentials from environment. " +
+                    "Please set the SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET environment variables"
+            );
+        }
 
         const url = "https://accounts.spotify.com/api/token";
         const headers = {
@@ -87,7 +96,7 @@ class SpotifyClient {
 
         // If response was an error, then throw an error
         if (response.status !== 200) {
-            throw new SpotifyClientError(response);
+            throw new SpotifyClientError("API returned an errored response.", response);
         }
 
         return response.data;
@@ -124,8 +133,6 @@ class SpotifyClient {
     }
 }
 
-export default new SpotifyClient();
-
 export class SpotifyClientError extends Error {
     apiResponse: any;
     /**
@@ -133,15 +140,23 @@ export class SpotifyClientError extends Error {
      *
      * @param spotifyAPIResponse The response returned from the Spotify API
      */
-    constructor(spotifyAPIResponse: AxiosResponse) {
-        const { status, message } = spotifyAPIResponse.data.error;
-        super(`SpotifyClientError: ${status} - ${message}`);
-        this.apiResponse = {
-            data: spotifyAPIResponse.data,
-            config: spotifyAPIResponse.config,
-        };
+    constructor(errMessage: string, spotifyAPIResponse?: AxiosResponse) {
+        let outputMessage = `SpotifyClientError: ${errMessage}.`;
+        if (spotifyAPIResponse) {
+            const { status, message } = spotifyAPIResponse.data.error;
+            outputMessage += ` ${status} - ${message}`;
+        }
+        super(outputMessage);
+        if (spotifyAPIResponse) {
+            this.apiResponse = {
+                data: spotifyAPIResponse.data,
+                config: spotifyAPIResponse.config,
+            };
+        }
     }
 }
+
+export default new SpotifyClient();
 
 /**
  * All code inside of this object is intended to be used strictly for testing.

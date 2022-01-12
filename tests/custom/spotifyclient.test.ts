@@ -55,6 +55,10 @@ describe("SpotifyClient tests", () => {
     beforeEach(() => {
         jest.restoreAllMocks();
 
+        // mock the environment variables needed for this client's authentication
+        process.env.SPOTIFY_CLIENT_ID = "SPOTIFY_CLIENT_ID";
+        process.env.SPOTIFY_CLIENT_SECRET = "SPOTIFY_CLIENT_SECRET";
+
         // mock Axios
         axiosSpy = jest.spyOn(axios, "get").mockImplementation(jest.fn());
 
