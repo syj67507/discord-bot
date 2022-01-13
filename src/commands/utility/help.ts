@@ -26,12 +26,16 @@ const helpCommand: Command = {
         // Based on input, fill in the helpMessage
         const commandName = options.command as string;
         if (commandName === null) {
-            helpMessage = makeHelpAllMessage("/", commands, commandGroups);
+            helpMessage = HelpCommandHelpers.makeHelpAllMessage(
+                "/",
+                commands,
+                commandGroups
+            );
         } else if (commandName === "help") {
-            helpMessage = makeSpecificHelpMessage(this);
+            helpMessage = HelpCommandHelpers.makeSpecificHelpMessage(this);
         } else if (commands.has(commandName)) {
             const command = commands.get(commandName)!;
-            helpMessage = makeSpecificHelpMessage(command);
+            helpMessage = HelpCommandHelpers.makeSpecificHelpMessage(command);
         } else {
             helpMessage = [
                 `Unable to identify ${commandName} command. Use the help ` +
@@ -52,128 +56,122 @@ const helpCommand: Command = {
     },
 };
 
-/**
- * Takes a string and returns a string where the first letter is capitalized like a title
- * @param s The string to capitalize
- * @returns {string} The string that has been capitalized
- */
-function capitalize(s: string): string {
-    if (s.length === 0) {
-        return s;
+export class HelpCommandHelpers {
+    /**
+     * Takes a string and returns a string where the first letter is capitalized like a title
+     * @param s The string to capitalize
+     * @returns {string} The string that has been capitalized
+     */
+    static capitalize(s: string): string {
+        if (s.length === 0) {
+            return s;
+        }
+        return s.slice(0, 1).toUpperCase() + s.slice(1);
     }
-    return s.slice(0, 1).toUpperCase() + s.slice(1);
-}
 
-/**
- * Returns an array of messages that contains information about all commands and how to use them
- * @param prefix The command prefix for this client
- * @param cmds The collection that contains all of the command definitions (from loadedCommands)
- * @param cmdGroups The collection that contains all the groups and all of its commands (from loadedCommands)
- * @returns {string[]} The help message
- */
-function makeHelpAllMessage(
-    prefix: string,
-    // eslint-disable-next-line no-shadow
-    cmds: Collection<string, Command>,
-    // eslint-disable-next-line no-shadow
-    cmdGroups: Collection<string, string[]>
-): string[] {
-    const helpMessage = [
-        `To run a command, use \`${prefix}command\` in any text channel provided on the server.`,
-        `Use \`${prefix}help <command>\` to view detailed information about a specific command.`,
-        "Any commands that are ~~crossed out~~ are currently disabled.",
-        "",
-        "__**Available commands**__",
-        "",
-    ];
+    /**
+     * Returns an array of messages that contains information about all commands and how to use them
+     * @param prefix The command prefix for this client
+     * @param cmds The collection that contains all of the command definitions (from loadedCommands)
+     * @param cmdGroups The collection that contains all the groups and all of its commands (from loadedCommands)
+     * @returns {string[]} The help message
+     */
+    static makeHelpAllMessage(
+        prefix: string,
+        // eslint-disable-next-line no-shadow
+        cmds: Collection<string, Command>,
+        // eslint-disable-next-line no-shadow
+        cmdGroups: Collection<string, string[]>
+    ): string[] {
+        const helpMessage = [
+            `To run a command, use \`${prefix}command\` in any text channel provided on the server.`,
+            `Use \`${prefix}help <command>\` to view detailed information about a specific command.`,
+            "Any commands that are ~~crossed out~~ are currently disabled.",
+            "",
+            "__**Available commands**__",
+            "",
+        ];
 
-    for (const commandGroupName of cmdGroups.keys()) {
-        const commandGroup = cmdGroups.get(commandGroupName)!;
-        helpMessage.push(`__${capitalize(commandGroupName)}__`);
+        for (const commandGroupName of cmdGroups.keys()) {
+            const commandGroup = cmdGroups.get(commandGroupName)!;
+            helpMessage.push(`__${this.capitalize(commandGroupName)}__`);
 
-        for (const commandName of commandGroup) {
-            const command = cmds.get(commandName)!;
-            let m = `**${command.name}:** ${command.description}`;
-            if (command.enabled === false) {
-                m = `~~${m}~~`;
+            for (const commandName of commandGroup) {
+                const command = cmds.get(commandName)!;
+                let m = `**${command.name}:** ${command.description}`;
+                if (command.enabled === false) {
+                    m = `~~${m}~~`;
+                }
+                helpMessage.push(m);
             }
-            helpMessage.push(m);
+
+            // Special case since help is not loaded at the time of this commands definition
+
+            helpMessage.push("");
+        }
+        return helpMessage;
+    }
+
+    /**
+     * Makes a help message for a specific command
+     * @param command The command to make a help message for
+     * @returns {string[]} An array of strings of all the command details
+     */
+    static makeSpecificHelpMessage(command: Command): string[] {
+        const {
+            aliases,
+            description,
+            enabled,
+            name,
+            options: options,
+            additionalHelpInfo,
+        } = command;
+
+        const msg = [
+            `__Command **${name}**__`,
+            description,
+            `Currently ${enabled === false ? "**disabled**" : "**enabled**"}`,
+            "",
+        ];
+
+        if (aliases && aliases.length > 0) {
+            msg.push(`**Aliases:** \`[${aliases}]\``);
         }
 
-        // Special case since help is not loaded at the time of this commands definition
+        if (additionalHelpInfo && additionalHelpInfo.length > 0) {
+            msg.push("", ...additionalHelpInfo, "");
+        }
 
-        helpMessage.push("");
+        if (options.length > 0) {
+            const { usageOptions, argDetails: optionDetails } =
+                this.makeArgDescriptions(options);
+            msg.push(
+                `**Usage:** \`${name} ${usageOptions}\``,
+                "",
+                "**Options:**",
+                ...optionDetails
+            );
+        }
+
+        return msg;
     }
-    return helpMessage;
+
+    /**
+     * Returns an object that parses the passed options for use in generating a help message
+     * @param options: an array of options
+     * @returns usageOptions, a string with all arguments
+     * @returns argDetails, an array where each entry is detailed information about an argument
+     */
+    static makeArgDescriptions(options: Option[]): any {
+        let usageOptions = "";
+        const optionDetails: string[] = [];
+        for (const option of options) {
+            const { name, description } = option;
+            usageOptions += `<${name}> `;
+            const optionDescription = `\`<${name}>\` ${description}`;
+            optionDetails.push(optionDescription);
+        }
+        return { usageOptions, argDetails: optionDetails };
+    }
 }
-
-/**
- * Makes a help message for a specific command
- * @param command The command to make a help message for
- * @returns {string[]} An array of strings of all the command details
- */
-function makeSpecificHelpMessage(command: Command): string[] {
-    const {
-        aliases,
-        description,
-        enabled,
-        name,
-        options: options,
-        additionalHelpInfo,
-    } = command;
-
-    const msg = [
-        `__Command **${name}**__`,
-        description,
-        `Currently ${enabled === false ? "**disabled**" : "**enabled**"}`,
-        "",
-    ];
-
-    if (aliases && aliases.length > 0) {
-        msg.push(`**Aliases:** \`[${aliases}]\``);
-    }
-
-    if (additionalHelpInfo && additionalHelpInfo.length > 0) {
-        msg.push("", ...additionalHelpInfo, "");
-    }
-
-    if (options.length > 0) {
-        const { usageOptions, argDetails: optionDetails } = makeArgDescriptions(options);
-        msg.push(
-            `**Usage:** \`${name} ${usageOptions}\``,
-            "",
-            "**Options:**",
-            ...optionDetails
-        );
-    }
-
-    return msg;
-}
-
-/**
- * Returns an object that parses the passed options for use in generating a help message
- * @param options: an array of options
- * @returns usageOptions, a string with all arguments
- * @returns argDetails, an array where each entry is detailed information about an argument
- */
-function makeArgDescriptions(options: Option[]): any {
-    let usageOptions = "";
-    const optionDetails: string[] = [];
-    for (const option of options) {
-        const { name, description } = option;
-        usageOptions += `<${name}> `;
-        const optionDescription = `\`<${name}>\` ${description}`;
-        optionDetails.push(optionDescription);
-    }
-    return { usageOptions, argDetails: optionDetails };
-}
-
-const helpers = {
-    capitalize,
-    makeHelpAllMessage,
-    makeSpecificHelpMessage,
-    makeArgDescriptions,
-};
-
 export default helpCommand;
-export { helpers };

@@ -17,7 +17,7 @@
         "lint": "eslint .",
         "prestart": "npm update ytdl-core ytsr",
         "start": "node dist/index.js",
-        "test": "npm run clean-build && npm run clean-test && jest --verbose tests/commands/utility/disable.test.ts",
+        "test": "npm run clean-build && npm run clean-test && jest --verbose tests/commands/utility/help.test.ts",
         "oldtest": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts tests/custom/validators.test.ts tests/custom/base.test.ts tests/commands/music/queue.test.ts tests/commands/utility/help.test.ts tests/commands/music/queuenext.test.ts --silent --verbose"
     },
     "lint-staged": {

@@ -80,6 +80,8 @@ const disableCommand: Command = {
         });
 
         interaction.reply(`\`${commandName}\` disabled.`);
+        const cmd = commands.get(commandName)!;
+        cmd.enabled = false;
         return null;
     },
 };

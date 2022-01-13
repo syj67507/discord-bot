@@ -61,12 +61,14 @@ const enableCommand: Command = {
             return null;
         }
 
-        // Enabled
+        // Enable
         await command?.permissions.remove({
             roles: everyoneGuildRole!.id,
         });
 
         interaction.reply(`\`${commandName}\` enabled.`);
+        const cmd = commands.get(commandName)!;
+        cmd.enabled = true;
         return null;
     },
 };

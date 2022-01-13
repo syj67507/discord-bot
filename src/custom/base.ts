@@ -87,7 +87,7 @@ export interface Command {
     ) => Promise<null>;
     /** The aliases that can also trigger the command */
     aliases?: string[];
-    /** Defines whether the command is enabled for use */
+    /** Defines whether the command is enabled for use, only used as a label, doesn't affect functionality */
     enabled: boolean | "fixed";
     /**
      * Additional information about the command that is displayed in the specific

@@ -3,12 +3,15 @@
  */
 
 import { Collection } from "discord.js";
+import { ApplicationCommandOptionType } from "discord-api-types";
 import { Command } from "../../src/custom/base";
 import fs from "fs";
 import path from "path";
 
-const commands = new Collection<string, Command>();
-const commandGroups = new Collection<string, string[]>();
+const applicationCommands = new Collection<string, Command>();
+const applicationCommandGroups = new Collection<string, string[]>();
+const testCommands = new Collection<string, Command>();
+const testCommandGroups = new Collection<string, string[]>();
 
 // loading all commands defined in application
 const groups = fs.readdirSync(path.resolve(`${__dirname}/../../src/commands`));
@@ -16,7 +19,7 @@ for (const group of groups) {
     const commandFiles = fs.readdirSync(
         path.resolve(`${__dirname}/../../src/commands/${group}`)
     );
-    commandGroups.set(group, []);
+    applicationCommandGroups.set(group, []);
     for (const commandFile of commandFiles) {
         const p = `${__dirname}/../../src/commands/${group}/${commandFile}`.replace(
             ".ts",
@@ -25,13 +28,13 @@ for (const group of groups) {
 
         const command: Command = require(p).default;
         if (command) {
-            commands.set(command.name, command);
-            commandGroups.get(group)!.push(command.name);
+            applicationCommands.set(command.name, command);
+            applicationCommandGroups.get(group)!.push(command.name);
         }
     }
 }
 
-commands.set("sample", {
+testCommands.set("sample", {
     name: "sample",
     description: "Sample Description",
     aliases: ["alias"],
@@ -39,10 +42,17 @@ commands.set("sample", {
     run: async () => {
         return null;
     },
-    options: [],
+    options: [
+        {
+            name: "key1",
+            description: "option description",
+            type: ApplicationCommandOptionType.String,
+            required: true,
+        },
+    ],
 });
 
-commands.set("sampleUtility", {
+testCommands.set("sampleUtility", {
     name: "sampleUtility",
     description: "Sample Utility Description",
     aliases: ["aliasUtility"],
@@ -53,8 +63,10 @@ commands.set("sampleUtility", {
     options: [],
 });
 
-commandGroups.get("misc").push("sample");
-commandGroups.get("utility").push("sampleUtility");
+testCommandGroups.set("misc", ["sample"]);
+testCommandGroups.set("utility", ["sampleUtility"]);
 
-global["commands"] = commands;
-global["commandGroups"] = commandGroups;
+global["applicationCommands"] = applicationCommands;
+global["applicationCommandGroups"] = applicationCommandGroups;
+global["testCommands"] = testCommands;
+global["testCommandGroups"] = testCommandGroups;

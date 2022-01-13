@@ -1,40 +1,23 @@
-import "dotenv/config";
 import { Collection } from "discord.js";
 import { Command } from "../../../src/custom/base";
+import helpCommand, { HelpCommandHelpers } from "../../../src/commands/utility/help";
 
-const prefix = process.env.PREFIX!;
 describe("Testing help command", () => {
     // mocking Discord.Message
-    const dmChannel: any = {
-        send: jest.fn(),
-    };
-    const message: any = {
-        content: "",
-        channel: {
-            send: jest.fn(),
-        },
+    const interaction: any = {
         reply: jest.fn(),
         member: {
             permissions: {
-                has(perm: string): boolean {
-                    return perm === "ADMINISTRATOR";
-                },
+                has: jest.fn(),
             },
-        },
-        author: {
-            createDM: async () => {
-                message.author.dmChannel = dmChannel;
-                return dmChannel;
-            },
-            dmChannel: null,
         },
     };
 
-    // reimport modules before each test to reset the loaded command definitions before each test
-    let commands: Collection<string, Command>;
-    let commandGroups: Collection<string, string[]>;
-    let helpCommand: Command;
-    let helpCommandHelpers;
+    const prefix = "/";
+
+    // use the sample commands defined in the setup
+    const commands: Collection<string, Command> = global["testCommands"];
+    const commandGroups: Collection<string, string[]> = global["testCommandGroups"];
 
     // snapshots
     const helpAllMessageSnapshot = [
@@ -59,13 +42,13 @@ describe("Testing help command", () => {
         "**Aliases:** `[alias]`",
         "**Usage:** `sample <key1> `",
         "",
-        "**Arguments:**",
+        "**options:**",
         "`<key1>` argument description, default: `0`",
     ];
 
     const helpArgDescriptionSnapshot = {
-        argDetails: ["`<key1>` argument description, default: `0`"],
-        usageArgs: "<key1> ",
+        argDetails: ["`<key1>` option description"],
+        usageOptions: "<key1> ",
     };
     const helpCommandNotFoundMessageSnapshot = [
         "Unable to identify this command. Use the help " +
@@ -76,55 +59,46 @@ describe("Testing help command", () => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
 
-        // mocking the loadCommands for all commands/aliases/groups and its export (src/__mocks__/index.ts)
-        jest.mock("../../../src/index");
-        jest.resetModules(); // future imports of the same module will be replaced with the new instance on the import call
-
-        const loadedCommands = await import("../../../src/index");
-        commands = loadedCommands.commands;
-        commandGroups = loadedCommands.commandGroups;
-
-        // help command imported here to use the mocked imports of the loadedCommands in index.ts
-        const module = await import("../../../src/commands/utility/help");
-        helpCommand = module.default;
-        helpCommandHelpers = module.helpers;
-
-        // reset the message's dmChannel
-        message.author.dmChannel = null;
+        // Reset commands back to enabled
+        commands.forEach((command) => {
+            // eslint-disable-next-line no-param-reassign
+            command.enabled = true;
+        });
     });
 
     describe("Testing helper functions", () => {
         it("Should capitalize the string", () => {
-            const { capitalize } = helpCommandHelpers;
             const s = "test";
-            const result = capitalize(s);
+            const result = HelpCommandHelpers.capitalize(s);
             expect(result).toBe("Test");
         });
 
         it("Should not capitalize an empty string", () => {
-            const { capitalize } = helpCommandHelpers;
             const s = "";
-            const result = capitalize(s);
+            const result = HelpCommandHelpers.capitalize(s);
             expect(result).toBe(s);
         });
 
-        it("Should make detailed argument description object from arguments", () => {
-            const { makeArgDescriptions } = helpCommandHelpers;
+        it("Should make detailed argument description object from options", () => {
             const sampleCommand = commands.get("sample");
-            const result = makeArgDescriptions(sampleCommand.arguments);
+            const result = HelpCommandHelpers.makeArgDescriptions(sampleCommand.options);
             expect(result).toEqual(helpArgDescriptionSnapshot);
         });
 
         it("Should make a help all message", () => {
-            const { makeHelpAllMessage } = helpCommandHelpers;
-            const result = makeHelpAllMessage(prefix, commands, commandGroups);
+            const result = HelpCommandHelpers.makeHelpAllMessage(
+                prefix,
+                commands,
+                commandGroups
+            );
             expect(result).toEqual(helpAllMessageSnapshot);
             expect(result.join(" ").includes("Available commands")).toBe(true);
         });
 
         it("Should make a help message for the sample command containing the usage and description", () => {
-            const { makeSpecificHelpMessage } = helpCommandHelpers;
-            const result = makeSpecificHelpMessage(commands.get("sample"));
+            const result = HelpCommandHelpers.makeSpecificHelpMessage(
+                commands.get("sample")
+            );
             expect(result.join(" ").includes("Usage")).toBe(true);
             expect(result.join(" ").includes(commands.get("sample").description)).toBe(
                 true
@@ -132,26 +106,24 @@ describe("Testing help command", () => {
         });
 
         it("Should make a help message with sample crossed out when disabled in help all message", async () => {
-            const { makeHelpAllMessage } = helpCommandHelpers;
+            commands.get("sample").enabled = false;
 
-            const disableCommand = (await import("../../../src/commands/utility/disable"))
-                .default;
-            await disableCommand.run(message, {
-                command: "sample",
-            });
-
-            const result = makeHelpAllMessage(prefix, commands, commandGroups);
+            const result = HelpCommandHelpers.makeHelpAllMessage(
+                prefix,
+                commands,
+                commandGroups
+            );
             expect(result.join(" ").includes("~~**sample")).toBe(true); // ~~**word~~ is the way to cross out a bolded word
         });
 
         it("should make a help message for the sample command with additional help info if specified", async () => {
-            const { makeSpecificHelpMessage } = helpCommandHelpers;
-
             const sampleCommand = commands.get("sample")!;
             sampleCommand.additionalHelpInfo = ["Sample Additional Info"];
             commands.set("sample", sampleCommand);
 
-            const result = makeSpecificHelpMessage(commands.get("sample"));
+            const result = HelpCommandHelpers.makeSpecificHelpMessage(
+                commands.get("sample")
+            );
             expect(
                 result
                     .join(" ")
@@ -160,75 +132,70 @@ describe("Testing help command", () => {
         });
 
         it("Should say this command is currently disabled when disabled in specific help message", async () => {
-            const { makeSpecificHelpMessage } = helpCommandHelpers;
+            commands.get("sample").enabled = false;
 
-            const disableCommand = (await import("../../../src/commands/utility/disable"))
-                .default;
-            await disableCommand.run(message, {
-                command: "sample",
-            });
-
-            const result = makeSpecificHelpMessage(commands.get("sample"));
+            const result = HelpCommandHelpers.makeSpecificHelpMessage(
+                commands.get("sample")
+            );
             expect(result.join(" ").includes("disabled")).toBe(true);
         });
     });
 
     describe("Testing help command's run function", () => {
         it("should send a summary of all the commands", async () => {
-            const args = {
-                commandName: "all",
+            const spy = jest.spyOn(HelpCommandHelpers, "makeHelpAllMessage");
+            const interactionSpy = jest.spyOn(interaction, "reply");
+
+            const options = {
+                command: null, // nothing passed in for 'command' argument
             };
+            await helpCommand.run(interaction, options, commands, commandGroups);
 
-            const sendSpy = jest.spyOn(dmChannel, "send");
-            await helpCommand.run(message, args);
-            expect(sendSpy).toHaveBeenCalledTimes(1);
-            expect(sendSpy).toHaveBeenLastCalledWith(helpAllMessageSnapshot);
-        });
-
-        it("should not create a new dmChannel if one already exists", async () => {
-            const args = {
-                commandName: "all",
-            };
-
-            message.author.dmChannel = dmChannel;
-            const createDMSpy = jest.spyOn(message.author, "createDM");
-
-            await helpCommand.run(message, args);
-
-            expect(createDMSpy).toHaveBeenCalledTimes(0);
+            expect(spy).toHaveBeenCalledTimes(1);
+            expect(interactionSpy).toHaveBeenCalledTimes(1);
         });
 
         it("should send a detailed description of the sample command", async () => {
-            const args = {
-                commandName: "sample",
-            };
+            const spy = jest.spyOn(HelpCommandHelpers, "makeSpecificHelpMessage");
+            const interactionSpy = jest.spyOn(interaction, "reply");
 
-            const sendSpy = jest.spyOn(dmChannel, "send");
-            await helpCommand.run(message, args);
-            expect(sendSpy).toHaveBeenCalledTimes(1);
-            expect(sendSpy).toHaveBeenLastCalledWith(helpSampleCommandSnapshot);
+            const options = {
+                command: "sample",
+            };
+            await helpCommand.run(interaction, options, commands, commandGroups);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            expect(interactionSpy).toHaveBeenCalledTimes(1);
         });
 
-        it("should send a detailed description of the sample command using the alias", async () => {
-            const args = {
-                commandName: "alias",
-            };
+        it("should send a detailed description of the help command", async () => {
+            const spy = jest.spyOn(HelpCommandHelpers, "makeSpecificHelpMessage");
+            const interactionSpy = jest.spyOn(interaction, "reply");
 
-            const sendSpy = jest.spyOn(dmChannel, "send");
-            await helpCommand.run(message, args);
-            expect(sendSpy).toHaveBeenCalledTimes(1);
-            expect(sendSpy).toHaveBeenLastCalledWith(helpSampleCommandSnapshot);
+            const options = {
+                command: "help",
+            };
+            await helpCommand.run(interaction, options, commands, commandGroups);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+            expect(interactionSpy).toHaveBeenCalledTimes(1);
         });
 
         it("should send an error message if not a valid command", async () => {
-            const args = {
-                commandName: "unknown",
-            };
+            const interactionSpy = jest.spyOn(interaction, "reply");
 
-            const sendSpy = jest.spyOn(dmChannel, "send");
-            await helpCommand.run(message, args);
-            expect(sendSpy).toHaveBeenCalledTimes(1);
-            expect(sendSpy).toHaveBeenLastCalledWith(helpCommandNotFoundMessageSnapshot);
+            const options = {
+                command: "unknown",
+            };
+            await helpCommand.run(interaction, options, commands, commandGroups);
+
+            expect(interactionSpy).toHaveBeenCalledWith({
+                content: [
+                    "Unable to identify unknown command. Use the help " +
+                        "command to see a list of all the available commands.",
+                ].join("\n"),
+                ephemeral: true,
+            });
         });
     });
 });
