@@ -1,172 +1,188 @@
-jest.mock("pokedex-promise-v2", () => {
-    class MockPokedex {
-        constructor() {
-            // Empty
-        }
-        getPokemonsList() {
-            return {
-                count: 1,
-                results: [{ name: "test pokemon" }],
-            };
-        }
-        getPokemonByName(name: string) {
-            if (name === "test pokemon") {
-                return {
-                    name: "test pokemon",
-                    sprites: {
-                        front_default: "front_default",
-                    },
-                    types: [{ type: { name: "normal" } }],
-                };
-            }
-        }
-    }
-    return MockPokedex;
-});
-
-import pokemonCommand, {
-    fetchRandomPokemon,
-    makeTypeQuestion,
-    processGuess,
-    verifyAnswer,
-} from "../../../v12_src/commands/misc/pokemon";
-
+import axios from "axios";
 import { Collection } from "discord.js";
+import pokemonCommand, { PokemonCommandHelper } from "../../../src/commands/misc/pokemon";
 
 describe("Testing Pokemon command", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        jest.restoreAllMocks();
+        jest.spyOn(axios, "get")
+            .mockImplementationOnce(async () => {
+                return {
+                    data: {
+                        count: 1,
+                        results: [{ name: "greninja", url: "mock.pokeapi.com/1" }],
+                        next: "",
+                        previous: null,
+                    },
+                };
+            })
+            .mockImplementationOnce(async () => {
+                return { data: global["pokemonData"] };
+            });
+    });
+
     describe("Testing Pokemon command's helper functions", () => {
         it("should fetch a random pokemon", async () => {
-            const result = await fetchRandomPokemon();
-            expect(result).toEqual({
-                name: "test pokemon",
-                sprites: {
-                    front_default: "front_default",
-                },
-                types: [{ type: { name: "normal" } }],
-            });
+            const result = await PokemonCommandHelper.fetchRandomPokemon();
+            expect(result).toEqual(global["pokemonData"]);
         });
 
         it("should make a type question from the fetched pokemon", async () => {
-            const pkmnInfo = await fetchRandomPokemon();
-            const result = makeTypeQuestion(pkmnInfo);
+            const pkmnInfo = await PokemonCommandHelper.fetchRandomPokemon();
+            const result = PokemonCommandHelper.makeTypeQuestion(pkmnInfo);
             expect(result).toEqual({
-                question: "What is __Test pokemon's__ typing?",
-                files: ["front_default"],
-                answer: ["normal"],
+                question: "What is __Greninja's__ typing?",
+                picture:
+                    "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/658.png",
+                answer: ["water", "dark"],
             });
         });
 
-        it("it should process the guess successfully", () => {
-            const guess = new Collection<string, any>();
-            guess.set("0", {
-                content: "normal",
+        it("should make a who question from the fetched pokemon", async () => {
+            const pkmnInfo = await PokemonCommandHelper.fetchRandomPokemon();
+            const result = PokemonCommandHelper.makeWhoQuestion(pkmnInfo);
+            expect(result).toEqual({
+                question: "Who's that Pokémon?!",
+                picture:
+                    "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/658.png",
+                answer: ["Greninja"],
             });
-            const result = processGuess(guess);
-            expect(result).toEqual(["normal"]);
         });
 
-        it("it should process the guess if nothing is passed", () => {
-            const guess = new Collection<string, any>();
-            guess.set("0", {
-                content: "normal fighting",
-            });
-            const result = processGuess(guess);
-            expect(result).toEqual(["normal", "fighting"]);
-        });
-
-        it("it should process the guess if two types are passed", () => {
-            const guess = new Collection<string, any>();
-            const result = processGuess(guess);
-            expect(result).toEqual([]);
-        });
-
-        it("should verify the correct answer", () => {
-            const cases = [
-                { guess: ["normal"], answer: ["normal"] },
-                { guess: ["normal", "fighting"], answer: ["normal", "fighting"] },
-                { guess: ["fighting", "normal"], answer: ["fighting", "normal"] },
-                { guess: [""], answer: [""] },
+        it("it should verify a correct guess with the answer successfully", () => {
+            const testCases = [
+                {
+                    // successful case unsorted
+                    guess: ["dark", "water"],
+                    answer: ["water", "dark"],
+                    result: true,
+                },
+                {
+                    // successful case sorted
+                    guess: ["dark", "water"],
+                    answer: ["dark", "water"],
+                    result: true,
+                },
+                {
+                    // successful case with different capitalization
+                    guess: ["dark", "Water"],
+                    answer: ["Dark", "water"],
+                    result: true,
+                },
+                {
+                    // same number of answers but incorrect
+                    guess: ["water", "fighting"],
+                    answer: ["water", "dark"],
+                    result: false,
+                },
+                {
+                    // different number of answers
+                    guess: ["water"],
+                    answer: ["water", "dark"],
+                    result: false,
+                },
             ];
-            for (const cas of cases) {
-                const { guess, answer } = cas;
-                const result = verifyAnswer(guess, answer);
-                expect(result).toEqual(["That's correct!"]);
-            }
-        });
 
-        it("should verify the incorrect answer", () => {
-            const cases = [
-                { guess: ["normal"], answer: ["fighting"] },
-                { guess: ["normal", "water"], answer: ["normal", "fighting"] },
-                { guess: ["normal"], answer: ["normal", "fighting"] },
-            ];
-            for (const c of cases) {
-                const { guess, answer } = c;
-                const result = verifyAnswer(guess, answer);
-                expect(result).toEqual([
-                    "Sorry, that's incorrect.",
-                    `The correct answer is ${answer}`,
-                ]);
+            for (const testCase of testCases) {
+                const result = PokemonCommandHelper.verifyAnswer(
+                    testCase.guess,
+                    testCase.answer
+                );
+                expect(result).toBe(testCase.result);
             }
         });
     });
 
     describe("Testing the Pokemon command's run function", () => {
-        const message: any = {
+        const interaction: any = {
             reply: jest.fn(),
+            deferReply: jest.fn(),
+            editReply: jest.fn(),
+            followUp: jest.fn(),
             channel: {
-                awaitMessages() {
-                    const messages = new Collection<string, any>();
-                    messages.set("0", {
-                        content: "normal", // correct answer
-                    });
-                    return messages;
-                },
+                send: jest.fn(),
+                awaitMessages: jest.fn(),
+            },
+            member: {
+                user: {},
             },
         };
+
+        // This will serve as the message object that is returned from await messages
+        // The guess provided from the user
+        const guessMessage = {
+            reply: jest.fn(),
+            content: undefined,
+        };
+
         beforeEach(() => {
-            jest.clearAllMocks();
-            jest.restoreAllMocks();
-        });
-        it("should test that a correct answer returns a success message", async () => {
-            const messageSpy = jest.spyOn(message, "reply");
-            const result = await pokemonCommand.run(message, {
-                type: "type",
-            });
-            expect(result).toBeNull();
-            expect(messageSpy).toHaveBeenLastCalledWith(["That's correct!"]);
+            guessMessage.content = undefined;
         });
 
-        it("should test that an incorrect answer returns a failed message", async () => {
-            jest.spyOn(message.channel, "awaitMessages").mockImplementation(() => {
-                const messages = new Collection<string, any>();
-                messages.set("0", {
-                    content: "fighting", // incorrect answer
-                });
-                return messages;
-            });
-            const messageSpy = jest.spyOn(message, "reply");
-            const result = await pokemonCommand.run(message, {
-                type: "type",
-            });
+        it("should test that a correct answer returns a success message for type question", async () => {
+            jest.spyOn(interaction.channel, "awaitMessages").mockImplementation(
+                async () => {
+                    guessMessage.content = "water dark";
+                    const c = new Collection<string, typeof guessMessage>();
+                    c.set("mockMessageId", guessMessage);
+                    return c;
+                }
+            );
+            const guessMessageReplySpy = jest.spyOn(guessMessage, "reply");
+            const result = await pokemonCommand.run(
+                interaction,
+                {
+                    category: "type",
+                },
+                global["testCommands"],
+                global["testCommandGroups"]
+            );
             expect(result).toBeNull();
-            expect(messageSpy).toHaveBeenLastCalledWith([
-                "Sorry, that's incorrect.",
-                "The correct answer is normal",
-            ]);
+            expect(guessMessageReplySpy).toHaveBeenLastCalledWith("That's correct!");
         });
 
-        it("should test the case for an empty answer", async () => {
-            jest.spyOn(message.channel, "awaitMessages").mockImplementation(async () => {
-                const messages = new Collection();
-                return messages;
-            });
-            const messageSpy = jest.spyOn(message, "reply");
-            const result = await pokemonCommand.run(message, {
-                type: "type",
-            });
+        it("should handle when on guess was provided", async () => {
+            jest.spyOn(interaction.channel, "awaitMessages").mockImplementation(
+                async () => {
+                    return new Collection<string, typeof guessMessage>();
+                }
+            );
+            const guessMessageReplySpy = jest.spyOn(guessMessage, "reply");
+            const result = await pokemonCommand.run(
+                interaction,
+                {
+                    category: "who",
+                },
+                global["testCommands"],
+                global["testCommandGroups"]
+            );
             expect(result).toBeNull();
-            expect(messageSpy).toHaveBeenLastCalledWith("I didn't get an answer.");
+            expect(guessMessageReplySpy).not.toHaveBeenCalled();
+        });
+
+        it("should test an incorrect answer returns a failed message for who question", async () => {
+            jest.spyOn(interaction.channel, "awaitMessages").mockImplementation(
+                async () => {
+                    guessMessage.content = "pikachu";
+                    const c = new Collection<string, typeof guessMessage>();
+                    c.set("mockMessageId", guessMessage);
+                    return c;
+                }
+            );
+            const guessMessageReplySpy = jest.spyOn(guessMessage, "reply");
+            const result = await pokemonCommand.run(
+                interaction,
+                {
+                    category: "who",
+                },
+                global["testCommands"],
+                global["testCommandGroups"]
+            );
+            expect(result).toBeNull();
+            expect(
+                guessMessageReplySpy.mock.calls[0][0].includes("Sorry that's incorrect")
+            ).toBe(true);
         });
     });
 });

@@ -1,8 +1,8 @@
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";
-import Pokedex from "pokedex-promise-v2";
 import { Command } from "../../custom/base";
 import { logger as log, format as f } from "../../custom/logger";
 import { ApplicationCommandOptionType } from "discord-api-types";
+import axios from "axios";
 
 /**
  * Represents a set of Trivia data
@@ -111,12 +111,19 @@ export class PokemonCommandHelper {
      */
     static async fetchRandomPokemon(): Promise<any> {
         // Fetch a random pokemon
-        const pokeClient = new Pokedex();
-        const pkmnList = await pokeClient.getPokemonsList();
-        const rdx = Math.floor(Math.random() * pkmnList.count);
-        const pkmnName: string = pkmnList.results[rdx].name;
-        const pkmnInfo = await pokeClient.getPokemonByName(pkmnName);
-        return pkmnInfo;
+        const pkmnList = (
+            await axios.get(
+                "https://pokeapi.co/api/v2/pokemon?limit=99999", // limit set really high to bypass 20 limit default
+                {
+                    validateStatus: () => true,
+                }
+            )
+        ).data;
+
+        const rdx = Math.floor(Math.random() * pkmnList.results.length);
+        const randomPkmnUrl: string = pkmnList.results[rdx].url;
+
+        return (await axios.get(randomPkmnUrl, { validateStatus: () => true })).data;
     }
 
     /**
@@ -175,8 +182,8 @@ export class PokemonCommandHelper {
         if (guess.length == answer.length) {
             // sort the answers to make sure stringify returns the same result each time
             if (
-                JSON.stringify(guess.sort().map((s) => s.toLowerCase())) ===
-                JSON.stringify(answer.sort().map((s) => s.toLowerCase()))
+                JSON.stringify(guess.map((s) => s.toLowerCase()).sort()) ===
+                JSON.stringify(answer.map((s) => s.toLowerCase()).sort())
             ) {
                 return true;
             }

@@ -17,7 +17,7 @@
         "lint": "eslint .",
         "prestart": "npm update ytdl-core ytsr",
         "start": "node dist/index.js",
-        "test": "npm run clean-build && npm run clean-test && jest --verbose tests/commands/utility/help.test.ts",
+        "test": "npm run clean-build && npm run clean-test && jest --verbose tests/commands/misc/pokemon.test.ts",
         "oldtest": "npm run clean-build && npm run clean-test && jest tests/custom/ytclient.test.ts tests/custom/validators.test.ts tests/custom/base.test.ts tests/commands/music/queue.test.ts tests/commands/utility/help.test.ts tests/commands/music/queuenext.test.ts --silent --verbose"
     },
     "lint-staged": {
@@ -59,7 +59,10 @@
             "node_modules",
             "src"
         ],
-        "setupFiles": ["<rootDir>/tests/.jest/setupCommands.ts"]
+        "setupFiles": [
+            "<rootDir>/tests/.jest/setupCommands.ts",
+            "<rootDir>/tests/.jest/setupPokemonData.ts"
+        ]
     },
     "dependencies": {
         "@discordjs/opus": "^0.3.2",
@@ -69,8 +72,6 @@
         "discord.js": "^13.3.1",
         "dotenv": "^8.2.0",
         "ffmpeg-static": "^4.2.7",
-        "giphy-js-sdk-core": "^1.0.6",
-        "pokedex-promise-v2": "^3.2.0",
         "winston": "^3.3.3",
         "ytdl-core": "^4.9.1",
         "ytpl": "^2.2.3",
