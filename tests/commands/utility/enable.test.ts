@@ -3,30 +3,8 @@ import enableCommand from "../../../src/commands/utility/enable";
 import { Command } from "../../../src/custom/base";
 
 describe("Testing utility/enable command", () => {
-    const role: any = {
-        id: "mockEveryoneGuildRoleId",
-    };
-    const applicationCommand: any = {
-        permissions: {
-            has: () => true, // by default, these tests will mock a disabled command
-            remove: jest.fn(),
-        },
-    };
-    const interaction: any = {
-        reply: jest.fn(),
-        member: { permissions: { has: jest.fn() } },
-        guild: {
-            commands: {
-                cache: { find: () => undefined },
-                fetch: () => {
-                    return {
-                        find: () => applicationCommand,
-                    };
-                },
-            },
-            roles: { cache: { find: () => role } },
-        },
-    };
+    const interaction = global["interaction"];
+    const applicationCommand = global["applicationCommand"];
 
     const commands: Collection<string, Command> = global["testCommands"];
     const commandGroups: Collection<string, string[]> = global["testCommandGroups"];
@@ -37,6 +15,7 @@ describe("Testing utility/enable command", () => {
 
         // Start with the commands already disabled
         commands.get("sample")!.enabled = false;
+        jest.spyOn(applicationCommand.permissions, "has").mockReturnValue(true);
 
         // default behavior in tests for user to have ADMINISTRATOR permissions
         jest.spyOn(interaction.member.permissions, "has").mockReturnValue(true);
@@ -90,9 +69,7 @@ describe("Testing utility/enable command", () => {
 
         const interactionReplySpy = jest.spyOn(interaction, "reply");
         // Mocking this applicationCommands permission to not have the disable restriction
-        const commandPermissionHasSpy = jest
-            .spyOn(applicationCommand.permissions, "has")
-            .mockReturnValue(false);
+        jest.spyOn(applicationCommand.permissions, "has").mockReturnValue(false);
 
         const options = {
             command: "sample",
@@ -105,7 +82,7 @@ describe("Testing utility/enable command", () => {
         );
     });
 
-    it("should still disable if the ApplicationCommand data is in the cache", async () => {
+    it("should enable if the ApplicationCommand data is in the cache", async () => {
         expect(commands.get("sample")!.enabled).toBe(false);
 
         jest.spyOn(interaction.guild.commands.cache, "find").mockReturnValue(
