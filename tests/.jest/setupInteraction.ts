@@ -28,7 +28,14 @@ applicationCommandCache.set("applicationCommandId", applicationCommand);
  */
 const interaction: any = {
     reply: jest.fn(),
-    member: { permissions: { has: jest.fn() } },
+    deferReply: jest.fn(),
+    editReply: jest.fn(),
+    followUp: jest.fn(),
+    channel: {
+        send: jest.fn(),
+        awaitMessages: jest.fn(),
+    },
+    member: { permissions: { has: jest.fn() }, user: {} },
     guild: {
         commands: {
             cache: { find: () => undefined },

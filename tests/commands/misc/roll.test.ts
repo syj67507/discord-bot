@@ -3,9 +3,7 @@ import rollCommand from "../../../src/commands/misc/roll";
 describe("Testing vibecheckCommand", () => {
     describe("Testing the vibecheck's run function", () => {
         // Marked as any for avoiding parameter checks in run()
-        const interaction: any = {
-            reply: jest.fn(),
-        };
+        const interaction = global["interaction"];
         const emote = "(~‾▿‾)~";
 
         it("should reply with the calculated number 1-19 without the emote", async () => {
@@ -15,7 +13,12 @@ describe("Testing vibecheckCommand", () => {
                 const messageSpy = jest.spyOn(interaction, "reply");
 
                 const options: any = {};
-                const result = await rollCommand.run(interaction, options);
+                const result = await rollCommand.run(
+                    interaction,
+                    options,
+                    global["testCommands"],
+                    global["testCommandGroups"]
+                );
 
                 expect(result).toBeNull();
                 expect(messageSpy).toHaveBeenLastCalledWith(`${i}`);
@@ -31,7 +34,12 @@ describe("Testing vibecheckCommand", () => {
             const messageSpy = jest.spyOn(interaction, "reply");
 
             const options: any = {};
-            const result = await rollCommand.run(interaction, options);
+            const result = await rollCommand.run(
+                interaction,
+                options,
+                global["testCommands"],
+                global["testCommandGroups"]
+            );
             expect(result).toBeNull();
             expect(messageSpy).toHaveBeenLastCalledWith("20 (~‾▿‾)~");
         });

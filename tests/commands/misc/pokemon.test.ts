@@ -95,19 +95,7 @@ describe("Testing Pokemon command", () => {
     });
 
     describe("Testing the Pokemon command's run function", () => {
-        const interaction: any = {
-            reply: jest.fn(),
-            deferReply: jest.fn(),
-            editReply: jest.fn(),
-            followUp: jest.fn(),
-            channel: {
-                send: jest.fn(),
-                awaitMessages: jest.fn(),
-            },
-            member: {
-                user: {},
-            },
-        };
+        const interaction = global["interaction"];
 
         // This will serve as the message object that is returned from await messages
         // The guess provided from the user
