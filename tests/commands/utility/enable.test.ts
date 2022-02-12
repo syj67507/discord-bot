@@ -1,52 +1,54 @@
 import { Collection } from "discord.js";
-import { Command } from "../../../v12_src/custom/base";
+import enableCommand from "../../../src/commands/utility/enable";
+import { Command } from "../../../src/custom/base";
 
 describe("Testing utility/enable command", () => {
-    // mocking Discord.Message
-    const message: any = {
-        content: "",
-        channel: {
-            send: jest.fn(),
+    const role: any = {
+        id: "mockEveryoneGuildRoleId",
+    };
+    const applicationCommand: any = {
+        permissions: {
+            has: () => true, // by default, these tests will mock a disabled command
+            remove: jest.fn(),
         },
+    };
+    const interaction: any = {
         reply: jest.fn(),
-        member: {
-            permissions: {
-                has(perm: string): boolean {
-                    return perm === "ADMINISTRATOR";
+        member: { permissions: { has: jest.fn() } },
+        guild: {
+            commands: {
+                cache: { find: () => undefined },
+                fetch: () => {
+                    return {
+                        find: () => applicationCommand,
+                    };
                 },
             },
+            roles: { cache: { find: () => role } },
         },
     };
 
-    // reimport modules before each test to reset the loaded command definitions before each test
-    let commands: Collection<string, Command>;
-    let commandAliases: Collection<string, string>;
-    let enableCommand: Command;
+    const commands: Collection<string, Command> = global["testCommands"];
+    const commandGroups: Collection<string, string[]> = global["testCommandGroups"];
 
     beforeEach(async () => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
 
-        jest.mock("../../../v12_src/index");
-        jest.resetModules(); // future imports of the same module will be replaced with the new instance on the import call
-
-        const loadedCommands = await import("../../../v12_src/index");
-        commands = loadedCommands.commands;
-        commandAliases = loadedCommands.commandAliases;
-        enableCommand = (await import("../../../v12_src/commands/utility/enable"))
-            .default;
-
         // Start with the commands already disabled
         commands.get("sample")!.enabled = false;
+
+        // default behavior in tests for user to have ADMINISTRATOR permissions
+        jest.spyOn(interaction.member.permissions, "has").mockReturnValue(true);
     });
 
     it("should enable the sample command", async () => {
         expect(commands.get("sample")!.enabled).toBe(false);
 
-        const args = {
+        const options = {
             command: "sample",
         };
-        await enableCommand.run(message, args);
+        await enableCommand.run(interaction, options, commands, commandGroups);
 
         expect(commands.get("sample")!.enabled).toBe(true);
     });
@@ -54,54 +56,67 @@ describe("Testing utility/enable command", () => {
     it("should not enable because no adminstrator privileges", async () => {
         expect(commands.get("sample")!.enabled).toBe(false);
 
-        const messageReplySpy = jest.spyOn(message, "reply");
-        const permissionsSpy = jest.spyOn(message.member.permissions, "has");
-        permissionsSpy.mockImplementation(() => false);
+        jest.spyOn(interaction.member.permissions, "has").mockReturnValue(false);
+        const interactionReplySpy = jest.spyOn(interaction, "reply");
 
-        const args = {
+        const options = {
             command: "sample",
         };
-        await enableCommand.run(message, args);
+        await enableCommand.run(interaction, options, commands, commandGroups);
 
         expect(commands.get("sample")!.enabled).toBe(false);
-        expect(permissionsSpy).toHaveBeenCalledTimes(1);
-        expect(permissionsSpy).toHaveLastReturnedWith(false);
-        expect(messageReplySpy).toHaveBeenCalledWith(
+        expect(interactionReplySpy).toHaveBeenCalledWith(
             "You do not have permissions to enable commands."
         );
     });
 
-    it("should not enable the sample command because command doesn't exist", async () => {
-        expect(commands.get("sample")!.enabled).toBe(false);
+    it("should not enable the unknown command because command doesn't exist", async () => {
+        const interactionReplySpy = jest.spyOn(interaction, "reply");
 
-        const commandAliasesSpy = jest.spyOn(commandAliases, "has");
-        const messageReplySpy = jest.spyOn(message, "reply");
-        commandAliases.delete("sample");
-
-        const args = {
-            command: "sample",
+        const options = {
+            command: "unknown",
         };
-        await enableCommand.run(message, args);
+        await enableCommand.run(interaction, options, commands, commandGroups);
 
         expect(commands.get("sample")!.enabled).toBe(false);
-        expect(commandAliasesSpy).toHaveLastReturnedWith(false);
-        expect(messageReplySpy).toHaveBeenLastCalledWith(
-            "Unable to enable: `sample` not found."
+        expect(interactionReplySpy).toHaveBeenLastCalledWith(
+            "Unable to enable: `unknown` not found."
         );
     });
 
     it("should not enable if sample is already enabled", async () => {
-        commands.get("sample")!.enabled = true;
+        commands.get("sample")!.enabled = true; // mark as enabled
         expect(commands.get("sample")!.enabled).toBe(true);
 
-        const messageReplySpy = jest.spyOn(message, "reply");
+        const interactionReplySpy = jest.spyOn(interaction, "reply");
+        // Mocking this applicationCommands permission to not have the disable restriction
+        const commandPermissionHasSpy = jest
+            .spyOn(applicationCommand.permissions, "has")
+            .mockReturnValue(false);
 
-        const args = {
+        const options = {
             command: "sample",
         };
-        await enableCommand.run(message, args);
+        await enableCommand.run(interaction, options, commands, commandGroups);
 
         expect(commands.get("sample")!.enabled).toBe(true);
-        expect(messageReplySpy).toHaveBeenLastCalledWith("`sample` is already enabled.");
+        expect(interactionReplySpy).toHaveBeenLastCalledWith(
+            "`sample` is already enabled."
+        );
+    });
+
+    it("should still disable if the ApplicationCommand data is in the cache", async () => {
+        expect(commands.get("sample")!.enabled).toBe(false);
+
+        jest.spyOn(interaction.guild.commands.cache, "find").mockReturnValue(
+            applicationCommand
+        );
+
+        const options = {
+            command: "sample",
+        };
+        await enableCommand.run(interaction, options, commands, commandGroups);
+
+        expect(commands.get("sample")!.enabled).toBe(true);
     });
 });
