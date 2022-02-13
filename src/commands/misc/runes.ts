@@ -78,6 +78,7 @@ async function getAllChampions(): Promise<string[]> {
             } else if (name.includes("'")) {
                 name = name.replace("'", "");
             }
+            name = name.toLowerCase();
             arr.push(name);
         }
         return arr;
