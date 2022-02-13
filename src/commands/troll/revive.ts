@@ -1,8 +1,7 @@
 import { KillIntervals } from "../../custom/storage";
 import { CommandInteraction, GuildMember } from "discord.js";
-import { Command } from "../../custom/base";
+import { Command, OptionType } from "../../custom/base";
 import { format as f, logger as log } from "../../custom/logger";
-import { ApplicationCommandOptionType } from "discord-api-types";
 
 const reviveCommand: Command = {
     name: "revive",
@@ -12,7 +11,7 @@ const reviveCommand: Command = {
         {
             name: "user",
             description: "Who is to be revived?",
-            type: ApplicationCommandOptionType.User,
+            type: OptionType.User,
             required: false,
         },
     ],

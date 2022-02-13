@@ -1,7 +1,6 @@
 import { CommandInteraction, Message, MessageEmbed } from "discord.js";
-import { Command } from "../../custom/base";
+import { Command, OptionType } from "../../custom/base";
 import { logger as log, format as f } from "../../custom/logger";
-import { ApplicationCommandOptionType } from "discord-api-types";
 import axios from "axios";
 
 /**
@@ -29,7 +28,7 @@ const pokemonCommand: Command = {
             name: "category",
             description: "The kind of trivia question",
             required: false,
-            type: ApplicationCommandOptionType.String,
+            type: OptionType.String,
             choices: ["type", "who"],
         },
     ],
@@ -66,7 +65,7 @@ const pokemonCommand: Command = {
         const userGuess = (
             await interaction.channel!.awaitMessages({
                 filter: (incMsg: Message) =>
-                    incMsg.author.id === interaction.member.user.id,
+                    incMsg.author.id === interaction.member!.user.id,
                 max: 1,
                 time: 15000,
             })
@@ -77,7 +76,7 @@ const pokemonCommand: Command = {
         // If no guess provided
         if (!userGuess) {
             await interaction.followUp(
-                `${interaction.member.user} I didn't get an answer`
+                `${interaction.member!.user} I didn't get an answer`
             );
             return null;
         }

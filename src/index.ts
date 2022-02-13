@@ -71,7 +71,9 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     log.debug(
         f(
             "main",
-            `${i.commandName} triggered by ${i.member.user.username} - ${i.member.user.id}`
+            `${i.commandName} triggered by ${i.member!.user.username} - ${
+                i.member!.user.id
+            }`
         )
     );
 

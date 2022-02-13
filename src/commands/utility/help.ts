@@ -1,6 +1,5 @@
 import { CommandInteraction, Collection } from "discord.js";
-import { Command, Option } from "../../custom/base";
-import { ApplicationCommandOptionType } from "discord-api-types";
+import { Command, Option, OptionType } from "../../custom/base";
 
 const helpCommand: Command = {
     name: "help",
@@ -10,7 +9,7 @@ const helpCommand: Command = {
             name: "command",
             description: "The command to receive information for",
             required: false,
-            type: ApplicationCommandOptionType.String,
+            type: OptionType.String,
         },
     ],
     aliases: ["h"],

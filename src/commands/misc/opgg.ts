@@ -1,6 +1,5 @@
 import { CommandInteraction } from "discord.js";
-import { Command } from "../../custom/base";
-import { ApplicationCommandOptionType } from "discord-api-types";
+import { Command, OptionType } from "../../custom/base";
 import { logger as log, format as f } from "../../custom/logger";
 
 const opggCommand: Command = {
@@ -12,7 +11,7 @@ const opggCommand: Command = {
             name: "username",
             description: "Username of requested league account.",
             required: false,
-            type: ApplicationCommandOptionType.String,
+            type: OptionType.String,
         },
     ],
     enabled: true,

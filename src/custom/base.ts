@@ -1,5 +1,4 @@
 import { Collection, CommandInteraction, GuildMember } from "discord.js";
-import { ApplicationCommandOptionType } from "discord-api-types";
 
 export interface Option {
     /** The default name of the option */
@@ -11,11 +10,19 @@ export interface Option {
     /** The type of the option (uses Discord's API to fetch available types)
      * import { ApplicationCommandOptionType } from "discord-api-types";
      */
-    type: ApplicationCommandOptionType;
+    type: OptionType;
     /** Provides the user with choices to pick from
      * Only works with STRING, NUMBER, INTEGER types
      */
     choices?: any[];
+}
+
+export enum OptionType {
+    Boolean,
+    Integer,
+    Number,
+    String,
+    User,
 }
 
 export async function parseOptions(
@@ -37,14 +44,14 @@ export async function parseOptions(
 
         // If passed an appropriate option, then appropriately fetch the values
         if (parsedOption) {
-            switch (option.type as number) {
-                case ApplicationCommandOptionType.Boolean:
-                case ApplicationCommandOptionType.Integer:
-                case ApplicationCommandOptionType.Number:
-                case ApplicationCommandOptionType.String:
+            switch (option.type) {
+                case OptionType.Boolean:
+                case OptionType.Integer:
+                case OptionType.Number:
+                case OptionType.String:
                     parsedValue = parsedOption.value;
                     break;
-                case ApplicationCommandOptionType.User:
+                case OptionType.User:
                     parsedValue = parsedOption.member as GuildMember; // member object contains GuildMember and User object
                     break;
                 default:

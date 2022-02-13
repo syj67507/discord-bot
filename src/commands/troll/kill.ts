@@ -1,6 +1,5 @@
 import { KillIntervals } from "../../custom/storage";
-import { Command } from "../../custom/base";
-import { ApplicationCommandOptionType } from "discord-api-types";
+import { Command, OptionType } from "../../custom/base";
 import { Collection, GuildMemberRoleManager } from "discord.js";
 import { CommandInteraction, GuildMember } from "discord.js";
 import { format as f, logger as log } from "../../custom/logger";
@@ -13,13 +12,13 @@ const killCommand: Command = {
         {
             name: "member",
             description: "Who is going to be killed?",
-            type: ApplicationCommandOptionType.User,
+            type: OptionType.User,
             required: true,
         },
         {
             name: "interval",
             description: "How often to kill the user in seconds, must be 5 or greater",
-            type: ApplicationCommandOptionType.Integer,
+            type: OptionType.Integer,
             required: false,
         },
     ],
