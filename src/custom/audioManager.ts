@@ -19,13 +19,13 @@ export interface Track {
     duration: string | null;
 }
 
-export default class MusicManager {
-    private static instance: MusicManager;
-    static getInstance(client: Client): MusicManager {
-        if (!MusicManager.instance) {
-            MusicManager.instance = new MusicManager(client);
+export default class AudioManager {
+    private static instance: AudioManager;
+    static getInstance(client: Client): AudioManager {
+        if (!AudioManager.instance) {
+            AudioManager.instance = new AudioManager(client);
         }
-        return MusicManager.instance;
+        return AudioManager.instance;
     }
 
     private playlist: Track[];
@@ -109,6 +109,16 @@ export default class MusicManager {
     }
 
     /**
+     * Returns a boolean indicating if there is a voice connection
+     * for the provided guild and the client is in a voice channel.
+     *
+     * @returns Whether a voice connection exists for the provided guild
+     */
+    isConnected(guildId: string): boolean {
+        return getVoiceConnection(guildId) !== undefined;
+    }
+
+    /**
      * Connects the bot to the provided voice channel
      *
      * @param {Discord.Message} message Message sent by the user to use a command
@@ -122,7 +132,7 @@ export default class MusicManager {
 
         connection.on("stateChange", (oldState, newState) => {
             console.log(
-                `voiceConnection State Change: ${oldState.status} -> ${newState.status}`
+                `voiceConnection state: ${oldState.status} -> ${newState.status}`
             );
         });
 

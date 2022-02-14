@@ -12,7 +12,7 @@ import {
 } from "@discordjs/voice";
 import path from "path";
 import { Command } from "../../custom/base";
-import MusicManager, { Track } from "../../custom/music-manager";
+import AudioManager, { Track } from "../../custom/audioManager";
 
 const meowCommand: Command = {
     name: "meow",
@@ -21,18 +21,13 @@ const meowCommand: Command = {
     enabled: true,
     options: [],
     async run(interaction: CommandInteraction) {
-        const mm = MusicManager.getInstance(interaction.client);
-        mm.connect((interaction.member as GuildMember)!.voice!.channel!);
-        const track: Track = {
-            duration: "",
-            title: "title",
-            link: "asdf",
-        };
-        console.log(mm.getPlaylist());
-        mm.queue(track);
-        console.log(mm.getPlaylist());
+        const audioManager = AudioManager.getInstance(interaction.client);
+        const channel = (interaction.member as GuildMember)!.voice!.channel!;
+
+        audioManager.connect(channel);
         await new Promise((r) => setTimeout(r, 2000));
-        mm.disconnect(interaction.guildId!);
+        audioManager.disconnect(interaction.guildId!);
+
         return null;
     },
 };

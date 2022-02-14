@@ -1,7 +1,7 @@
 import ytdl from "ytdl-core";
 import ytsr from "ytsr";
 import ytpl from "ytpl";
-import { Track } from "./music-manager";
+import { Track } from "./audioManager";
 
 export const ytsrWrapper = {
     ytsr,
