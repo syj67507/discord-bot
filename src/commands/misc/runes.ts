@@ -69,7 +69,7 @@ async function getAllChampions(): Promise<string[]> {
  * @returns {string} A link to the champion's most popular rune page
  */
 function buildRunePageLink(champion: string): string {
-    let url = "https://u.gg/lol/champions/";
+    const url = "https://u.gg/lol/champions/";
     return url.concat("", champion);
 }
 
