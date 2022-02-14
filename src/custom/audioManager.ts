@@ -1,5 +1,6 @@
 import { Client, CommandInteraction, VoiceBasedChannel } from "discord.js";
 import {
+    AudioPlayer,
     AudioPlayerStatus,
     DiscordGatewayAdapterCreator,
     VoiceConnectionStatus,
@@ -12,6 +13,7 @@ import {
 } from "@discordjs/voice";
 // import ytdl from "ytdl-core";
 import { logger as log, format as f } from "./logger";
+import path from "path";
 
 export interface Track {
     title: string;
@@ -30,9 +32,32 @@ export default class AudioManager {
 
     private playlist: Track[];
     private client: Client;
+    private audioPlayer: AudioPlayer;
     private constructor(client: Client) {
         this.playlist = [];
         this.client = client;
+        this.audioPlayer = createAudioPlayer();
+        this.audioPlayer.on("stateChange", (oldState, newState) => {
+            log.info(
+                f(
+                    "AUDIOMANAGER",
+                    `audioPlayer state: ${oldState.status} -> ${newState.status}`
+                )
+            );
+        });
+        this.audioPlayer.on("error", (error) => {
+            log.error(f("AUDIOMANAGER", `${error}`));
+            log.error(
+                f(
+                    "AUDIOMANAGER",
+                    "An error has occured during playback. Stopping playback."
+                )
+            );
+            this.audioPlayer.stop();
+        });
+        this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
+            console.log("Currently in the idle state ready to play another song.");
+        });
     }
 
     /**
@@ -119,7 +144,11 @@ export default class AudioManager {
     }
 
     /**
-     * Connects the bot to the provided voice channel
+     * Connects the bot to the provided voice channel and returns when ready to play
+     * audio.
+     *
+     * This function will subscribe the created voice connection to this class's
+     * audio player.
      *
      * @param {Discord.Message} message Message sent by the user to use a command
      */
@@ -129,10 +158,13 @@ export default class AudioManager {
             guildId: channel.guild.id,
             adapterCreator: channel.guild.voiceAdapterCreator,
         });
-
+        console.log("Current connections:", getVoiceConnections().size);
         connection.on("stateChange", (oldState, newState) => {
-            console.log(
-                `voiceConnection state: ${oldState.status} -> ${newState.status}`
+            log.info(
+                f(
+                    "AUDIOMANAGER",
+                    `voiceConnection state: ${oldState.status} -> ${newState.status}`
+                )
             );
         });
 
@@ -140,96 +172,105 @@ export default class AudioManager {
         connection.on(VoiceConnectionStatus.Disconnected, async () => {
             try {
                 // Seems to be reconnecting to a new channel - ignore disconnect
+                // If it doesn't enter either of these states, then the promise rejects
+                // and throws an error.
                 await Promise.race([
                     entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
                     entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
                 ]);
             } catch (error) {
                 // Seems to be a real disconnect which SHOULDN'T be recovered from
-                connection.destroy();
+                this.disconnect(channel.guildId, "Manual Disconnect from user");
             }
         });
 
         try {
             await entersState(connection, VoiceConnectionStatus.Ready, 5_000);
-            console.log("Connected and ready!");
+            log.info(f("AUDIOMANAGER", "Connected and ready!"));
+            connection.subscribe(this.audioPlayer);
+            log.info(
+                f(
+                    "AUDIOMANAGER",
+                    "Connection has been subscribed and hooked up to the audioPlayer!"
+                )
+            );
         } catch (error) {
             console.error(error);
-            console.error("Failed to connect. Destroying and cleaning up...");
-            connection.destroy();
+            console.error(
+                "Failed to connect. Disconnecting, destroying, and cleaning up..."
+            );
+            this.disconnect(channel.guildId, "AudioManager.connect()");
         }
     }
 
     /**
-     * Disconnects the bot from the voice channel gracefully and cleans up the connection.
+     * Disconnects the bot from the voice channel gracefully and destroys the connection.
+     *
+     * Note that this is different from @discordjs/voice disconnect function where the
+     * connection is still valid for a reconnect. This function intends to disconnect
+     * and clean everything else up. Destroy will only be called if the connection
+     * currently is not destroyed.
+     *
+     * @param guildId The id of the guild to disconnect and destroy the connection from
+     * @param context The context from where the disconnect happened
      */
-    disconnect(guildId: string): void {
+    disconnect(guildId: string, context: string): void {
         const connection = getVoiceConnection(guildId);
-        if (connection) {
+        if (connection && connection.state.status !== VoiceConnectionStatus.Destroyed) {
             connection.destroy();
-            console.log("Disconnected.");
+            log.info(f("AUDIOMANAGER", `Destroyed from context: ${context}`));
         }
+        log.info(f("AUDIOMANAGER", "Disconnect successful."));
     }
 
-    /**
-     * Plays the next song found within the client's playlist and sends a message to the
-     * text channel providing what it is playing. This function is called recursively until there
-     * are no more song in the playlist. Once finished, the client will leave the voice channel.
-     *
-     * Any playback errors that are thrown within the dispatcher will be caught and logged.
-     *
-     * @param {Discord.Message} message The message that invoked this command.
-     */
-    play(interaction: CommandInteraction): void {
-        console.log("playing...");
-        // // Validation checks before playing
-        // if (!this.voiceChannel || !this.voiceConnection) {
-        //     throw new Error(
-        //         "Music Manager not connected. Must be connected in order to play"
-        //     );
-        // }
-
-        // // Plays the next song in the queue
-        // const track = this.playlist.shift();
-        // if (!track) {
-        //     throw new Error("Queue is empty.");
-        // }
-        // const playback = ytdl(track.link, {
-        //     filter: "audioonly",
-        //     quality: "highestaudio",
-        // });
-        // this.dispatcher = this.voiceConnection!.play(playback);
-
-        // this.dispatcher.on("start", () => {
-        //     log.debug(f("dispatcher", "Now Playing..."));
-        //     message.channel.send(
-        //         `:notes: Now Playing: [${track!.duration}] *${track!.title}*`
-        //     );
-        // });
-
-        // // Plays the next song or leaves if there isn't one
-        // this.dispatcher.on("finish", () => {
-        //     log.debug(f("dispatcher", "Song has finished."));
-        //     log.debug(f("dispatcher", "Songs left in queue: " + this.queueLength()));
-
-        //     if (this.playlist.length > 0) {
-        //         log.debug(f("dispatcher", "Fetching next song in queue..."));
-        //         this.play(message);
-        //     } else {
-        //         log.debug(f("dispatcher", "No more songs left in queue."));
-        //         message.channel.send(
-        //             "No more songs left in queue. You can add more by using the `queue` command"
-        //         );
-        //         this.disconnect();
-        //         log.debug(f("dispatcher", "Left the voice channel."));
-        //     }
-        // });
-
-        // this.dispatcher.on("error", (error) => {
-        //     message.reply(["There was a playback error.", "A restart is recommended."]);
-        //     log.debug(f("dispatcher", `${error}`));
-        //     this.disconnect();
-        //     log.debug(f("play", "Left the voice channel."));
-        // });
+    play(): void {
+        const resource = createAudioResource(
+            path.join(
+                __dirname,
+                "..",
+                "..",
+                "media",
+                "prominence-burn-1c9da3a6.1280x720r.mp4"
+            )
+        );
+        this.audioPlayer.play(resource);
     }
+
+    // const playback = ytdl(track.link, {
+    //     filter: "audioonly",
+    //     quality: "highestaudio",
+    // });
+    // this.dispatcher = this.voiceConnection!.play(playback);
+
+    // this.dispatcher.on("start", () => {
+    //     log.debug(f("dispatcher", "Now Playing..."));
+    //     message.channel.send(
+    //         `:notes: Now Playing: [${track!.duration}] *${track!.title}*`
+    //     );
+    // });
+
+    // // Plays the next song or leaves if there isn't one
+    // this.dispatcher.on("finish", () => {
+    //     log.debug(f("dispatcher", "Song has finished."));
+    //     log.debug(f("dispatcher", "Songs left in queue: " + this.queueLength()));
+
+    //     if (this.playlist.length > 0) {
+    //         log.debug(f("dispatcher", "Fetching next song in queue..."));
+    //         this.play(message);
+    //     } else {
+    //         log.debug(f("dispatcher", "No more songs left in queue."));
+    //         message.channel.send(
+    //             "No more songs left in queue. You can add more by using the `queue` command"
+    //         );
+    //         this.disconnect();
+    //         log.debug(f("dispatcher", "Left the voice channel."));
+    //     }
+    // });
+
+    // this.dispatcher.on("error", (error) => {
+    //     message.reply(["There was a playback error.", "A restart is recommended."]);
+    //     log.debug(f("dispatcher", `${error}`));
+    //     this.disconnect();
+    //     log.debug(f("play", "Left the voice channel."));
+    // });
 }

@@ -24,9 +24,8 @@ const meowCommand: Command = {
         const audioManager = AudioManager.getInstance(interaction.client);
         const channel = (interaction.member as GuildMember)!.voice!.channel!;
 
-        audioManager.connect(channel);
-        await new Promise((r) => setTimeout(r, 2000));
-        audioManager.disconnect(interaction.guildId!);
+        await audioManager.connect(channel);
+        audioManager.play();
 
         return null;
     },
