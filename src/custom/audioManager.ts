@@ -11,7 +11,7 @@ import {
     getVoiceConnections,
     joinVoiceChannel,
 } from "@discordjs/voice";
-// import ytdl from "ytdl-core";
+import ytdl from "ytdl-core";
 import { logger as log, format as f } from "./logger";
 import path from "path";
 
@@ -187,6 +187,7 @@ export default class AudioManager {
                 );
                 return;
             } else {
+                // Create an audio resource from the next song in queue
                 console.log("There is more to play, implement play here.");
                 this.play();
             }
@@ -296,14 +297,21 @@ export default class AudioManager {
 
         this.initializeAudioPlayer();
 
+        // const resource = createAudioResource(
+        //     path.join(
+        //         __dirname,
+        //         "..",
+        //         "..",
+        //         "media",
+        //         "prominence-burn-1c9da3a6.1280x720r.mp4"
+        //     )
+        // );
+        const track = this.playlist.shift()!;
         const resource = createAudioResource(
-            path.join(
-                __dirname,
-                "..",
-                "..",
-                "media",
-                "prominence-burn-1c9da3a6.1280x720r.mp4"
-            )
+            ytdl(track.link, {
+                filter: "audioonly",
+                quality: "highestaudio",
+            })
         );
 
         // audioPlayer should be initialized by this point

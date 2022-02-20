@@ -13,6 +13,7 @@ import {
 import path from "path";
 import { Command, OptionType } from "../../custom/base";
 import AudioManager, { Track } from "../../custom/audioManager";
+import { YTClient } from "../../custom/ytclient";
 
 const meowCommand: Command = {
     name: "meow",
@@ -39,12 +40,8 @@ const meowCommand: Command = {
         const channel = (interaction.member as GuildMember)!.voice!.channel!;
 
         await audioManager.connect(channel);
-        const track: Track = {
-            duration: "",
-            title: "",
-            link: "",
-        };
-        audioManager.queue(track);
+        const yt = new YTClient();
+        audioManager.queue(await yt.search("mood"));
         await audioManager.play();
         interaction.reply("WooHOO");
         // const afterVC = getVoiceConnections();
