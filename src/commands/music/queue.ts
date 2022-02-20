@@ -24,7 +24,7 @@ const queueCommand: Command = {
             type: OptionType.String,
             description:
                 "The search phrase for YouTube search, direct YouTube video link, or direct YouTube playlist link",
-            required: false,
+            required: true,
         },
         {
             name: "playlist",
@@ -41,7 +41,9 @@ const queueCommand: Command = {
     ],
     enabled: true,
     async run(interaction: CommandInteraction, args: any): Promise<null> {
-        await interaction.deferReply();
+        if (interaction.deferred === false) {
+            await interaction.deferReply();
+        }
         const mm = AudioManager.getInstance(interaction.client, interaction.guildId!);
         // determine the queue position/offset
         log.debug(f("queue", "Determining the queue position/offset"));

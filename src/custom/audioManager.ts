@@ -36,7 +36,7 @@ export default class AudioManager {
         return AudioManager.instances.get(guildId)!;
     }
 
-    private playlist: Track[];
+    playlist: Track[];
     private client: Client;
     private guildId: string;
     private audioPlayer: AudioPlayer | null;
