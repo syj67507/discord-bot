@@ -1,4 +1,4 @@
-import { Client, CommandInteraction, VoiceBasedChannel } from "discord.js";
+import { Client, Collection, CommandInteraction, VoiceBasedChannel } from "discord.js";
 import {
     AudioPlayer,
     AudioPlayerStatus,
@@ -22,20 +22,27 @@ export interface Track {
 }
 
 export default class AudioManager {
-    private static instance: AudioManager;
-    static getInstance(client: Client): AudioManager {
-        if (!AudioManager.instance) {
-            AudioManager.instance = new AudioManager(client);
+    /**
+     * Collection of AudioManager Instances where each key
+     * is the guild and the value is associated AudioManager
+     * Instance.
+     */
+    private static instances = new Collection<string, AudioManager>();
+    static getInstance(client: Client, guildId: string): AudioManager {
+        if (!AudioManager.instances.get(guildId)) {
+            AudioManager.instances.set(guildId, new AudioManager(client, guildId));
         }
-        return AudioManager.instance;
+        return AudioManager.instances.get(guildId)!;
     }
 
     private playlist: Track[];
     private client: Client;
+    private guildId: string;
     private audioPlayer: AudioPlayer;
-    private constructor(client: Client) {
+    private constructor(client: Client, guildId: string) {
         this.playlist = [];
         this.client = client;
+        this.guildId = guildId;
         this.audioPlayer = createAudioPlayer();
         this.audioPlayer.on("stateChange", (oldState, newState) => {
             log.info(
@@ -56,8 +63,18 @@ export default class AudioManager {
             this.audioPlayer.stop();
         });
         this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
-            console.log("Currently in the idle state ready to play another song.");
+            // If playlist is empty, then send a message to the channel
+            if (this.queueLength() === 0) {
+                console.log("The playlist is empty, there is nothing left to play.");
+                return;
+            }
+
+            // this.play();
         });
+    }
+
+    test(): void {
+        console.log(AudioManager.instances);
     }
 
     /**
@@ -223,7 +240,12 @@ export default class AudioManager {
         log.info(f("AUDIOMANAGER", "Disconnect successful."));
     }
 
-    play(): void {
+    play(guildId: string): void {
+        // Only play if connected to a voice channel on the guild
+        if (this.isConnected(guildId)) {
+            throw new Error("AudioManagerError: Must be connected in order to play.");
+        }
+
         const resource = createAudioResource(
             path.join(
                 __dirname,
