@@ -38,39 +38,12 @@ export default class AudioManager {
     private playlist: Track[];
     private client: Client;
     private guildId: string;
-    private audioPlayer: AudioPlayer;
+    private audioPlayer: AudioPlayer | null;
     private constructor(client: Client, guildId: string) {
         this.playlist = [];
         this.client = client;
         this.guildId = guildId;
-        this.audioPlayer = createAudioPlayer();
-        this.audioPlayer.on("stateChange", (oldState, newState) => {
-            log.info(
-                f(
-                    "AUDIOMANAGER",
-                    `audioPlayer state: ${oldState.status} -> ${newState.status}`
-                )
-            );
-        });
-        this.audioPlayer.on("error", (error) => {
-            log.error(f("AUDIOMANAGER", `${error}`));
-            log.error(
-                f(
-                    "AUDIOMANAGER",
-                    "An error has occured during playback. Stopping playback."
-                )
-            );
-            this.audioPlayer.stop();
-        });
-        this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
-            // If playlist is empty, then send a message to the channel
-            if (this.queueLength() === 0) {
-                console.log("The playlist is empty, there is nothing left to play.");
-                return;
-            }
-
-            // this.play();
-        });
+        this.audioPlayer = null;
     }
 
     test(): void {
@@ -156,8 +129,69 @@ export default class AudioManager {
      *
      * @returns Whether a voice connection exists for the provided guild
      */
-    isConnected(guildId: string): boolean {
-        return getVoiceConnection(guildId) !== undefined;
+    isConnected(): boolean {
+        return getVoiceConnection(this.guildId) !== undefined;
+    }
+
+    /**
+     * Helper method to initialize the Audio Player of this instance.
+     * Will set proper event listeners and behavior between state changes.
+     *
+     * If this instance has tracks in queue, transition to the idle state will
+     * begin playback of the next track, otherwise the player will stop and call
+     * graceful disconnect of the instance.
+     *
+     * Errors detected in playback will cause the player to also stop and call graceful
+     * disconnect of the instance.
+     */
+    initializeAudioPlayer(): void {
+        if (this.isConnected() === false) {
+            throw new Error("This instance is connected to a voice Channel.");
+        }
+
+        if (this.audioPlayer !== null) {
+            console.log("ALready initialized, returning...");
+            return;
+        }
+        this.audioPlayer = createAudioPlayer();
+        getVoiceConnection(this.guildId)!.subscribe(this.audioPlayer);
+
+        // Log changes between all state changes
+        this.audioPlayer.on("stateChange", (oldState, newState) => {
+            log.info(
+                f(
+                    "AUDIOMANAGER",
+                    `audioPlayer state: ${oldState.status} -> ${newState.status}`
+                )
+            );
+        });
+
+        // On error, stop this audio player and disconnect
+        this.audioPlayer.on("error", (error) => {
+            log.error(f("AUDIOMANAGER", `${error}`));
+            log.error(
+                f(
+                    "AUDIOMANAGER",
+                    "An error has occured during playback. Stopping playback."
+                )
+            );
+            this.disconnect(`Audio Player Error ${error}`);
+        });
+        this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
+            // If playlist is empty, then send a message to the channel
+            if (this.queueLength() === 0) {
+                console.log("The playlist is empty, there is nothing left to play.");
+                console.log("Graceful disconnect");
+                this.disconnect(
+                    "Playback complete, queue is empty and nothing left to play."
+                );
+                return;
+            } else {
+                console.log("There is more to play, implement play here.");
+                this.play();
+            }
+        });
+        console.log("AudioPLayer initialized", this.audioPlayer !== null);
     }
 
     /**
@@ -170,41 +204,50 @@ export default class AudioManager {
      * @param {Discord.Message} message Message sent by the user to use a command
      */
     async connect(channel: VoiceBasedChannel): Promise<void> {
+        // If this instance is connected, then we don't need to set listeners
+        const isAlreadyConnected = this.isConnected();
+
+        // Joins the appropriate channel
         const connection = joinVoiceChannel({
             channelId: channel.id,
             guildId: channel.guild.id,
             adapterCreator: channel.guild.voiceAdapterCreator,
         });
         console.log("Current connections:", getVoiceConnections().size);
-        connection.on("stateChange", (oldState, newState) => {
-            log.info(
-                f(
-                    "AUDIOMANAGER",
-                    `voiceConnection state: ${oldState.status} -> ${newState.status}`
-                )
-            );
-        });
 
-        // Handle disconnect Lifecycle state
-        connection.on(VoiceConnectionStatus.Disconnected, async () => {
-            try {
-                // Seems to be reconnecting to a new channel - ignore disconnect
-                // If it doesn't enter either of these states, then the promise rejects
-                // and throws an error.
-                await Promise.race([
-                    entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
-                    entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
-                ]);
-            } catch (error) {
-                // Seems to be a real disconnect which SHOULDN'T be recovered from
-                this.disconnect(channel.guildId, "Manual Disconnect from user");
-            }
-        });
+        // Set event listeners on first time connect
+        if (isAlreadyConnected === false) {
+            connection.on("stateChange", (oldState, newState) => {
+                log.info(
+                    f(
+                        "AUDIOMANAGER",
+                        `voiceConnection state: ${oldState.status} -> ${newState.status}`
+                    )
+                );
+            });
 
+            // Handle disconnect Lifecycle state
+            connection.on(VoiceConnectionStatus.Disconnected, async () => {
+                try {
+                    // Seems to be reconnecting to a new channel - ignore disconnect
+                    // If it doesn't enter either of these states, then the promise rejects
+                    // and throws an error.
+                    await Promise.race([
+                        entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+                        entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+                    ]);
+                } catch (error) {
+                    // Seems to be a real disconnect which SHOULDN'T be recovered from
+                    this.disconnect("Manual Disconnect from user");
+                }
+            });
+        }
+
+        // Wait for connection to be ready before returning
         try {
             await entersState(connection, VoiceConnectionStatus.Ready, 5_000);
             log.info(f("AUDIOMANAGER", "Connected and ready!"));
-            connection.subscribe(this.audioPlayer);
+            // connection.subscribe(this.audioPlayer);
             log.info(
                 f(
                     "AUDIOMANAGER",
@@ -216,12 +259,13 @@ export default class AudioManager {
             console.error(
                 "Failed to connect. Disconnecting, destroying, and cleaning up..."
             );
-            this.disconnect(channel.guildId, "AudioManager.connect()");
+            this.disconnect("AudioManager.connect()");
         }
     }
 
     /**
      * Disconnects the bot from the voice channel gracefully and destroys the connection.
+     * Will also stop the AudioPlayer and set it to null for garbage collection.
      *
      * Note that this is different from @discordjs/voice disconnect function where the
      * connection is still valid for a reconnect. This function intends to disconnect
@@ -231,20 +275,26 @@ export default class AudioManager {
      * @param guildId The id of the guild to disconnect and destroy the connection from
      * @param context The context from where the disconnect happened
      */
-    disconnect(guildId: string, context: string): void {
-        const connection = getVoiceConnection(guildId);
+    disconnect(context: string): void {
+        const connection = getVoiceConnection(this.guildId);
         if (connection && connection.state.status !== VoiceConnectionStatus.Destroyed) {
             connection.destroy();
             log.info(f("AUDIOMANAGER", `Destroyed from context: ${context}`));
         }
+        if (this.audioPlayer) {
+            this.audioPlayer.stop();
+            this.audioPlayer = null;
+        }
         log.info(f("AUDIOMANAGER", "Disconnect successful."));
     }
 
-    play(guildId: string): void {
+    play(): void {
         // Only play if connected to a voice channel on the guild
-        if (this.isConnected(guildId)) {
+        if (this.isConnected() === false) {
             throw new Error("AudioManagerError: Must be connected in order to play.");
         }
+
+        this.initializeAudioPlayer();
 
         const resource = createAudioResource(
             path.join(
@@ -255,7 +305,9 @@ export default class AudioManager {
                 "prominence-burn-1c9da3a6.1280x720r.mp4"
             )
         );
-        this.audioPlayer.play(resource);
+
+        // audioPlayer should be initialized by this point
+        this.audioPlayer!.play(resource);
     }
 
     // const playback = ytdl(track.link, {

@@ -28,30 +28,34 @@ const meowCommand: Command = {
         },
     ],
     async run(interaction: CommandInteraction, args: any) {
-        // console.log(args.get);
-        // if (args.get) {
-        //     const vc = getVoiceConnections();
-        //     console.log(vc.size);
-        //     return null;
-        // }
-
+        console.log(args.get);
+        const beforeVC = getVoiceConnections();
+        console.log(beforeVC.size);
         const audioManager = AudioManager.getInstance(
             interaction.client,
             interaction.guildId!
         );
-        audioManager.test();
-        // const channel = (interaction.member as GuildMember)!.voice!.channel!;
+        // audioManager.test();
+        const channel = (interaction.member as GuildMember)!.voice!.channel!;
 
-        // await audioManager.connect(channel);
+        await audioManager.connect(channel);
+        const track: Track = {
+            duration: "",
+            title: "",
+            link: "",
+        };
+        audioManager.queue(track);
+        await audioManager.play();
+        interaction.reply("WooHOO");
+        // const afterVC = getVoiceConnections();
+        // console.log(afterVC.size);
+        // interaction.reply(`Before: ${beforeVC.size} | After: ${afterVC.size}`);
+        // await new Promise((r) => setTimeout(r, 2000));
+        // await audioManager.disconnect(interaction.guildId!, "meow command");
+
         return null;
         // audioManager.play();
 
-        // const track: Track = {
-        //     duration: "",
-        //     title: "",
-        //     link: "",
-        // };
-        // audioManager.queue(track);
         // audioManager.play(interaction.guildId!);
         return null;
     },
