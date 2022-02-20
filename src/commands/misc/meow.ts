@@ -14,6 +14,7 @@ import path from "path";
 import { Command, OptionType } from "../../custom/base";
 import AudioManager, { Track } from "../../custom/audioManager";
 import { YTClient } from "../../custom/ytclient";
+import ytdl from "ytdl-core";
 
 const meowCommand: Command = {
     name: "meow",
@@ -22,38 +23,42 @@ const meowCommand: Command = {
     enabled: true,
     options: [
         {
-            name: "get",
+            name: "mode",
             description: "get description",
             type: OptionType.String,
             required: false,
         },
     ],
     async run(interaction: CommandInteraction, args: any) {
-        console.log(args.get);
-        const beforeVC = getVoiceConnections();
-        console.log(beforeVC.size);
+        interaction.deferReply();
         const audioManager = AudioManager.getInstance(
             interaction.client,
             interaction.guildId!
         );
-        // audioManager.test();
         const channel = (interaction.member as GuildMember)!.voice!.channel!;
 
         await audioManager.connect(channel);
         const yt = new YTClient();
         audioManager.queue(await yt.search("mood"));
-        await audioManager.play();
-        interaction.reply("WooHOO");
-        // const afterVC = getVoiceConnections();
-        // console.log(afterVC.size);
-        // interaction.reply(`Before: ${beforeVC.size} | After: ${afterVC.size}`);
+        audioManager.queue(await yt.search("positions"));
+
+        if (args.mode === "once") {
+            audioManager.play(
+                createAudioResource(
+                    ytdl(
+                        (await yt.getVideo("https://www.youtube.com/shorts/csv3v5bSIEc"))
+                            .link
+                    )
+                ),
+                "once"
+            );
+        } else {
+            audioManager.start();
+        }
+        interaction.editReply("msg");
+
         // await new Promise((r) => setTimeout(r, 2000));
-        // await audioManager.disconnect(interaction.guildId!, "meow command");
 
-        return null;
-        // audioManager.play();
-
-        // audioManager.play(interaction.guildId!);
         return null;
     },
 };

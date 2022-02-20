@@ -10,6 +10,7 @@ import {
     getVoiceConnection,
     getVoiceConnections,
     joinVoiceChannel,
+    AudioResource,
 } from "@discordjs/voice";
 import ytdl from "ytdl-core";
 import { logger as log, format as f } from "./logger";
@@ -39,15 +40,20 @@ export default class AudioManager {
     private client: Client;
     private guildId: string;
     private audioPlayer: AudioPlayer | null;
+    /**
+     * If this is set to once, then the playback behavior is to play
+     * only one audio resource / track.
+     *
+     * If this is set to playlist, then the playback behavior is play
+     * all tracks in the playlist until there are none left.
+     */
+    private playbackMode: "once" | "playlist";
     private constructor(client: Client, guildId: string) {
         this.playlist = [];
         this.client = client;
         this.guildId = guildId;
         this.audioPlayer = null;
-    }
-
-    test(): void {
-        console.log(AudioManager.instances);
+        this.playbackMode = "playlist"; // default behavior
     }
 
     /**
@@ -141,6 +147,11 @@ export default class AudioManager {
      * begin playback of the next track, otherwise the player will stop and call
      * graceful disconnect of the instance.
      *
+     * The behavior of when the audio player transitions to the idle state is determined
+     * by the playbackMode flag. If set to once, then this instance will gracefully
+     * disconnect and stop playback. If set to playback, then this instance will continue
+     * to the next track until the playlist is empty or this flag is set to once.
+     *
      * Errors detected in playback will cause the player to also stop and call graceful
      * disconnect of the instance.
      */
@@ -178,8 +189,16 @@ export default class AudioManager {
             this.disconnect(`Audio Player Error ${error}`);
         });
         this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
-            // If playlist is empty, then send a message to the channel
-            if (this.queueLength() === 0) {
+            // If playbackMode is once, then disconnect
+            if (this.playbackMode === "once") {
+                console.log("Finished playing direct resource. Now disconnecting...");
+                this.disconnect("Played single resource");
+                return;
+            }
+
+            // playbackMode is playlist
+            const track = this.playlist.shift();
+            if (track === undefined) {
                 console.log("The playlist is empty, there is nothing left to play.");
                 console.log("Graceful disconnect");
                 this.disconnect(
@@ -189,7 +208,13 @@ export default class AudioManager {
             } else {
                 // Create an audio resource from the next song in queue
                 console.log("There is more to play, implement play here.");
-                this.play();
+                const resource = createAudioResource(
+                    ytdl(track.link, {
+                        filter: "audioonly",
+                        quality: "highestaudio",
+                    })
+                );
+                this.play(resource, "playlist");
             }
         });
         console.log("AudioPLayer initialized", this.audioPlayer !== null);
@@ -289,7 +314,21 @@ export default class AudioManager {
         log.info(f("AUDIOMANAGER", "Disconnect successful."));
     }
 
-    play(): void {
+    /**
+     * Starts playback for this instance. The behavior when a track finishes
+     * playing can be configured.
+     *
+     * If this method is called while this instance is currently playing,
+     * then it will interrupt the current track and play the next track if one is
+     * available.
+     *
+     * @param resource The audio resource to play
+     * @param playbackMode The behavior of when a track is finished playing. If set
+     * to once, then this instance will gracefully disconnect. If set to playback,
+     * then this instance will continue to the next track until the playlist is empty
+     * or this flag is set to once.
+     */
+    play(resource: AudioResource, playbackMode: typeof this.playbackMode): void {
         // Only play if connected to a voice channel on the guild
         if (this.isConnected() === false) {
             throw new Error("AudioManagerError: Must be connected in order to play.");
@@ -297,62 +336,27 @@ export default class AudioManager {
 
         this.initializeAudioPlayer();
 
-        // const resource = createAudioResource(
-        //     path.join(
-        //         __dirname,
-        //         "..",
-        //         "..",
-        //         "media",
-        //         "prominence-burn-1c9da3a6.1280x720r.mp4"
-        //     )
-        // );
-        const track = this.playlist.shift()!;
+        this.playbackMode = playbackMode;
+
+        // Start playback (transition for audioPlayer from idle -> playing)
+        this.audioPlayer!.play(resource);
+    }
+
+    /**
+     * Convenience method to start playback of the AudioManager in playback mode.
+     */
+    start(): void {
+        const track = this.playlist.shift();
+        if (track === undefined) {
+            console.log("There is nothing to play");
+            return;
+        }
         const resource = createAudioResource(
             ytdl(track.link, {
                 filter: "audioonly",
                 quality: "highestaudio",
             })
         );
-
-        // audioPlayer should be initialized by this point
-        this.audioPlayer!.play(resource);
+        this.play(resource, "playlist");
     }
-
-    // const playback = ytdl(track.link, {
-    //     filter: "audioonly",
-    //     quality: "highestaudio",
-    // });
-    // this.dispatcher = this.voiceConnection!.play(playback);
-
-    // this.dispatcher.on("start", () => {
-    //     log.debug(f("dispatcher", "Now Playing..."));
-    //     message.channel.send(
-    //         `:notes: Now Playing: [${track!.duration}] *${track!.title}*`
-    //     );
-    // });
-
-    // // Plays the next song or leaves if there isn't one
-    // this.dispatcher.on("finish", () => {
-    //     log.debug(f("dispatcher", "Song has finished."));
-    //     log.debug(f("dispatcher", "Songs left in queue: " + this.queueLength()));
-
-    //     if (this.playlist.length > 0) {
-    //         log.debug(f("dispatcher", "Fetching next song in queue..."));
-    //         this.play(message);
-    //     } else {
-    //         log.debug(f("dispatcher", "No more songs left in queue."));
-    //         message.channel.send(
-    //             "No more songs left in queue. You can add more by using the `queue` command"
-    //         );
-    //         this.disconnect();
-    //         log.debug(f("dispatcher", "Left the voice channel."));
-    //     }
-    // });
-
-    // this.dispatcher.on("error", (error) => {
-    //     message.reply(["There was a playback error.", "A restart is recommended."]);
-    //     log.debug(f("dispatcher", `${error}`));
-    //     this.disconnect();
-    //     log.debug(f("play", "Left the voice channel."));
-    // });
 }
