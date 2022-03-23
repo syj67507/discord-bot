@@ -2,11 +2,13 @@ import {
     Client,
     Message,
     StreamDispatcher,
+    StreamType,
     VoiceChannel,
     VoiceConnection,
     VoiceState,
 } from "discord.js";
 import ytdl from "ytdl-core";
+import play from "play-dl";
 import { logger as log, format as f } from "../custom/logger";
 
 export interface Track {
@@ -163,7 +165,7 @@ export default class MusicManager {
      *
      * @param {Discord.Message} message The message that invoked this command.
      */
-    play(message: Message): void {
+    async play(message: Message): Promise<void> {
         // Validation checks before playing
         if (!this.voiceChannel || !this.voiceConnection) {
             throw new Error(
@@ -176,11 +178,16 @@ export default class MusicManager {
         if (!track) {
             throw new Error("Queue is empty.");
         }
-        const playback = ytdl(track.link, {
-            filter: "audioonly",
-            quality: "highestaudio",
+        // const oldplayback = ytdl(track.link, {
+        //     filter: "audioonly",
+        //     quality: "highestaudio",
+        // });
+        const playback = await play.stream(track.link);
+
+        this.dispatcher = this.voiceConnection!.play(playback.stream, {
+            type: playback.type as StreamType,
         });
-        this.dispatcher = this.voiceConnection!.play(playback);
+        // this.dispatcher = this.voiceConnection.play(oldplayback);
 
         this.dispatcher.on("start", () => {
             log.debug(f("dispatcher", "Now Playing..."));

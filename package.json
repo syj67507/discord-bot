@@ -55,7 +55,7 @@
         ]
     },
     "dependencies": {
-        "@discordjs/opus": "^0.3.2",
+        "@discordjs/opus": "^0.7.0",
         "@fightmegg/riot-api": "0.0.8",
         "@google-cloud/text-to-speech": "^3.2.0",
         "axios": "^0.21.1",
@@ -65,9 +65,10 @@
         "ffmpeg-static": "^4.2.7",
         "giphy-js-sdk-core": "^1.0.6",
         "html2json": "^1.0.2",
+        "play-dl": "^1.9.2",
         "pokedex-promise-v2": "^3.2.0",
         "winston": "^3.3.3",
-        "ytdl-core": "^4.10.1",
+        "ytdl-core": "^4.11.0",
         "ytpl": "^2.2.3",
         "ytsr": "^3.6.0"
     },
