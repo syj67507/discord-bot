@@ -182,7 +182,9 @@ export default class MusicManager {
         //     filter: "audioonly",
         //     quality: "highestaudio",
         // });
-        const playback = await play.stream(track.link);
+        const playback = await play.stream(track.link, {
+            discordPlayerCompatibility: true,
+        });
 
         this.dispatcher = this.voiceConnection!.play(playback.stream, {
             type: playback.type as StreamType,
