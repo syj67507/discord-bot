@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    "engines": {
+        "node": "16.13.1"
+    },
     "scripts": {
         "build": "tsc -p ./tsconfig.json",
         "clean": "tsc --build --clean && npm run clean-media && npm run clean-build && npm run clean-gcp && npm run clean-test",
