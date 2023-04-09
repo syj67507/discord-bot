@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Client, CommandInteraction, GatewayIntentBits, Interaction } from "discord.js";
+import { Client, GatewayIntentBits, Interaction } from "discord.js";
 import { parseOptions } from "./custom/base";
 import { loadCommands } from "./custom/loadCommands";
 // import { ArgumentUsageError } from "./errors/ArgumentUsageError";

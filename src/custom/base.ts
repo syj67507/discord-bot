@@ -28,8 +28,6 @@ export async function parseOptions(
     interaction: CommandInteraction,
     command: Command
 ): Promise<any> {
-    console.log("parseOptions");
-
     // Fetch command's definition for options/arguments
     const optionsDefinition = command.options;
 
