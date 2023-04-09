@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Client, CommandInteraction, Intents, Interaction } from "discord.js";
+import { Client, CommandInteraction, GatewayIntentBits, Interaction } from "discord.js";
 import { parseOptions } from "./custom/base";
 import { loadCommands } from "./custom/loadCommands";
 // import { ArgumentUsageError } from "./errors/ArgumentUsageError";
@@ -10,9 +10,9 @@ import { logger as log, format as f } from "./custom/logger";
 
 const client = new Client({
     intents: [
-        Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MESSAGES,
-        Intents.FLAGS.GUILD_VOICE_STATES,
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildVoiceStates,
     ],
 });
 const token = process.env.TOKEN!;
@@ -45,20 +45,20 @@ log.info(f("main", "Commands loaded."));
 // }
 
 client.once("ready", async () => {
-    console.log("Resetting disabled commands status...");
-    const fetchedGuild = await client.guilds.fetch({
-        guild: guildId,
-    });
-    const currentPermissions = await fetchedGuild.commands.permissions.fetch({});
-    currentPermissions.forEach(async (commandPerms, commandId) => {
-        for (const perm of commandPerms) {
-            (await client.guilds.fetch({ guild: guildId })).commands.permissions.remove({
-                command: commandId,
-                roles: perm.id,
-            });
-        }
-    });
-    console.log("Reset complete. Commands are all enabled.");
+    // console.log("Resetting disabled commands status...");
+    // const fetchedGuild = await client.guilds.fetch({
+    //     guild: guildId,
+    // });
+    // const currentPermissions = await fetchedGuild.commands.permissions.fetch({});
+    // currentPermissions.forEach(async (commandPerms, commandId) => {
+    //     for (const perm of commandPerms) {
+    //         (await client.guilds.fetch({ guild: guildId })).commands.permissions.remove({
+    //             command: commandId,
+    //             roles: perm.id,
+    //         });
+    //     }
+    // });
+    // console.log("Reset complete. Commands are all enabled.");
 
     console.log(`Logged in ${client?.user?.id} as ${client?.user?.tag}`);
 });
@@ -87,9 +87,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     } catch (error) {
         if (error instanceof Error) {
             const msg = [
-                `An error occurred while running the command: \`${
-                    (error as Error).message
-                }\``,
+                `An error occurred while running the command: \`${error.message}\``,
                 "You shouldn't ever receive an error like this.",
                 "Please contact the bot admin.",
             ].join("\n");
