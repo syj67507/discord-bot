@@ -10,7 +10,7 @@ const opggCommand: Command = {
         {
             name: "username",
             description: "Username of requested league account.",
-            required: false,
+            required: true,
             type: OptionType.String,
         },
     ],

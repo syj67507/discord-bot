@@ -17,7 +17,6 @@ const client = new Client({
 });
 const token = process.env.TOKEN!;
 const guildId = process.env.GUILD_ID!;
-// const prefix = process.env.PREFIX!;
 
 log.info(f("main", "Loading commands..."));
 const { commands, commandGroups } = loadCommands(__dirname);
@@ -67,23 +66,29 @@ client.on("interactionCreate", async (interaction: Interaction) => {
     if (!interaction.isCommand()) {
         return;
     }
-    const i = interaction as CommandInteraction;
     log.debug(
         f(
             "main",
-            `${i.commandName} triggered by ${i.member!.user.username} - ${
-                i.member!.user.id
-            }`
+            `${interaction.commandName} triggered by ${
+                interaction.member!.user.username
+            } - ${interaction.member!.user.id}`
         )
     );
 
-    log.debug(f("main", `Raw options: ${JSON.stringify(i.options.data, null, 2)}`));
+    log.debug(
+        f("main", `Raw options: ${JSON.stringify(interaction.options.data, null, 2)}`)
+    );
 
     // Attempt to parse args and run the command
     try {
-        const options = await parseOptions(i, commands.get(i.commandName)!);
+        const options = await parseOptions(
+            interaction,
+            commands.get(interaction.commandName)!
+        );
         log.debug(f("main", `Parsed options: ${JSON.stringify(options, null, 2)}`));
-        await commands.get(i.commandName)!.run(i, options, commands, commandGroups);
+        await commands
+            .get(interaction.commandName)!
+            .run(interaction, options, commands, commandGroups);
     } catch (error) {
         if (error instanceof Error) {
             const msg = [
@@ -102,74 +107,5 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         log.error(error);
     }
 });
-
-// client.on("message", async (message) => {
-//     if (message.author.bot) {
-//         return;
-//     }
-//     if (!message.content.startsWith(prefix)) {
-//         return;
-//     }
-//     if (!message.guild || !message.member) {
-//         message.channel.send([
-//             "Can't use commands in DM's.",
-//             "Go to the server and try using the command.",
-//         ]);
-//         return;
-//     }
-//     log.debug(f("main", `Message Contents: ${message.content}`));
-
-//     // Parse through message.content
-//     const rawArgs = message.content.slice(prefix.length).split(/[ ]+/);
-//     const rawCommand = rawArgs.shift()!.toLowerCase();
-//     log.debug(f("main", `Command: ${rawCommand}`));
-//     log.debug(f("main", `Raw Arguments: ${rawArgs}`));
-
-//     // If the command is not found in the aliases
-//     if (!(rawCommand && commandAliases.has(rawCommand))) {
-//         log.debug(f("main", `Command '${rawCommand}' not found.`));
-//         message.reply(`Unknown command \`${prefix}${rawCommand}\` not found.`);
-//         return;
-//     }
-
-//     // Retrieve command definition
-//     const commandAlias = commandAliases.get(rawCommand)!;
-//     const command = commands.get(commandAlias)!;
-//     log.debug(f("main", `Command '${rawCommand}' alias detected as ${command.name}`));
-
-//     // If command is disabled stop here
-//     if (command.enabled === false) {
-//         log.debug(f("main", `Command '${rawCommand}' is disabled.`));
-//         message.channel.send(`\`${prefix}${rawCommand}\` is disabled.`);
-//         return;
-//     }
-
-//     // Attempt to parse args and run the command
-//     try {
-//         const args = await parseArgs(rawArgs, command.arguments, message.guild!);
-//         log.debug(f("main", `Parsed arguments: ${JSON.stringify(args, null, 2)}`));
-//         await command.run(message, args);
-//     } catch (error) {
-//         if (error instanceof ArgumentUsageError) {
-//             message.reply(["`Invalid command usage`", `\`${error.message}\``]);
-//         } else if (error instanceof ArgumentCustomValidationError) {
-//             message.reply([
-//                 "`Invalid command usage: Did not pass the requirements.`",
-//                 "`Check the help command for more information.`",
-//                 `\`${error.message}\``,
-//             ]);
-//         } else {
-//             message.reply([
-//                 `An error occurred while running the command: \`${
-//                     (error as Error).message
-//                 }\``,
-//                 "You shouldn't ever receive an error like this.",
-//                 "Please contact the bot admin.",
-//             ]);
-//         }
-//         process.stderr.write("CommandExecutionError: ");
-//         log.error(error);
-//     }
-// });
 
 client.login(token);

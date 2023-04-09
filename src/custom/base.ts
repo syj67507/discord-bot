@@ -7,14 +7,13 @@ export interface Option {
     description: string;
     /** Whether the option is required for the command to function */
     required: boolean;
-    /** The type of the option (uses Discord's API to fetch available types)
-     * import { ApplicationCommandOptionType } from "discord-api-types";
-     */
+    /** The type of the option */
     type: OptionType;
-    /** Provides the user with choices to pick from
-     * Only works with STRING, NUMBER, INTEGER types
+    /**
+     * Provides the user with choices to pick from
+     * Only works with OptionTypes String, Number, Integer types
      */
-    choices?: any[];
+    choices?: OptionType[];
 }
 
 export enum OptionType {
@@ -38,7 +37,7 @@ export async function parseOptions(
     result["raw"] = interaction.options.data;
 
     for (const option of optionsDefinition) {
-        const parsedOption = interaction.options.get(option.name); // option/argument from user
+        const parsedOption = interaction.options.get(option.name); // actual option/argument from user
         let parsedValue: string | number | boolean | GuildMember | null | undefined =
             null;
 
@@ -83,7 +82,7 @@ export interface Command {
      * @param { Message } message The message that invoked this command
      * @param { any } options The arguments that were passed to this command
      * @param { Readonly<Collection<string, Command>> } commands A collection of all loaded client commands
-     * * @param { Readonly<Collection<string, string[]>> } commandGroups A collection describing each command associated with their group
+     * @param { Readonly<Collection<string, string[]>> } commandGroups A collection describing each command associated with their group
      * @returns { Promise<null> } null if no error is thrown
      */
     run: (

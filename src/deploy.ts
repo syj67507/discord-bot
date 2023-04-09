@@ -23,13 +23,13 @@ const commands = []; // Loads in all of the commands into array for deployment
 
 const groups = fs.readdirSync(`${__dirname}/commands`);
 for (const group of groups) {
-    // TODO: remove this once migration complete
-    if (group !== "utility") {
-        continue;
-    }
     const commandFiles = fs.readdirSync(`${__dirname}/commands/${group}`);
 
     for (const commandFile of commandFiles) {
+        // TODO: Remove after migration complete
+        if (commandFile.startsWith("_")) {
+            continue;
+        }
         const path = `${__dirname}/commands/${group}/${commandFile}`.replace(".ts", "");
 
         const command: Command = require(path).default;
