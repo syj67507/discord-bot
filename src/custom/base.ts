@@ -16,13 +16,15 @@ export interface Option {
     choices?: OptionType[];
 }
 
-export enum OptionType {
-    Boolean,
-    Integer,
-    Number,
-    String,
-    User,
-}
+export type OptionType = "boolean" | "integer" | "number" | "string" | "user";
+
+// export enum OptionType {
+//     Boolean,
+//     Integer,
+//     Number,
+//     String,
+//     User,
+// }
 
 export async function parseOptions(
     interaction: CommandInteraction,
@@ -42,13 +44,13 @@ export async function parseOptions(
         // If passed an appropriate option, then appropriately fetch the values
         if (parsedOption) {
             switch (option.type) {
-                case OptionType.Boolean:
-                case OptionType.Integer:
-                case OptionType.Number:
-                case OptionType.String:
+                case "boolean":
+                case "integer":
+                case "number":
+                case "string":
                     parsedValue = parsedOption.value;
                     break;
-                case OptionType.User:
+                case "user":
                     parsedValue = parsedOption.member as GuildMember; // member object contains GuildMember and User object
                     break;
                 default:

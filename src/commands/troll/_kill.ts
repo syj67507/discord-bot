@@ -12,13 +12,13 @@ const killCommand: Command = {
         {
             name: "member",
             description: "Who is going to be killed?",
-            type: OptionType.User,
+            type: "user",
             required: true,
         },
         {
             name: "interval",
             description: "How often to kill the user in seconds, must be 5 or greater",
-            type: OptionType.Integer,
+            type: "integer",
             required: false,
         },
     ],

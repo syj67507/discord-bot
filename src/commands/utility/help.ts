@@ -9,7 +9,7 @@ const helpCommand: Command = {
             name: "command",
             description: "The command to receive information for",
             required: false,
-            type: OptionType.String,
+            type: "string",
         },
     ],
     aliases: ["h"],

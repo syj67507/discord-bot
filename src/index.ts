@@ -13,6 +13,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.MessageContent,
     ],
 });
 const token = process.env.TOKEN!;

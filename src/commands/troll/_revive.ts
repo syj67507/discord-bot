@@ -11,7 +11,7 @@ const reviveCommand: Command = {
         {
             name: "user",
             description: "Who is to be revived?",
-            type: OptionType.User,
+            type: "user",
             required: false,
         },
     ],

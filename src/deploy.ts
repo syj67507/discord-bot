@@ -46,14 +46,14 @@ commandAliases.forEach((commandName, alias) => {
             });
         }
 
-        if (option.type === OptionType.Boolean) {
+        if (option.type === "boolean") {
             builtCommand.addBooleanOption(
                 new SlashCommandBooleanOption()
                     .setName(option.name)
                     .setDescription(option.description)
                     .setRequired(option.required)
             );
-        } else if (option.type === OptionType.Number) {
+        } else if (option.type === "number") {
             builtCommand.addNumberOption(
                 new SlashCommandNumberOption()
                     .setName(option.name)
@@ -63,7 +63,7 @@ commandAliases.forEach((commandName, alias) => {
                         ...(choices as APIApplicationCommandOptionChoice<number>[])
                     )
             );
-        } else if (option.type === OptionType.Integer) {
+        } else if (option.type === "integer") {
             builtCommand.addIntegerOption(
                 new SlashCommandIntegerOption()
                     .setName(option.name)
@@ -73,7 +73,7 @@ commandAliases.forEach((commandName, alias) => {
                         ...(choices as APIApplicationCommandOptionChoice<number>[])
                     )
             );
-        } else if (option.type === OptionType.String) {
+        } else if (option.type === "string") {
             builtCommand.addStringOption(
                 new SlashCommandStringOption()
                     .setName(option.name)
@@ -83,7 +83,7 @@ commandAliases.forEach((commandName, alias) => {
                         ...(choices as APIApplicationCommandOptionChoice<string>[])
                     )
             );
-        } else if (option.type === OptionType.User) {
+        } else if (option.type === "user") {
             builtCommand.addUserOption(
                 new SlashCommandUserOption()
                     .setName(option.name)
