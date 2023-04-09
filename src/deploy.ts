@@ -22,11 +22,16 @@ const rest = new REST({ version: "10" }).setToken(token);
 
 const body: any = []; // Loads in all of the commands into array for deployment
 
-const { commands } = loadCommands(__dirname);
-commands.forEach((command) => {
-    log.info(f("deploy", `Deploying ${command.name}`));
+const { commands, commandAliases } = loadCommands(__dirname);
+console.log(commands.keys());
+commandAliases.forEach((commandName, alias) => {
+    const command = commands.get(commandName);
+    if (command === undefined) {
+        return;
+    }
+    log.info(f("deploy", `Deploying ${alias} with ${commandName}'s definition`));
     const builtCommand = new SlashCommandBuilder()
-        .setName(command.name)
+        .setName(alias)
         .setDescription(command.description);
 
     for (const option of command.options) {

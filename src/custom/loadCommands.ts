@@ -24,6 +24,10 @@ export function loadCommands(commandFolderPath: string): LoadedCommands {
                 ".ts",
                 ""
             );
+            if (path.includes("_")) {
+                console.log("SKIPPING", commandFile);
+                continue;
+            }
             const command: Command = require(path).default;
             if (command) {
                 // TEMP

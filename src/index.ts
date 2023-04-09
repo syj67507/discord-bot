@@ -19,7 +19,7 @@ const token = process.env.TOKEN!;
 const guildId = process.env.GUILD_ID!;
 
 log.info(f("main", "Loading commands..."));
-const { commands, commandGroups } = loadCommands(__dirname);
+const { commands, commandGroups, commandAliases } = loadCommands(__dirname);
 log.info(f("main", "Commands loaded."));
 
 // registerGCP();
@@ -79,16 +79,14 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         f("main", `Raw options: ${JSON.stringify(interaction.options.data, null, 2)}`)
     );
 
+    // Convert alias into original command
+    const command = commands.get(commandAliases.get(interaction.commandName)!)!;
+
     // Attempt to parse args and run the command
     try {
-        const options = await parseOptions(
-            interaction,
-            commands.get(interaction.commandName)!
-        );
+        const options = await parseOptions(interaction, command);
         log.debug(f("main", `Parsed options: ${JSON.stringify(options, null, 2)}`));
-        await commands
-            .get(interaction.commandName)!
-            .run(interaction, options, commands, commandGroups);
+        await command.run(interaction, options, commands, commandGroups);
     } catch (error) {
         if (error instanceof Error) {
             const msg = [
@@ -96,6 +94,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
                 "You shouldn't ever receive an error like this.",
                 "Please contact the bot admin.",
             ].join("\n");
+            console.log(error);
             if (interaction.deferred) {
                 await interaction.deleteReply();
                 await interaction.followUp({ content: msg, ephemeral: true });
