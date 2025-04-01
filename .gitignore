@@ -1,9 +1,0 @@
-config.json
-node_modules
-.env
-dist
-*.mp3
-credentials*
-googleApplicationCredentials.json
-coverage
-.vs
