@@ -1,6 +1,12 @@
-export function sum(a: number, b: number) {
-  return a + b;
+import { config } from "./config";
+import { startUpDiscordClient } from "./discord";
+import { registerCommands } from "./register-commands";
+
+async function main() {
+  if (config.reloadCommands) {
+    await registerCommands(); // Deploy the command metadata to the servers
+  }
+  startUpDiscordClient();
 }
 
-console.log("Hello brandon!");
-console.log(sum(1, 2));
+main();
