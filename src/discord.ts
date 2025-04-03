@@ -7,8 +7,11 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import { commands } from "./commands";
 import { config } from "./config";
 import { container } from "tsyringe";
-import { ExecutionContext } from "./commands/ExecutionContext";
-import { BaseCommand } from "./commands/base-command";
+import {
+  CONTEXT_PROVIDER_TOKEN,
+  ContextProvider,
+} from "./providers/context.provider";
+import { BaseCommand } from "./commands/base.command.ts";
 
 export async function startUpDiscordClient() {
   // Setup the discord client
@@ -35,8 +38,8 @@ export async function startUpDiscordClient() {
 
     // Create a new container for the new execution
     const executionContainer = container.createChildContainer();
-    executionContainer.register<ExecutionContext>("EXECUTION_CONTEXT", {
-      useValue: new ExecutionContext(),
+    executionContainer.register<ContextProvider>(CONTEXT_PROVIDER_TOKEN, {
+      useValue: new ContextProvider(),
     });
 
     // resolve the command and execute
