@@ -8,7 +8,7 @@ import { SharedSlashCommand, ChatInputCommandInteraction } from "discord.js";
 export class BaseCommand {
   static registrationData: SharedSlashCommand;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  execute(interaction: ChatInputCommandInteraction): void {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     throw new Error("Method not implemented.");
   }
 }

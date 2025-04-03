@@ -1,10 +1,6 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { BaseCommand } from "./base.command.ts";
-import { inject, injectable } from "tsyringe";
-import {
-  CONTEXT_PROVIDER_TOKEN,
-  ContextProvider,
-} from "../providers/context.provider";
+import { injectable } from "tsyringe";
 import { LoggerProvider } from "../providers/logger.provider";
 
 // Enums are used to define all the options so that we
@@ -19,11 +15,7 @@ import { LoggerProvider } from "../providers/logger.provider";
 
 @injectable()
 export class PingCommand extends BaseCommand {
-  constructor(
-    @inject(CONTEXT_PROVIDER_TOKEN)
-    private readonly executionContext: ContextProvider,
-    private readonly logger: LoggerProvider,
-  ) {
+  constructor(private readonly logger: LoggerProvider) {
     super();
   }
 
@@ -32,14 +24,11 @@ export class PingCommand extends BaseCommand {
     .setDescription("ping command")
     .addStringOption((option) =>
       option.setName("reply").setDescription("reply option"),
-    )
-    .addStringOption((option) =>
-      option.setName("another").setDescription("another option"),
     );
 
-  execute(interaction: ChatInputCommandInteraction): void {
+  async execute(interaction: ChatInputCommandInteraction) {
     this.logger.log("Starting ping command...");
-    interaction.reply(`Pong! w/ ${interaction.options.getString("reply")}`);
+    await interaction.reply(`Pong! ${interaction.options.getString("reply")}`);
     this.logger.log("Finished ping command.");
   }
 }
