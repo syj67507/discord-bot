@@ -5,12 +5,13 @@ import {
 } from "discord.js";
 import { commands } from "./commands";
 import { config } from "./config";
+import { BaseCommand } from "./commands/base-command";
 
 export async function registerCommands() {
   // Construct and prepare an instance of the REST module
   const rest = new REST().setToken(config.token);
   const commandsData: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
-  commands.forEach((command) => {
+  commands.forEach((command: typeof BaseCommand) => {
     commandsData.push(command.registrationData.toJSON());
   });
 

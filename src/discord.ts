@@ -2,10 +2,13 @@
  * @fileoverview
  * This file is going to the main entrypoint to the discord application
  */
-
+import "reflect-metadata";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import { commands } from "./commands";
 import { config } from "./config";
+import { container } from "tsyringe";
+import { ExecutionContext } from "./commands/ExecutionContext";
+import { BaseCommand } from "./commands/base-command";
 
 export async function startUpDiscordClient() {
   // Setup the discord client
@@ -25,11 +28,19 @@ export async function startUpDiscordClient() {
       return;
     }
 
-    const Command = commands.get(interaction.commandName);
+    const Command: typeof BaseCommand = commands.get(interaction.commandName);
     if (!Command) {
       return; // command not found
     }
 
-    new Command().execute(interaction); // instantiate the command so that it can be executed
+    // Create a new container for the new execution
+    const executionContainer = container.createChildContainer();
+    executionContainer.register<ExecutionContext>("EXECUTION_CONTEXT", {
+      useValue: new ExecutionContext(),
+    });
+
+    // resolve the command and execute
+    const command = executionContainer.resolve(Command);
+    command.execute(interaction);
   });
 }
