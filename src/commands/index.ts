@@ -10,6 +10,7 @@ import { PingCommand } from "./ping.command";
  * The workaround is to explicitly type the value of the key/value pair of this map to BaseCommand wherever used in this application
  */
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const commands = new Map<string, any>();
 
 commands.set(PingCommand.registrationData.name, PingCommand);
