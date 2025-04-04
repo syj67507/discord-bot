@@ -5,7 +5,8 @@ on:
     branches: [revamp2025]
 
 jobs:
-  build:
+  code-checks:
+    name: Linting & Testing
     runs-on: ubuntu-latest
 
     steps:

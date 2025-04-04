@@ -3,8 +3,6 @@ import { container } from "tsyringe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PingCommand } from "./ping.command";
 import { ChatInputCommandInteraction } from "discord.js";
-import { ContextProvider } from "../providers/context.provider";
-import { LoggerProvider } from "../providers/logger.provider";
 
 describe("Ping Command", () => {
   const interaction = {
@@ -16,11 +14,6 @@ describe("Ping Command", () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-
-    // tsyringe has issues with vitest and so it requires explicit registration of dependencies
-    container.register(ContextProvider, { useClass: ContextProvider });
-    container.register(LoggerProvider, { useClass: LoggerProvider });
-    container.register(PingCommand, { useClass: PingCommand });
   });
 
   it("should reply to the command successfully", async () => {
