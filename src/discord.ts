@@ -7,10 +7,7 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import { commands } from "./commands";
 import { config } from "./config";
 import { container } from "tsyringe";
-import {
-  CONTEXT_PROVIDER_TOKEN,
-  ContextProvider,
-} from "./providers/context.provider";
+import { ContextProvider } from "./providers/context.provider";
 import { BaseCommand } from "./commands/base.command.ts";
 
 export async function startUpDiscordClient() {
@@ -38,7 +35,7 @@ export async function startUpDiscordClient() {
 
     // Create a new container for the new execution
     const executionContainer = container.createChildContainer();
-    executionContainer.register<ContextProvider>(CONTEXT_PROVIDER_TOKEN, {
+    executionContainer.register<ContextProvider>(ContextProvider, {
       useValue: new ContextProvider(),
     });
 

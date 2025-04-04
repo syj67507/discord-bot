@@ -2,17 +2,11 @@
 
 ## Overview
 
-This discord bot is a personal project. It is implemented using the Discord.js/Commando
-library and the Node.js framework using Typescript.
-
-Currently, this application is being migrated from Discord.js/Commando to the standard Discord.js library v12. This is in preparation to upgrade from v12 of the library to v13.
+This discord bot is a personal project. It is implemented using Node.js, TypeScript, discord.js, tsyringe, and vitest.
 
 # Installation
 
-This project uses the Node.js framework. Download and install node at the following link: https://nodejs.org/en/
-
-This project involves several dependencies managed by npm. Get npm by following
-this link: https://www.npmjs.com/get-npm
+This project uses the Node.js framework. You can download and install node at the following link: https://nodejs.org/en/
 
 Within the root folder of the project, install the dependencies
 
@@ -20,44 +14,36 @@ Within the root folder of the project, install the dependencies
 
 ## Environment
 
-Create your .env file from the .env.tpl file and populate the token fields.
+Create an .env file at the root of the repository and populate it with the following fields.
+
 Some fields are used for authentication while others are used for setting up aspects of the bot.
 
 ```
-PREFIX="!"  // What to type in front of a command to activate it
-TOKEN=""  // The unique token of the bot in order for it log in to the associated Discord Application (https://discord.com/developers/applications)
-GIF_TOKEN=""  // To be removed, GIF token for authentication to Giphy API
-GOOGLE_APPLICATION_CREDENTIALS_JSON=''  // GCP Service Account JSON String for say command
-GOOGLE_APPLICATION_CREDENTIALS=googleApplicationCredentials.json  // DO NOT CHANGE
-NICKNAME_CYCLE_GUILD_IDS=  // Guild/Server Id's for nicknames cycle to be registered (separated by '/')
-NICKNAME_CYCLE_NAMES=  // Nicknames for each Guild/Server Id's nickname cycle (names separated by ',' servers separated by '/')
+DISCORD_TOKEN= // The unique token of the bot in order for it log in to the associated Discord Application (https://discord.com/developers/applications)
+DISCORD_CLIENT_ID= // The Client Id of the discord bot
+DISCORD_GUILD_ID= // The server/guild Id of the server you wish to connect this discord bot to
 ```
 
 ## Running the application locally
 
-Run the application using the following command:
+To run the application for local development, use the following command:
 
-    $ npm run clean
-    $ npm run build
-    $ npm start
+    $ npm run dev
 
 Stop the application by terminating the process. On bash: `CTRL-C`.
 
-## Deployment
+## Testing
 
-One instance of this bot is deployed using Heroku. Every time the master branch is updated, Heroku will automatically deploy once the Continuous Integration checks have passed. Perhaps in the future, github actions can be used instead.
+This project uses the `vitest` framework for unit testing. Use the following command to run tests locally:
+
+    $ npm run test
+
+You can view an HTML coverage report in the browser by opening up the html file that gets generated in the coverage folder after running tests.
 
 # Project Notes
 
-## Logging
+## vitest and tsyringe limitation
 
-Logs are implemented using the `winston` library. The logs are set to output to the console. When deployed to Heroku, the application logs will hold all of the console outputs. The documentation for the `winston` library can be seen in the following link.
+There were some limitation to setting up a container and having dependencies resolved in unit tests with vitest.
 
-https://www.npmjs.com/package/winston
-
-## FFMPEG changes
-
-Buildpacks for `ffmpeg` have been replaced by using the npm package `ffmpeg-static`. This was in response to issues with the ultra command.
-This was the following buildpack added on the heroku settings page.
-The other buildpacks can be found in the commit history within the `.buildpacks` file."
-https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git
+The simplest workaround I have found is to have the `@inject()` decorator for each of the dependencies in the constructor for the respective classes. That is why you will see these injectors when they would otherwise not be needed.

@@ -1,10 +1,10 @@
 import { inject, injectable } from "tsyringe";
-import { CONTEXT_PROVIDER_TOKEN, ContextProvider } from "./context.provider";
+import { ContextProvider } from "./context.provider";
 
 @injectable()
 export class LoggerProvider {
   constructor(
-    @inject(CONTEXT_PROVIDER_TOKEN)
+    @inject(ContextProvider)
     private readonly executionContext: ContextProvider,
   ) {}
 
