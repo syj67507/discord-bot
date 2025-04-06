@@ -1,4 +1,8 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import {
+  AutocompleteInteraction,
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+} from "discord.js";
 import { BaseCommand } from "../base.command";
 import { inject, injectable } from "tsyringe";
 import { LoggerProvider } from "../../providers/logger.provider";
@@ -18,7 +22,11 @@ export class PingCommand extends BaseCommand {
     .addStringOption((option) =>
       option
         .setName("reply")
-        .setDescription("An optional message that the bot will send back."),
+        .setDescription("An optional message that the bot will send back.")
+        .setAutocomplete(true),
+    )
+    .addStringOption((option) =>
+      option.setName("another").setDescription("Something else"),
     );
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -34,5 +42,18 @@ export class PingCommand extends BaseCommand {
 
     return await interaction.reply(message);
     this.logger.log("Finished ping command.");
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    const focusedValue = interaction.options.getFocused();
+    const choices = ["One", "Two", "Three"];
+    const filtered = choices.filter((choice) =>
+      choice.startsWith(focusedValue),
+    );
+    await interaction.respond(
+      filtered.map((choice) => {
+        return { name: choice, value: choice };
+      }),
+    );
   }
 }
