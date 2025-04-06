@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { BaseCommand } from "./base.command.ts";
+import { BaseCommand } from "./base.command";
 import { inject, injectable } from "tsyringe";
 import { LoggerProvider } from "../providers/logger.provider";
 
@@ -9,6 +9,7 @@ export class PingCommand extends BaseCommand {
   // TypeInfo errors when resolving nested dependencies
   constructor(@inject(LoggerProvider) private readonly logger: LoggerProvider) {
     super();
+    this.logger.setName(PingCommand.name);
   }
 
   static registrationData = new SlashCommandBuilder()

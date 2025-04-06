@@ -3,13 +3,19 @@ import { ContextProvider } from "./context.provider";
 
 @injectable()
 export class LoggerProvider {
+  loggerName = "";
+
   constructor(
     @inject(ContextProvider)
     private readonly executionContext: ContextProvider,
   ) {}
 
   private generatePrefixContextString() {
-    return `[${this.executionContext.correlationId}] [${new Date().toISOString()}]`;
+    return `[${new Date().toISOString()}] [${this.executionContext.correlationId}] | ${this.loggerName || "Unknown"} |`;
+  }
+
+  setName(name: string) {
+    this.loggerName = name;
   }
 
   log(...messages: string[]) {

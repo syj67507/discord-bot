@@ -8,12 +8,12 @@ import { commands } from "./commands";
 import { config } from "./config";
 import { container } from "tsyringe";
 import { ContextProvider } from "./providers/context.provider";
-import { BaseCommand } from "./commands/base.command.ts";
+import { BaseCommand } from "./commands/base.command";
 
 export async function startUpDiscordClient() {
   // Setup the discord client
   const client = new Client({
-    intents: [GatewayIntentBits.Guilds],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
   });
 
   client.on(Events.ClientReady, () => {

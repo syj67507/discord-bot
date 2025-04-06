@@ -5,7 +5,7 @@ import {
 } from "discord.js";
 import { commands } from "./commands";
 import { config } from "./config";
-import { BaseCommand } from "./commands/base.command.ts";
+import { BaseCommand } from "./commands/base.command";
 
 export async function registerCommands() {
   // Construct and prepare an instance of the REST module

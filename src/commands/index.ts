@@ -1,4 +1,6 @@
 import { PingCommand } from "./ping.command";
+import { PlayCommand } from "./music/play.command";
+import { StopCommand } from "./music/stop.command";
 
 /**
  * A map holding all commands defined for this application
@@ -14,3 +16,5 @@ import { PingCommand } from "./ping.command";
 export const commands = new Map<string, any>();
 
 commands.set(PingCommand.registrationData.name, PingCommand);
+commands.set(PlayCommand.registrationData.name, PlayCommand);
+commands.set(StopCommand.registrationData.name, StopCommand);
