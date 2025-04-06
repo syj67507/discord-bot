@@ -33,8 +33,9 @@ export class SkipCommand extends BaseCommand {
     this.logger.log("Starting Skip command...");
 
     if (this.audioPlayerManager.getState() !== AudioPlayerStatus.Playing) {
-      await interaction.reply("The bot can't skip if nothing is playing.");
-      return;
+      return await interaction.reply(
+        "The bot can't skip if nothing is playing.",
+      );
     }
 
     const member = await interaction.guild?.members.fetch(interaction.user);
@@ -46,8 +47,7 @@ export class SkipCommand extends BaseCommand {
       this.logger.error(`channelId: ${channelId}`);
       this.logger.error(`guildId: ${guildId}`);
       this.logger.error(`guild: ${JSON.stringify(guild)}`);
-      await interaction.reply("Failed to join voice channel");
-      return;
+      return await interaction.reply("Failed to join voice channel");
     }
     if (getVoiceConnection(guildId)?.joinConfig.channelId !== channelId) {
       this.logger.warn(
@@ -67,16 +67,15 @@ export class SkipCommand extends BaseCommand {
       );
       this.audioPlayerManager.stopAudioPlayer();
       this.audioPlayerManager.destroyAudioPlayer();
-      await interaction.reply(
+      return await interaction.reply(
         "Reached the end of the queue. Playback has stopped.",
       );
-      return;
     }
 
     // we can assume that there is another resource to skip to
-    this.audioPlayerManager.getAudioPlayer()?.play(nextTrack.audioResource);
+    this.audioPlayerManager.play(interaction, nextTrack);
 
-    await interaction.reply("Skipped");
     this.logger.log("Finished skip command.");
+    return await interaction.reply("Skipped");
   }
 }

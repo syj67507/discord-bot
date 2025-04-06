@@ -32,7 +32,7 @@ export class PingCommand extends BaseCommand {
       message += ` ${replyOption}`;
     }
 
-    await interaction.reply(message);
+    return await interaction.reply(message);
     this.logger.log("Finished ping command.");
   }
 }

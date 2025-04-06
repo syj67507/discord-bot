@@ -1,6 +1,8 @@
 import {
   ChatInputCommandInteraction,
+  EmbedBuilder,
   InteractionContextType,
+  InteractionResponse,
   SlashCommandBuilder,
 } from "discord.js";
 import { inject, injectable } from "tsyringe";
@@ -37,7 +39,9 @@ export class PlayCommand extends BaseCommand {
     )
     .setContexts([InteractionContextType.Guild]);
 
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<InteractionResponse> {
     this.logger.log("Starting play command...");
 
     const input = interaction.options.getString("input")!;
@@ -52,8 +56,7 @@ export class PlayCommand extends BaseCommand {
       this.logger.error(`channelId: ${channelId}`);
       this.logger.error(`guildId: ${guildId}`);
       this.logger.error(`guild: ${JSON.stringify(guild)}`);
-      await interaction.reply("Failed to join voice channel");
-      return;
+      return await interaction.reply("Failed to join voice channel");
     }
     if (getVoiceConnection(guildId)?.joinConfig.channelId !== channelId) {
       this.logger.warn(
@@ -70,12 +73,12 @@ export class PlayCommand extends BaseCommand {
       this.logger.log(
         "Audio player has not been created, creating audio player...",
       );
-      this.audioPlayerManager.createAudioPlayer();
+      this.audioPlayerManager.createAudioPlayer(interaction);
     }
     const audioPlayer = this.audioPlayerManager.getAudioPlayer();
     if (!audioPlayer) {
-      this.logger.log("Failed to create the audio player");
-      return;
+      this.logger.error("Failed to create the audio player");
+      return await interaction.reply("Failed to create the audio player");
     }
 
     this.logger.debug("Searching YouTube to create a track...");
@@ -85,29 +88,34 @@ export class PlayCommand extends BaseCommand {
       "Bot is already playing music, adding to the queue and exiting early",
     );
     if (this.audioPlayerManager.getState() === AudioPlayerStatus.Playing) {
-      await interaction.reply("Adding your song to the queue");
       this.audioPlayerManager.addToQueue(track);
-      return;
+      return await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor("Aqua")
+            .setAuthor({ name: "⏭️ Adding to the queue! ⏭️" })
+            .setTitle(`[${track.duration}] ${track.title}`)
+            .setURL(`${track.url}`)
+            .addFields({ name: "\u200B", value: track.author }),
+        ],
+      });
     }
 
     this.logger.log("Starting playback of audio resource");
-    audioPlayer.play(track.audioResource);
+    this.audioPlayerManager.play(interaction, track);
     const connection = getVoiceConnection(guildId);
     connection?.subscribe(audioPlayer);
 
-    audioPlayer.on(AudioPlayerStatus.Idle, () => {
-      const nextTrack = this.audioPlayerManager.removeFromQueue();
-      if (nextTrack) {
-        audioPlayer.play(nextTrack.audioResource);
-        return;
-      }
-
-      this.logger.log("Stopping and destroying audio player...");
-      this.audioPlayerManager.stopAudioPlayer();
-      this.audioPlayerManager.destroyAudioPlayer();
-    });
-
-    await interaction.reply(`Playing ${track.duration} ${track.title}`);
     this.logger.log("Finished play command.");
+    return await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("Aqua")
+          .setAuthor({ name: "🎶 Started playback! 🎶" })
+          .setTitle(`[${track.duration}] ${track.title}`)
+          .setURL(`${track.url}`)
+          .addFields({ name: "\u200B", value: track.author }),
+      ],
+    });
   }
 }

@@ -1,4 +1,8 @@
-import { SharedSlashCommand, ChatInputCommandInteraction } from "discord.js";
+import {
+  SharedSlashCommand,
+  ChatInputCommandInteraction,
+  InteractionResponse,
+} from "discord.js";
 
 /**
  * Base command definition for this discord application
@@ -7,8 +11,10 @@ import { SharedSlashCommand, ChatInputCommandInteraction } from "discord.js";
  */
 export class BaseCommand {
   static registrationData: SharedSlashCommand;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+
+  async execute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<InteractionResponse> {
     throw new Error("Method not implemented.");
   }
 }

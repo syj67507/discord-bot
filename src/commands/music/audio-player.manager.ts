@@ -1,13 +1,16 @@
 import {
   AudioPlayer,
+  AudioPlayerStatus,
   createAudioResource,
   createAudioPlayer as discordCreateAudioPlayer,
+  entersState,
 } from "@discordjs/voice";
 import { inject, singleton } from "tsyringe";
 import { LoggerProvider } from "../../providers/logger.provider";
 import { Track } from "./track";
 import yts from "yt-search";
 import ytdl from "@distube/ytdl-core";
+import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 
 /**
  * A manager to help maintain discord audio players since these players need
@@ -25,11 +28,42 @@ export class AudioPlayerManager {
    * Creates a new audio player and will replace the existing audio player if one was previously
    * created and not destroyed
    */
-  createAudioPlayer() {
+  createAudioPlayer(interaction: ChatInputCommandInteraction) {
     this.logger.log("Creating audio player");
     this.audioPlayer = discordCreateAudioPlayer();
+
+    // Debugging statement
     this.audioPlayer.on("stateChange", (oldState, newState) => {
-      this.logger.log("Switched states from", oldState.status, newState.status);
+      this.logger.debug(
+        "Switched states from",
+        oldState.status,
+        newState.status,
+      );
+    });
+
+    // This sets up the loop so that when a song finishes, it automatically
+    // plays the next song
+    this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
+      const nextTrack = this.removeFromQueue();
+      if (nextTrack) {
+        this.play(interaction, nextTrack);
+        return;
+      }
+
+      this.logger.log("Stopping and destroying audio player...");
+      this.stopAudioPlayer();
+      this.destroyAudioPlayer();
+
+      if (interaction.channel?.isSendable()) {
+        interaction.channel.send({
+          embeds: [
+            new EmbedBuilder()
+              .setColor("Aqua")
+              .setAuthor({ name: "⏹️ No more tracks to play." })
+              .setTitle("Play more music using the play command!"),
+          ],
+        });
+      }
     });
   }
 
@@ -65,6 +99,28 @@ export class AudioPlayerManager {
   getAudioPlayer() {
     this.logger.log("fetching audio player");
     return this.audioPlayer;
+  }
+
+  async play(interaction: ChatInputCommandInteraction, track: Track) {
+    if (!this.audioPlayer) {
+      return;
+    }
+    this.audioPlayer?.play(track.audioResource);
+
+    // Upon entering the playing state, send a message saying what is being played
+    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5_000);
+    const replyEmbed = new EmbedBuilder()
+      .setColor("Aqua")
+      .setAuthor({ name: "🎶 Playing now! 🎶" })
+      .setTitle(`[${track.duration}] ${track.title}`)
+      .setURL(`${track.url}`)
+      .addFields({ name: "\u200B", value: track.author });
+
+    if (interaction.channel?.isSendable()) {
+      await interaction.channel.send({
+        embeds: [replyEmbed],
+      });
+    }
   }
 
   /**
@@ -121,10 +177,12 @@ export class AudioPlayerManager {
       quality: "highestaudio",
       highWaterMark: 1 << 25, // helps with buffering
     });
-    return new Track(
-      searchResult.videos[0].title,
-      searchResult.videos[0].timestamp,
-      createAudioResource(stream),
-    );
+    return new Track({
+      title: searchResult.videos[0].title,
+      duration: searchResult.videos[0].timestamp,
+      url: searchResult.videos[0].url,
+      author: searchResult.videos[0].author.name,
+      audioResource: createAudioResource(stream),
+    });
   }
 }

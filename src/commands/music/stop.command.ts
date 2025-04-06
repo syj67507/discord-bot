@@ -4,6 +4,7 @@ import { LoggerProvider } from "../../providers/logger.provider";
 import {
   ChatInputCommandInteraction,
   InteractionContextType,
+  InteractionResponse,
   SlashCommandBuilder,
 } from "discord.js";
 import { getVoiceConnection } from "@discordjs/voice";
@@ -24,9 +25,11 @@ export class StopCommand extends BaseCommand {
     .setDescription("Stops the bot from playing music")
     .setContexts([InteractionContextType.Guild]);
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  async execute(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<InteractionResponse> {
     if (!interaction.guildId) {
-      return;
+      return interaction.reply("How did you get here?");
     }
     const connection = getVoiceConnection(interaction.guildId);
     connection?.destroy();
@@ -35,8 +38,20 @@ export class StopCommand extends BaseCommand {
     this.audioPlayerManager.destroyAudioPlayer();
     this.audioPlayerManager.clearQueue();
 
-    interaction.reply(
-      "Stopped playing music. Use the play command to play music again",
+    // await interaction.reply({
+    //   embeds: [
+    //     new EmbedBuilder()
+    //       .setColor("Aqua")
+    //       .setAuthor({ name: "🛑 Stopped playback. 🛑" })
+    //       .setTitle(`${interaction.user} has stopped the music.`)
+    //       .addFields({
+    //         name: "\u200B",
+    //         value: "Start the music back up by using the play command!",
+    //       }),
+    //   ],
+    // });
+    return await interaction.reply(
+      `${interaction.user} has stopped the music.`,
     );
   }
 }
