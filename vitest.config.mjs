@@ -5,5 +5,6 @@ export default defineConfig({
     coverage: {
       enabled: true,
     },
+    onConsoleLog: false, // silences logs in the test output
   },
 });
