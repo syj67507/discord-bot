@@ -51,6 +51,12 @@ export class PlayCommand extends BaseCommand {
     const guild = interaction.guild;
     this.logger.log(`${channelId}, ${guildId}, ${guild}`);
     if (!channelId || !guildId || !guild) {
+      this.logger.error(
+        "Failed to join the voice channel with the following parameters:",
+      );
+      this.logger.error(`channelId: ${channelId}`);
+      this.logger.error(`guildId: ${guildId}`);
+      this.logger.error(`guild: ${JSON.stringify(guild)}`);
       await interaction.reply("Failed to join voice channel");
       return;
     }

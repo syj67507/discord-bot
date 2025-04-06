@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AudioPlayerManager } from "./audio-player.manager";
 import { LoggerProvider } from "../../providers/logger.provider";
 import { AudioResource, createAudioResource } from "@discordjs/voice";
-
+import { Readable } from "stream";
 describe("AudioPlayerManager", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -75,7 +75,7 @@ describe("AudioPlayerManager", () => {
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(0);
 
-      const audioResource = createAudioResource("test.webm");
+      const audioResource = createAudioResource(new Readable());
       audioPlayerManager.addToQueue(audioResource);
       const result = audioPlayerManager.getQueue().length;
 
@@ -84,7 +84,7 @@ describe("AudioPlayerManager", () => {
 
     it("should remove an audio resource from the queue successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
-      audioPlayerManager.addToQueue(createAudioResource("test.webm"));
+      audioPlayerManager.addToQueue(createAudioResource(new Readable()));
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(1);
 
@@ -100,8 +100,8 @@ describe("AudioPlayerManager", () => {
       expect(before).toEqual(0);
 
       // add songs to the queue
-      const audioResource = createAudioResource("test.webm");
-      const audioResource2 = createAudioResource("test2.webm");
+      const audioResource = createAudioResource(new Readable());
+      const audioResource2 = createAudioResource(new Readable());
       audioPlayerManager.addToTopOfQueue(audioResource);
       audioPlayerManager.addToQueue(audioResource2);
 
@@ -116,9 +116,9 @@ describe("AudioPlayerManager", () => {
 
     it("should add an audio resource to the top of the queue successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
-      const audioResource = createAudioResource("test.webm");
-      const audioResource2 = createAudioResource("test2.webm");
-      const audioResource3 = createAudioResource("test3.webm");
+      const audioResource = createAudioResource(new Readable());
+      const audioResource2 = createAudioResource(new Readable());
+      const audioResource3 = createAudioResource(new Readable());
       audioPlayerManager.addToQueue(audioResource);
       audioPlayerManager.addToQueue(audioResource2);
       audioPlayerManager.addToQueue(audioResource3);
