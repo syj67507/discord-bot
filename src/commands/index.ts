@@ -1,4 +1,4 @@
-import { PingCommand } from "./ping.command";
+import { PingCommand } from "./misc/ping.command";
 import { PlayCommand } from "./music/play.command";
 import { StopCommand } from "./music/stop.command";
 

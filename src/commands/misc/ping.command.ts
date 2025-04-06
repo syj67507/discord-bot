@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { BaseCommand } from "./base.command";
+import { BaseCommand } from "../base.command";
 import { inject, injectable } from "tsyringe";
-import { LoggerProvider } from "../providers/logger.provider";
+import { LoggerProvider } from "../../providers/logger.provider";
 
 @injectable()
 export class PingCommand extends BaseCommand {
