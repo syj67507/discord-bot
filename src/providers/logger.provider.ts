@@ -3,7 +3,7 @@ import { ContextProvider } from "./context.provider";
 
 @injectable()
 export class LoggerProvider {
-  loggerName = "";
+  private loggerName = "";
 
   constructor(
     @inject(ContextProvider)
