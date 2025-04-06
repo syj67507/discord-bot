@@ -31,6 +31,7 @@ export class PingCommand extends BaseCommand {
     if (replyOption) {
       message += ` ${replyOption}`;
     }
+
     await interaction.reply(message);
     this.logger.log("Finished ping command.");
   }
