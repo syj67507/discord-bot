@@ -33,6 +33,7 @@ export class StopCommand extends BaseCommand {
 
     this.audioPlayerManager.stopAudioPlayer();
     this.audioPlayerManager.destroyAudioPlayer();
+    this.audioPlayerManager.clearQueue();
 
     interaction.reply(
       "Stopped playing music. Use the play command to play music again",

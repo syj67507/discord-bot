@@ -25,6 +25,16 @@ export class AudioPlayerManager {
   createAudioPlayer() {
     this.logger.log("Creating audio player");
     this.audioPlayer = discordCreateAudioPlayer();
+    this.audioPlayer.on("stateChange", (oldState, newState) => {
+      this.logger.log("Switched states from", oldState.status, newState.status);
+    });
+  }
+
+  /**
+   * Returns the state of the audio player if one is defined
+   */
+  getState() {
+    return this.audioPlayer?.state.status;
   }
 
   /**

@@ -44,16 +44,14 @@ export class PlayCommand extends BaseCommand {
     this.logger.log("Starting play command...");
 
     const input = interaction.options.getString("input")!;
+    this.logger.log(`Options: input: ${input}`);
 
     const member = await interaction.guild?.members.fetch(interaction.user);
     const channelId = member?.voice.channelId;
     const guildId = interaction.guildId;
     const guild = interaction.guild;
-    this.logger.log(`${channelId}, ${guildId}, ${guild}`);
     if (!channelId || !guildId || !guild) {
-      this.logger.error(
-        "Failed to join the voice channel with the following parameters:",
-      );
+      this.logger.error("Failed to fetch voice channel parameters:");
       this.logger.error(`channelId: ${channelId}`);
       this.logger.error(`guildId: ${guildId}`);
       this.logger.error(`guild: ${JSON.stringify(guild)}`);
@@ -61,35 +59,62 @@ export class PlayCommand extends BaseCommand {
       return;
     }
 
-    joinVoiceChannel({
-      channelId: channelId,
-      guildId: guildId,
-      adapterCreator: guild?.voiceAdapterCreator,
-    });
+    if (!getVoiceConnection(guildId)) {
+      this.logger.log(
+        "Bot is not in the voice channel, creating voice connection",
+      );
+      joinVoiceChannel({
+        channelId: channelId,
+        guildId: guildId,
+        adapterCreator: guild?.voiceAdapterCreator,
+      });
+    }
 
-    this.audioPlayerManager.createAudioPlayer();
+    if (!this.audioPlayerManager.getAudioPlayer()) {
+      this.logger.log(
+        "Audio player has not been created, creating audio player...",
+      );
+      this.audioPlayerManager.createAudioPlayer();
+    }
     const audioPlayer = this.audioPlayerManager.getAudioPlayer();
     if (!audioPlayer) {
-      this.logger.log("Failed to create an audio player successfully");
+      this.logger.log("Failed to create the audio player");
       return;
     }
 
+    this.logger.debug("Searching YouTube for audio resource...");
     const searchResult = await yts(input!);
     const stream = ytdl(searchResult.videos[0].url, {
       filter: "audioonly",
       quality: "highestaudio",
       highWaterMark: 1 << 25, // helps with buffering
     });
-
     const resource = createAudioResource(stream);
-    audioPlayer.play(resource);
 
+    this.logger.log(
+      "Bot is already playing music, adding to the queue and exiting early",
+    );
+    if (this.audioPlayerManager.getState() === AudioPlayerStatus.Playing) {
+      await interaction.reply("Adding your song to the queue");
+      this.audioPlayerManager.addToQueue(resource);
+      return;
+    }
+
+    this.logger.log("Starting playback of audio resource");
+    audioPlayer.play(resource);
     const connection = getVoiceConnection(guildId);
     connection?.subscribe(audioPlayer);
 
     audioPlayer.on(AudioPlayerStatus.Idle, () => {
-      this.logger.log("Stopping audio player...");
-      audioPlayer.stop();
+      const nextResource = this.audioPlayerManager.removeFromQueue();
+      if (nextResource) {
+        audioPlayer.play(nextResource);
+        return;
+      }
+
+      this.logger.log("Stopping and destroying audio player...");
+      this.audioPlayerManager.stopAudioPlayer();
+      this.audioPlayerManager.destroyAudioPlayer();
     });
 
     interaction.reply("Playing...");

@@ -11,7 +11,7 @@ export class LoggerProvider {
   ) {}
 
   private generatePrefixContextString() {
-    return `[${new Date().toISOString()}] [${this.executionContext.correlationId}] | ${this.loggerName || "Unknown"} |`;
+    return `[${new Date().toISOString()}] [${this.executionContext.correlationId}] | ${this.loggerName.padEnd(18) || "Unknown".padEnd(20)} |`;
   }
 
   setName(name: string) {
