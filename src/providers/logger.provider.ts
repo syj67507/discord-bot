@@ -1,5 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import { ContextProvider } from "./context.provider";
+import { styleText } from "node:util";
 
 @injectable()
 export class LoggerProvider {
@@ -19,18 +20,38 @@ export class LoggerProvider {
   }
 
   log(...messages: string[]) {
-    console.log(this.generatePrefixContextString(), ...messages);
+    console.log(
+      styleText(
+        "green",
+        [this.generatePrefixContextString(), ...messages].join(" "),
+      ),
+    );
   }
 
   error(...messages: string[]) {
-    console.error(this.generatePrefixContextString(), ...messages);
+    console.error(
+      styleText(
+        "red",
+        [this.generatePrefixContextString(), ...messages].join(" "),
+      ),
+    );
   }
 
   warn(...messages: string[]) {
-    console.warn(this.generatePrefixContextString(), ...messages);
+    console.warn(
+      styleText(
+        "yellow",
+        [this.generatePrefixContextString(), ...messages].join(" "),
+      ),
+    );
   }
 
   debug(...messages: string[]) {
-    console.debug(this.generatePrefixContextString(), ...messages);
+    console.debug(
+      styleText(
+        "blue",
+        [this.generatePrefixContextString(), ...messages].join(" "),
+      ),
+    );
   }
 }

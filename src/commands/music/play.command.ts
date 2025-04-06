@@ -58,15 +58,14 @@ export class PlayCommand extends BaseCommand {
       await interaction.reply("Failed to join voice channel");
       return;
     }
-
-    if (!getVoiceConnection(guildId)) {
-      this.logger.log(
-        "Bot is not in the voice channel, creating voice connection",
+    if (getVoiceConnection(guildId)?.joinConfig.channelId !== channelId) {
+      this.logger.warn(
+        "Bot is not voice channel with the user, switching to the same voice channel...",
       );
       joinVoiceChannel({
         channelId: channelId,
         guildId: guildId,
-        adapterCreator: guild?.voiceAdapterCreator,
+        adapterCreator: guild.voiceAdapterCreator,
       });
     }
 

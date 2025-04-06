@@ -9,5 +9,5 @@ export const config = {
   guildId: process.env.DISCORD_GUILD_ID ?? "GUILD_ID_NOT_SET",
 
   // local development
-  reloadCommands: false,
+  reloadCommands: true,
 };

@@ -1,5 +1,6 @@
 import { PingCommand } from "./misc/ping.command";
 import { PlayCommand } from "./music/play.command";
+import { SkipCommand } from "./music/skip.command";
 import { StopCommand } from "./music/stop.command";
 
 /**
@@ -18,3 +19,4 @@ export const commands = new Map<string, any>();
 commands.set(PingCommand.registrationData.name, PingCommand);
 commands.set(PlayCommand.registrationData.name, PlayCommand);
 commands.set(StopCommand.registrationData.name, StopCommand);
+commands.set(SkipCommand.registrationData.name, SkipCommand);
