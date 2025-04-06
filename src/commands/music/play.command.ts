@@ -6,15 +6,12 @@ import {
 import { inject, injectable } from "tsyringe";
 import {
   AudioPlayerStatus,
-  createAudioResource,
   getVoiceConnection,
   joinVoiceChannel,
 } from "@discordjs/voice";
 import { AudioPlayerManager } from "./audio-player.manager";
 import { BaseCommand } from "../base.command";
 import { LoggerProvider } from "../../providers/logger.provider";
-import ytdl from "@distube/ytdl-core";
-import yts from "yt-search";
 
 @injectable()
 export class PlayCommand extends BaseCommand {
@@ -81,33 +78,27 @@ export class PlayCommand extends BaseCommand {
       return;
     }
 
-    this.logger.debug("Searching YouTube for audio resource...");
-    const searchResult = await yts(input!);
-    const stream = ytdl(searchResult.videos[0].url, {
-      filter: "audioonly",
-      quality: "highestaudio",
-      highWaterMark: 1 << 25, // helps with buffering
-    });
-    const resource = createAudioResource(stream);
+    this.logger.debug("Searching YouTube to create a track...");
+    const track = await this.audioPlayerManager.createYouTubeTrack(input);
 
     this.logger.log(
       "Bot is already playing music, adding to the queue and exiting early",
     );
     if (this.audioPlayerManager.getState() === AudioPlayerStatus.Playing) {
       await interaction.reply("Adding your song to the queue");
-      this.audioPlayerManager.addToQueue(resource);
+      this.audioPlayerManager.addToQueue(track);
       return;
     }
 
     this.logger.log("Starting playback of audio resource");
-    audioPlayer.play(resource);
+    audioPlayer.play(track.audioResource);
     const connection = getVoiceConnection(guildId);
     connection?.subscribe(audioPlayer);
 
     audioPlayer.on(AudioPlayerStatus.Idle, () => {
-      const nextResource = this.audioPlayerManager.removeFromQueue();
-      if (nextResource) {
-        audioPlayer.play(nextResource);
+      const nextTrack = this.audioPlayerManager.removeFromQueue();
+      if (nextTrack) {
+        audioPlayer.play(nextTrack.audioResource);
         return;
       }
 
@@ -116,7 +107,7 @@ export class PlayCommand extends BaseCommand {
       this.audioPlayerManager.destroyAudioPlayer();
     });
 
-    interaction.reply("Playing...");
+    await interaction.reply(`Playing ${track.duration} ${track.title}`);
     this.logger.log("Finished play command.");
   }
 }

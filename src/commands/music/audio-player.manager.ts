@@ -1,10 +1,13 @@
 import {
   AudioPlayer,
-  AudioResource,
+  createAudioResource,
   createAudioPlayer as discordCreateAudioPlayer,
 } from "@discordjs/voice";
 import { inject, singleton } from "tsyringe";
 import { LoggerProvider } from "../../providers/logger.provider";
+import { Track } from "./track";
+import yts from "yt-search";
+import ytdl from "@distube/ytdl-core";
 
 /**
  * A manager to help maintain discord audio players since these players need
@@ -13,7 +16,7 @@ import { LoggerProvider } from "../../providers/logger.provider";
 @singleton()
 export class AudioPlayerManager {
   private audioPlayer: AudioPlayer | undefined;
-  private queue: AudioResource[] = [];
+  private queue: Track[] = [];
   constructor(@inject(LoggerProvider) private readonly logger: LoggerProvider) {
     this.logger.setName(AudioPlayerManager.name);
   }
@@ -78,7 +81,7 @@ export class AudioPlayerManager {
   /**
    * Adds an audio resource to the end of the queue
    */
-  addToQueue(audioResource: AudioResource) {
+  addToQueue(audioResource: Track) {
     this.queue.push(audioResource);
   }
 
@@ -87,7 +90,7 @@ export class AudioPlayerManager {
    *
    * If there is nothing in the queue, then this will return undefined
    */
-  removeFromQueue(): AudioResource | undefined {
+  removeFromQueue(): Track | undefined {
     return this.queue.shift();
   }
 
@@ -95,7 +98,7 @@ export class AudioPlayerManager {
    * Similar to the addToQueue function but instead adds the resource to the top of the queue,
    * or the beginning
    */
-  addToTopOfQueue(audioResource: AudioResource) {
+  addToTopOfQueue(audioResource: Track) {
     this.queue.unshift(audioResource);
   }
 
@@ -104,5 +107,24 @@ export class AudioPlayerManager {
    */
   clearQueue() {
     this.queue = [];
+  }
+
+  /**
+   * Creates a new Track object from searching YouTube
+   * @param input The search string input
+   * @returns A track object that can be played by the audio player
+   */
+  async createYouTubeTrack(input: string): Promise<Track> {
+    const searchResult = await yts(input!);
+    const stream = ytdl(searchResult.videos[0].url, {
+      filter: "audioonly",
+      quality: "highestaudio",
+      highWaterMark: 1 << 25, // helps with buffering
+    });
+    return new Track(
+      searchResult.videos[0].title,
+      searchResult.videos[0].timestamp,
+      createAudioResource(stream),
+    );
   }
 }

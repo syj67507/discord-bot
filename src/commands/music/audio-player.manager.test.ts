@@ -3,12 +3,29 @@ import { container } from "tsyringe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AudioPlayerManager } from "./audio-player.manager";
 import { LoggerProvider } from "../../providers/logger.provider";
-import {
-  AudioResource,
-  createAudioResource,
-  StreamType,
-} from "@discordjs/voice";
+import { createAudioResource, StreamType } from "@discordjs/voice";
 import { Readable } from "stream";
+import { Track } from "./track";
+
+vi.mock("@distube/ytdl-core", () => ({
+  default: vi.fn(() => {
+    const mockStream = new Readable();
+    return mockStream;
+  }),
+}));
+
+vi.mock("yt-search", () => ({
+  default: vi.fn(() => {
+    return {
+      videos: [
+        {
+          title: "Mock Title",
+          timestamp: "12:34",
+        },
+      ],
+    };
+  }),
+}));
 
 describe("AudioPlayerManager", () => {
   beforeEach(() => {
@@ -67,10 +84,14 @@ describe("AudioPlayerManager", () => {
   });
 
   describe("queue", () => {
-    function createMockAudioResource() {
-      return createAudioResource(new Readable(), {
-        inputType: StreamType.WebmOpus,
-      });
+    function createMockTrack() {
+      return new Track(
+        "test title",
+        "duration",
+        createAudioResource(new Readable(), {
+          inputType: StreamType.WebmOpus,
+        }),
+      );
     }
 
     it("should start with an empty queue", () => {
@@ -86,7 +107,7 @@ describe("AudioPlayerManager", () => {
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(0);
 
-      const audioResource = createMockAudioResource();
+      const audioResource = createMockTrack();
       audioPlayerManager.addToQueue(audioResource);
       const result = audioPlayerManager.getQueue().length;
 
@@ -95,14 +116,14 @@ describe("AudioPlayerManager", () => {
 
     it("should remove an audio resource from the queue successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
-      audioPlayerManager.addToQueue(createMockAudioResource());
+      audioPlayerManager.addToQueue(createMockTrack());
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(1);
 
       const result = audioPlayerManager.removeFromQueue();
 
       expect(audioPlayerManager.getQueue().length).toEqual(0);
-      expect(result).toBeInstanceOf(AudioResource);
+      expect(result).toBeInstanceOf(Track);
     });
 
     it("should add an audio resource to the top of the queue successfully", () => {
@@ -111,8 +132,8 @@ describe("AudioPlayerManager", () => {
       expect(before).toEqual(0);
 
       // add songs to the queue
-      const audioResource = createMockAudioResource();
-      const audioResource2 = createMockAudioResource();
+      const audioResource = createMockTrack();
+      const audioResource2 = createMockTrack();
       audioPlayerManager.addToTopOfQueue(audioResource);
       audioPlayerManager.addToQueue(audioResource2);
 
@@ -127,9 +148,9 @@ describe("AudioPlayerManager", () => {
 
     it("should add an audio resource to the top of the queue successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
-      const audioResource = createMockAudioResource();
-      const audioResource2 = createMockAudioResource();
-      const audioResource3 = createMockAudioResource();
+      const audioResource = createMockTrack();
+      const audioResource2 = createMockTrack();
+      const audioResource3 = createMockTrack();
       audioPlayerManager.addToQueue(audioResource);
       audioPlayerManager.addToQueue(audioResource2);
       audioPlayerManager.addToQueue(audioResource3);
@@ -139,6 +160,18 @@ describe("AudioPlayerManager", () => {
       audioPlayerManager.clearQueue();
 
       expect(audioPlayerManager.getQueue().length).toEqual(0);
+    });
+  });
+
+  describe("misc", () => {
+    it("should be able to create a track from youtube", async () => {
+      const audioPlayerManager = container.resolve(AudioPlayerManager);
+
+      const track =
+        await audioPlayerManager.createYouTubeTrack("mock test input");
+
+      expect(track.title).toEqual("Mock Title");
+      expect(track.duration).toEqual("12:34");
     });
   });
 });

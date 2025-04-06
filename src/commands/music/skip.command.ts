@@ -60,8 +60,8 @@ export class SkipCommand extends BaseCommand {
       });
     }
 
-    const nextResource = this.audioPlayerManager.removeFromQueue();
-    if (!nextResource) {
+    const nextTrack = this.audioPlayerManager.removeFromQueue();
+    if (!nextTrack) {
       this.logger.log(
         "Nothing else is left in the queue, stopping the playback.",
       );
@@ -74,7 +74,7 @@ export class SkipCommand extends BaseCommand {
     }
 
     // we can assume that there is another resource to skip to
-    this.audioPlayerManager.getAudioPlayer()?.play(nextResource);
+    this.audioPlayerManager.getAudioPlayer()?.play(nextTrack.audioResource);
 
     await interaction.reply("Skipped");
     this.logger.log("Finished skip command.");
