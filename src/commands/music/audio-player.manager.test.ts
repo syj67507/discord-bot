@@ -3,7 +3,11 @@ import { container } from "tsyringe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AudioPlayerManager } from "./audio-player.manager";
 import { LoggerProvider } from "../../providers/logger.provider";
-import { AudioResource, createAudioResource } from "@discordjs/voice";
+import {
+  AudioResource,
+  createAudioResource,
+  StreamType,
+} from "@discordjs/voice";
 import { Readable } from "stream";
 describe("AudioPlayerManager", () => {
   beforeEach(() => {
@@ -75,7 +79,9 @@ describe("AudioPlayerManager", () => {
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(0);
 
-      const audioResource = createAudioResource(new Readable());
+      const audioResource = createAudioResource(new Readable(), {
+        inputType: StreamType.WebmOpus,
+      });
       audioPlayerManager.addToQueue(audioResource);
       const result = audioPlayerManager.getQueue().length;
 
@@ -84,7 +90,9 @@ describe("AudioPlayerManager", () => {
 
     it("should remove an audio resource from the queue successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
-      audioPlayerManager.addToQueue(createAudioResource(new Readable()));
+      audioPlayerManager.addToQueue(
+        createAudioResource(new Readable(), { inputType: StreamType.WebmOpus }),
+      );
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(1);
 
@@ -100,8 +108,12 @@ describe("AudioPlayerManager", () => {
       expect(before).toEqual(0);
 
       // add songs to the queue
-      const audioResource = createAudioResource(new Readable());
-      const audioResource2 = createAudioResource(new Readable());
+      const audioResource = createAudioResource(new Readable(), {
+        inputType: StreamType.WebmOpus,
+      });
+      const audioResource2 = createAudioResource(new Readable(), {
+        inputType: StreamType.WebmOpus,
+      });
       audioPlayerManager.addToTopOfQueue(audioResource);
       audioPlayerManager.addToQueue(audioResource2);
 
@@ -116,9 +128,15 @@ describe("AudioPlayerManager", () => {
 
     it("should add an audio resource to the top of the queue successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
-      const audioResource = createAudioResource(new Readable());
-      const audioResource2 = createAudioResource(new Readable());
-      const audioResource3 = createAudioResource(new Readable());
+      const audioResource = createAudioResource(new Readable(), {
+        inputType: StreamType.WebmOpus,
+      });
+      const audioResource2 = createAudioResource(new Readable(), {
+        inputType: StreamType.WebmOpus,
+      });
+      const audioResource3 = createAudioResource(new Readable(), {
+        inputType: StreamType.WebmOpus,
+      });
       audioPlayerManager.addToQueue(audioResource);
       audioPlayerManager.addToQueue(audioResource2);
       audioPlayerManager.addToQueue(audioResource3);
