@@ -6,6 +6,7 @@ import { LoggerProvider } from "../../providers/logger.provider";
 import { createAudioResource, StreamType } from "@discordjs/voice";
 import { Readable } from "stream";
 import { Track } from "./track";
+import { ChatInputCommandInteraction } from "discord.js";
 
 vi.mock("@distube/ytdl-core", () => ({
   default: vi.fn(() => {
@@ -21,6 +22,9 @@ vi.mock("yt-search", () => ({
         {
           title: "Mock Title",
           timestamp: "12:34",
+          author: {
+            name: "Mock Author",
+          },
         },
       ],
     };
@@ -28,6 +32,13 @@ vi.mock("yt-search", () => ({
 }));
 
 describe("AudioPlayerManager", () => {
+  const interaction = {
+    options: {
+      getString: vi.fn(),
+    },
+    reply: vi.fn(),
+  } as unknown as ChatInputCommandInteraction;
+
   beforeEach(() => {
     vi.restoreAllMocks();
 
@@ -42,7 +53,7 @@ describe("AudioPlayerManager", () => {
     it("should create an audio player successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
 
-      audioPlayerManager.createAudioPlayer();
+      audioPlayerManager.createAudioPlayer(interaction);
 
       expect(audioPlayerManager.getAudioPlayer()).toBeDefined();
     });
@@ -50,7 +61,7 @@ describe("AudioPlayerManager", () => {
     it("should stop an audio player successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
 
-      audioPlayerManager.createAudioPlayer();
+      audioPlayerManager.createAudioPlayer(interaction);
       audioPlayerManager.stopAudioPlayer();
 
       expect(audioPlayerManager.getAudioPlayer()).toBeDefined();
@@ -59,7 +70,7 @@ describe("AudioPlayerManager", () => {
     it("should destroy an audio player successfully", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
 
-      audioPlayerManager.createAudioPlayer();
+      audioPlayerManager.createAudioPlayer(interaction);
       audioPlayerManager.stopAudioPlayer();
       audioPlayerManager.destroyAudioPlayer();
 
@@ -69,7 +80,7 @@ describe("AudioPlayerManager", () => {
     it("should get an audio player successfully if created", () => {
       const audioPlayerManager = container.resolve(AudioPlayerManager);
 
-      audioPlayerManager.createAudioPlayer();
+      audioPlayerManager.createAudioPlayer(interaction);
 
       expect(audioPlayerManager.getAudioPlayer()).toBeDefined();
     });
@@ -85,13 +96,13 @@ describe("AudioPlayerManager", () => {
 
   describe("queue", () => {
     function createMockTrack() {
-      return new Track(
-        "test title",
-        "duration",
-        createAudioResource(new Readable(), {
+      return new Track({
+        title: "test title",
+        duration: "duration",
+        audioResource: createAudioResource(new Readable(), {
           inputType: StreamType.WebmOpus,
         }),
-      );
+      });
     }
 
     it("should start with an empty queue", () => {
@@ -172,6 +183,7 @@ describe("AudioPlayerManager", () => {
 
       expect(track.title).toEqual("Mock Title");
       expect(track.duration).toEqual("12:34");
+      expect(track.author).toEqual("Mock Author");
     });
   });
 });
