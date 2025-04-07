@@ -4,7 +4,6 @@ import {
   EmbedBuilder,
   InteractionContextType,
   InteractionResponse,
-  MessageFlags,
   SlashCommandBuilder,
 } from "discord.js";
 import { inject, injectable } from "tsyringe";
