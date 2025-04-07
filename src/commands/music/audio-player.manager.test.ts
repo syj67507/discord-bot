@@ -31,6 +31,14 @@ vi.mock("yt-search", () => ({
   }),
 }));
 
+// mocking createAudioResource because it defaults to using ffmpeg
+vi.mock("@discordjs/voice", async (importOriginal) => {
+  return {
+    ...(await importOriginal<typeof import("@discordjs/voice")>()),
+    createAudioResource: vi.fn().mockImplementation(() => ({})),
+  };
+});
+
 describe("AudioPlayerManager", () => {
   const interaction = {
     options: {
