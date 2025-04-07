@@ -1,15 +1,12 @@
 import {
   AudioPlayer,
   AudioPlayerStatus,
-  createAudioResource,
   createAudioPlayer as discordCreateAudioPlayer,
   entersState,
 } from "@discordjs/voice";
 import { inject, singleton } from "tsyringe";
 import { LoggerProvider } from "../../providers/logger.provider";
 import { Track } from "./track";
-import yts from "yt-search";
-import ytdl from "@distube/ytdl-core";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 
 /**
@@ -163,26 +160,5 @@ export class AudioPlayerManager {
    */
   clearQueue() {
     this.queue = [];
-  }
-
-  /**
-   * Creates a new Track object from searching YouTube
-   * @param input The search string input
-   * @returns A track object that can be played by the audio player
-   */
-  async createYouTubeTrack(input: string): Promise<Track> {
-    const searchResult = await yts(input!);
-    const stream = ytdl(searchResult.videos[0].url, {
-      filter: "audioonly",
-      quality: "highestaudio",
-      highWaterMark: 1 << 25, // helps with buffering
-    });
-    return new Track({
-      title: searchResult.videos[0].title,
-      duration: searchResult.videos[0].timestamp,
-      url: searchResult.videos[0].url,
-      author: searchResult.videos[0].author.name,
-      audioResource: createAudioResource(stream),
-    });
   }
 }

@@ -3,42 +3,10 @@ import { container } from "tsyringe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AudioPlayerManager } from "./audio-player.manager";
 import { LoggerProvider } from "../../providers/logger.provider";
-import { createAudioResource } from "@discordjs/voice";
+import { createAudioResource, StreamType } from "@discordjs/voice";
 import { Readable } from "stream";
 import { Track } from "./track";
 import { ChatInputCommandInteraction } from "discord.js";
-
-vi.mock("@distube/ytdl-core", () => ({
-  default: vi.fn(() => {
-    const mockStream = new Readable();
-    return mockStream;
-  }),
-}));
-
-vi.mock("yt-search", () => ({
-  default: vi.fn(() => {
-    return {
-      videos: [
-        {
-          title: "Mock Title",
-          timestamp: "12:34",
-          author: {
-            name: "Mock Author",
-          },
-        },
-      ],
-    };
-  }),
-}));
-
-// mocking createAudioResource because it defaults to using ffmpeg
-// when no StreamType options are passed
-vi.mock("@discordjs/voice", async (importOriginal) => {
-  return {
-    ...(await importOriginal<typeof import("@discordjs/voice")>()),
-    createAudioResource: vi.fn().mockImplementation(() => ({})),
-  };
-});
 
 describe("AudioPlayerManager", () => {
   const interaction = {
@@ -108,7 +76,9 @@ describe("AudioPlayerManager", () => {
       return new Track({
         title: "test title",
         duration: "duration",
-        audioResource: createAudioResource(new Readable()),
+        audioResource: createAudioResource(new Readable(), {
+          inputType: StreamType.WebmOpus,
+        }),
       });
     }
 
@@ -178,19 +148,6 @@ describe("AudioPlayerManager", () => {
       audioPlayerManager.clearQueue();
 
       expect(audioPlayerManager.getQueue().length).toEqual(0);
-    });
-  });
-
-  describe("misc", () => {
-    it("should be able to create a track from youtube", async () => {
-      const audioPlayerManager = container.resolve(AudioPlayerManager);
-
-      const track =
-        await audioPlayerManager.createYouTubeTrack("mock test input");
-
-      expect(track.title).toEqual("Mock Title");
-      expect(track.duration).toEqual("12:34");
-      expect(track.author).toEqual("Mock Author");
     });
   });
 });

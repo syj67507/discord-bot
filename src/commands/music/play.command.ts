@@ -4,18 +4,21 @@ import {
   EmbedBuilder,
   InteractionContextType,
   InteractionResponse,
+  MessageFlags,
   SlashCommandBuilder,
 } from "discord.js";
 import { inject, injectable } from "tsyringe";
 import {
   AudioPlayerStatus,
+  createAudioResource,
   getVoiceConnection,
   joinVoiceChannel,
 } from "@discordjs/voice";
 import { AudioPlayerManager } from "./audio-player.manager";
 import { BaseCommand } from "../base.command";
 import { LoggerProvider } from "../../providers/logger.provider";
-import yts from "yt-search";
+import { YouTubeClient } from "./youtube.client";
+import { Track } from "./track";
 
 @injectable()
 export class PlayCommand extends BaseCommand {
@@ -23,6 +26,7 @@ export class PlayCommand extends BaseCommand {
     @inject(LoggerProvider) private readonly logger: LoggerProvider,
     @inject(AudioPlayerManager)
     private readonly audioPlayerManager: AudioPlayerManager,
+    @inject(YouTubeClient) private readonly youtubeClient: YouTubeClient,
   ) {
     super();
     this.logger.setName(PlayCommand.name);
@@ -51,10 +55,19 @@ export class PlayCommand extends BaseCommand {
     }
 
     // finds the results from YouTube and cleans them up to show 10 results
-    const searchResults = await yts(focusedValue);
-    const options = searchResults.videos.slice(0, 10).map((video) => {
+    const searchResults = await this.youtubeClient.search(focusedValue, {
+      count: 10,
+    });
+
+    const options = searchResults.map((video) => {
+      // option names can't be longer than 100 characters so truncating it
+      let name = `[${video.timestamp}] ${video.title}`;
+      if (name.length > 95) {
+        name = `${name.slice(0, 95)}...`;
+      }
+
       return {
-        name: `${`[${video.timestamp}] ${video.title}`.slice(0, 95)}...`, // options can't be longer than 100 characters
+        name: name,
         value: video.url,
       };
     });
@@ -106,7 +119,15 @@ export class PlayCommand extends BaseCommand {
     }
 
     this.logger.debug("Searching YouTube to create a track...");
-    const track = await this.audioPlayerManager.createYouTubeTrack(input);
+    const searchResult = await this.youtubeClient.search(input);
+    const stream = this.youtubeClient.getAudioStream(searchResult[0].url);
+    const track = new Track({
+      title: searchResult[0].title,
+      url: searchResult[0].url,
+      duration: searchResult[0].timestamp,
+      author: searchResult[0].author.name,
+      audioResource: createAudioResource(stream),
+    });
 
     this.logger.log(
       "Bot is already playing music, adding to the queue and exiting early",
@@ -132,14 +153,7 @@ export class PlayCommand extends BaseCommand {
 
     this.logger.log("Finished play command.");
     return await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor("Aqua")
-          .setAuthor({ name: "🎶 Started playback! 🎶" })
-          .setTitle(`[${track.duration}] ${track.title}`)
-          .setURL(`${track.url}`)
-          .addFields({ name: "\u200B", value: track.author }),
-      ],
+      content: `${interaction.user} has started playback!`,
     });
   }
 }
