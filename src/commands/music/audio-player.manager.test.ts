@@ -3,7 +3,7 @@ import { container } from "tsyringe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AudioPlayerManager } from "./audio-player.manager";
 import { LoggerProvider } from "../../providers/logger.provider";
-import { createAudioResource, StreamType } from "@discordjs/voice";
+import { createAudioResource } from "@discordjs/voice";
 import { Readable } from "stream";
 import { Track } from "./track";
 import { ChatInputCommandInteraction } from "discord.js";
