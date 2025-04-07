@@ -1,4 +1,5 @@
 import {
+  AutocompleteInteraction,
   ChatInputCommandInteraction,
   EmbedBuilder,
   InteractionContextType,
@@ -14,6 +15,7 @@ import {
 import { AudioPlayerManager } from "./audio-player.manager";
 import { BaseCommand } from "../base.command";
 import { LoggerProvider } from "../../providers/logger.provider";
+import yts from "yt-search";
 
 @injectable()
 export class PlayCommand extends BaseCommand {
@@ -35,9 +37,31 @@ export class PlayCommand extends BaseCommand {
         .setDescription(
           "A url or search input for the video to play from YouTube",
         )
-        .setRequired(true),
+        .setRequired(true)
+        .setAutocomplete(true),
     )
     .setContexts([InteractionContextType.Guild]);
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    // gets the user's current input value
+    const focusedValue = interaction.options.getFocused();
+    if (focusedValue === "") {
+      await interaction.respond([]);
+      return;
+    }
+
+    // finds the results from YouTube and cleans them up to show 10 results
+    const searchResults = await yts(focusedValue);
+    const options = searchResults.videos.slice(0, 10).map((video) => {
+      return {
+        name: `${`[${video.timestamp}] ${video.title}`.slice(0, 95)}...`, // options can't be longer than 100 characters
+        value: video.url,
+      };
+    });
+
+    // send them back to the user
+    await interaction.respond(options);
+  }
 
   async execute(
     interaction: ChatInputCommandInteraction,
