@@ -32,6 +32,7 @@ vi.mock("yt-search", () => ({
 }));
 
 // mocking createAudioResource because it defaults to using ffmpeg
+// when no StreamType options are passed
 vi.mock("@discordjs/voice", async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import("@discordjs/voice")>()),
@@ -107,9 +108,7 @@ describe("AudioPlayerManager", () => {
       return new Track({
         title: "test title",
         duration: "duration",
-        audioResource: createAudioResource(new Readable(), {
-          inputType: StreamType.WebmOpus,
-        }),
+        audioResource: createAudioResource(new Readable()),
       });
     }
 
