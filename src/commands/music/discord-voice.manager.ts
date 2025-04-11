@@ -3,22 +3,29 @@ import {
   AudioPlayerStatus,
   createAudioPlayer as discordCreateAudioPlayer,
   entersState,
+  getVoiceConnection as djsGetVoiceConnection,
+  joinVoiceChannel as djsJoinVoiceChannel,
+  createAudioResource as djsCreateAudioStream,
+  AudioResource,
 } from "@discordjs/voice";
 import { inject, singleton } from "tsyringe";
 import { LoggerProvider } from "../../providers/logger.provider";
 import { Track } from "./track";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import Stream from "stream";
 
 /**
- * A manager to help maintain discord audio players since these players need
- * to be shared across different command executions
+ * A manager to help maintain and wrap voice related functionality for discord bots.
+ *
+ * The decision was made to wrap the discord voice calls instead of using them directly for
+ * ease of maintaining unit tests and for dependency injection
  */
 @singleton()
-export class AudioPlayerManager {
+export class DiscordVoiceManager {
   private audioPlayer: AudioPlayer | undefined;
   private queue: Track[] = [];
   constructor(@inject(LoggerProvider) private readonly logger: LoggerProvider) {
-    this.logger.setName(AudioPlayerManager.name);
+    this.logger.setName(DiscordVoiceManager.name);
   }
 
   /**
@@ -43,7 +50,7 @@ export class AudioPlayerManager {
     this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
       const nextTrack = this.removeFromQueue();
       if (nextTrack) {
-        this.play(interaction, nextTrack);
+        this.startPlayback(interaction, nextTrack);
         return;
       }
 
@@ -98,28 +105,6 @@ export class AudioPlayerManager {
     return this.audioPlayer;
   }
 
-  async play(interaction: ChatInputCommandInteraction, track: Track) {
-    if (!this.audioPlayer) {
-      return;
-    }
-    this.audioPlayer?.play(track.audioResource);
-
-    // Upon entering the playing state, send a message saying what is being played
-    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5_000);
-    const replyEmbed = new EmbedBuilder()
-      .setColor("Aqua")
-      .setAuthor({ name: "🎶 Playing now! 🎶" })
-      .setTitle(`[${track.duration}] ${track.title}`)
-      .setURL(`${track.url}`)
-      .addFields({ name: "\u200B", value: track.author });
-
-    if (interaction.channel?.isSendable()) {
-      await interaction.channel.send({
-        embeds: [replyEmbed],
-      });
-    }
-  }
-
   /**
    * Returns the queue array object
    *
@@ -160,5 +145,83 @@ export class AudioPlayerManager {
    */
   clearQueue() {
     this.queue = [];
+  }
+
+  /**
+   * A wrapper around the @discordjs/voice joinVoiceChannel function.
+   *
+   * It will do extra checks to join the voice channel that the user is currently. If the bot is
+   * already in the voice channel then this function will do nothing.
+   */
+  async joinVoiceChannel(interaction: ChatInputCommandInteraction) {
+    const member = await interaction.guild?.members.fetch(interaction.user);
+    const channelId = member?.voice.channelId;
+    const guildId = interaction.guildId;
+    const guild = interaction.guild;
+    if (!channelId || !guildId || !guild) {
+      this.logger.error("Failed to fetch voice channel parameters:");
+      this.logger.error(`channelId: ${channelId}`);
+      this.logger.error(`guildId: ${guildId}`);
+      this.logger.error(`guild: ${JSON.stringify(guild)}`);
+      throw new Error("Failed to join voice channel");
+    }
+
+    const voiceChannel = djsGetVoiceConnection(guildId);
+    if (voiceChannel?.joinConfig.channelId === channelId) {
+      this.logger.debug("Bot is already in the voice channel with the user");
+      return;
+    }
+
+    this.logger.debug(
+      `Joining the voice channel ${member?.voice.channel?.name}`,
+    );
+    djsJoinVoiceChannel({
+      channelId: channelId,
+      guildId: guildId,
+      adapterCreator: guild.voiceAdapterCreator,
+    });
+  }
+
+  createAudioStream(input: Stream.Readable | string): AudioResource {
+    return djsCreateAudioStream(input);
+  }
+
+  /**
+   * Starts playback for the bot. If any conditions needed to start playback aren't met,
+   * then this bot will return early and do nothing
+   *
+   * @param interaction the interaction that is associated with the slash command
+   * @param track the track to play
+   * @returns
+   */
+  async startPlayback(interaction: ChatInputCommandInteraction, track: Track) {
+    if (!this.audioPlayer) {
+      this.logger.error("Unable to play: Audio player is not defined");
+      return;
+    }
+    if (!interaction.guildId) {
+      this.logger.error("Unable to play: interaction.guildId is not defined");
+      return;
+    }
+
+    // Starts the audio playback on the player and voice connection
+    this.audioPlayer?.play(track.audioResource);
+    const connection = djsGetVoiceConnection(interaction.guildId);
+    connection?.subscribe(this.audioPlayer);
+
+    // Upon entering the playing state, send a message saying what is being played
+    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5_000);
+    const replyEmbed = new EmbedBuilder()
+      .setColor("Aqua")
+      .setAuthor({ name: "🎶 Playing now! 🎶" })
+      .setTitle(`[${track.duration}] ${track.title}`)
+      .setURL(`${track.url}`)
+      .addFields({ name: "\u200B", value: track.author });
+
+    if (interaction.channel?.isSendable()) {
+      await interaction.channel.send({
+        embeds: [replyEmbed],
+      });
+    }
   }
 }

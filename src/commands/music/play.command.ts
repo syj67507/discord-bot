@@ -1,30 +1,24 @@
 import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
-  EmbedBuilder,
   InteractionContextType,
   InteractionResponse,
   SlashCommandBuilder,
 } from "discord.js";
 import { inject, injectable } from "tsyringe";
-import {
-  AudioPlayerStatus,
-  createAudioResource,
-  getVoiceConnection,
-  joinVoiceChannel,
-} from "@discordjs/voice";
-import { AudioPlayerManager } from "./audio-player.manager";
+import { DiscordVoiceManager } from "./discord-voice.manager";
 import { BaseCommand } from "../base.command";
 import { LoggerProvider } from "../../providers/logger.provider";
 import { YouTubeClient } from "./youtube.client";
 import { Track } from "./track";
+import { AudioPlayerStatus } from "@discordjs/voice";
 
 @injectable()
 export class PlayCommand extends BaseCommand {
   constructor(
     @inject(LoggerProvider) private readonly logger: LoggerProvider,
-    @inject(AudioPlayerManager)
-    private readonly audioPlayerManager: AudioPlayerManager,
+    @inject(DiscordVoiceManager)
+    private readonly discordVoiceManager: DiscordVoiceManager,
     @inject(YouTubeClient) private readonly youtubeClient: YouTubeClient,
   ) {
     super();
@@ -83,38 +77,18 @@ export class PlayCommand extends BaseCommand {
     const input = interaction.options.getString("input")!;
     this.logger.log(`Options: input: ${input}`);
 
-    const member = await interaction.guild?.members.fetch(interaction.user);
-    const channelId = member?.voice.channelId;
-    const guildId = interaction.guildId;
-    const guild = interaction.guild;
-    if (!channelId || !guildId || !guild) {
-      this.logger.error("Failed to fetch voice channel parameters:");
-      this.logger.error(`channelId: ${channelId}`);
-      this.logger.error(`guildId: ${guildId}`);
-      this.logger.error(`guild: ${JSON.stringify(guild)}`);
-      return await interaction.reply("Failed to join voice channel");
-    }
-    if (getVoiceConnection(guildId)?.joinConfig.channelId !== channelId) {
-      this.logger.warn(
-        "Bot is not voice channel with the user, switching to the same voice channel...",
-      );
-      joinVoiceChannel({
-        channelId: channelId,
-        guildId: guildId,
-        adapterCreator: guild.voiceAdapterCreator,
-      });
+    try {
+      await this.discordVoiceManager.joinVoiceChannel(interaction);
+    } catch (error) {
+      this.logger.error((error as Error).message);
+      return await interaction.reply("Unable to join the voice channel.");
     }
 
-    if (!this.audioPlayerManager.getAudioPlayer()) {
+    if (!this.discordVoiceManager.getAudioPlayer()) {
       this.logger.log(
         "Audio player has not been created, creating audio player...",
       );
-      this.audioPlayerManager.createAudioPlayer(interaction);
-    }
-    const audioPlayer = this.audioPlayerManager.getAudioPlayer();
-    if (!audioPlayer) {
-      this.logger.error("Failed to create the audio player");
-      return await interaction.reply("Failed to create the audio player");
+      this.discordVoiceManager.createAudioPlayer(interaction);
     }
 
     this.logger.debug("Searching YouTube to create a track...");
@@ -125,30 +99,29 @@ export class PlayCommand extends BaseCommand {
       url: searchResult[0].url,
       duration: searchResult[0].timestamp,
       author: searchResult[0].author.name,
-      audioResource: createAudioResource(stream),
+      audioResource: this.discordVoiceManager.createAudioStream(stream),
     });
 
     this.logger.log(
       "Bot is already playing music, adding to the queue and exiting early",
     );
-    if (this.audioPlayerManager.getState() === AudioPlayerStatus.Playing) {
-      this.audioPlayerManager.addToQueue(track);
+    if (this.discordVoiceManager.getState() === AudioPlayerStatus.Playing) {
+      this.discordVoiceManager.addToQueue(track);
       return await interaction.reply({
         embeds: [
-          new EmbedBuilder()
-            .setColor("Aqua")
-            .setAuthor({ name: "⏭️ Adding to the queue! ⏭️" })
-            .setTitle(`[${track.duration}] ${track.title}`)
-            .setURL(`${track.url}`)
-            .addFields({ name: "\u200B", value: track.author }),
+          {
+            color: 0xffffff,
+            title: `[${track.duration}] ${track.title}`,
+            author: { name: "⏭️ Adding to the queue! ⏭️" },
+            url: track.url,
+            fields: [{ name: "\u200B", value: track.author }],
+          },
         ],
       });
     }
 
     this.logger.log("Starting playback of audio resource");
-    this.audioPlayerManager.play(interaction, track);
-    const connection = getVoiceConnection(guildId);
-    connection?.subscribe(audioPlayer);
+    this.discordVoiceManager.startPlayback(interaction, track);
 
     this.logger.log("Finished play command.");
     return await interaction.reply({

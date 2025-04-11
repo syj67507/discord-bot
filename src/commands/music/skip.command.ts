@@ -4,7 +4,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { inject, injectable } from "tsyringe";
-import { AudioPlayerManager } from "./audio-player.manager";
+import { DiscordVoiceManager } from "./discord-voice.manager";
 import { BaseCommand } from "../base.command";
 import { LoggerProvider } from "../../providers/logger.provider";
 import {
@@ -17,8 +17,8 @@ import {
 export class SkipCommand extends BaseCommand {
   constructor(
     @inject(LoggerProvider) private readonly logger: LoggerProvider,
-    @inject(AudioPlayerManager)
-    private readonly audioPlayerManager: AudioPlayerManager,
+    @inject(DiscordVoiceManager)
+    private readonly audioPlayerManager: DiscordVoiceManager,
   ) {
     super();
     this.logger.setName(SkipCommand.name);
@@ -73,7 +73,7 @@ export class SkipCommand extends BaseCommand {
     }
 
     // we can assume that there is another resource to skip to
-    this.audioPlayerManager.play(interaction, nextTrack);
+    this.audioPlayerManager.startPlayback(interaction, nextTrack);
 
     this.logger.log("Finished skip command.");
     return await interaction.reply("Skipped");

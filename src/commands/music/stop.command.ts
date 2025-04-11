@@ -8,14 +8,14 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { getVoiceConnection } from "@discordjs/voice";
-import { AudioPlayerManager } from "./audio-player.manager";
+import { DiscordVoiceManager } from "./discord-voice.manager";
 
 @injectable()
 export class StopCommand extends BaseCommand {
   constructor(
     @inject(LoggerProvider) private readonly logger: LoggerProvider,
-    @inject(AudioPlayerManager)
-    private readonly audioPlayerManager: AudioPlayerManager,
+    @inject(DiscordVoiceManager)
+    private readonly audioPlayerManager: DiscordVoiceManager,
   ) {
     super();
   }
