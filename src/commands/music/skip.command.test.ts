@@ -32,25 +32,22 @@ describe("SkipCommand", () => {
     vi.resetModules();
 
     // Mock the discord voice manager, must be done this way due to resolving dependency injection
-    container.registerInstance<DiscordVoiceInterface>(
-      DiscordVoiceService,
-      {
-        createAudioPlayer: vi.fn(),
-        getState: vi.fn(),
-        stopAudioPlayer: vi.fn(),
-        destroyAudioPlayer: vi.fn(),
-        getAudioPlayer: vi.fn(),
-        getQueue: vi.fn(),
-        addToQueue: vi.fn(),
-        removeFromQueue: vi.fn(),
-        addToTopOfQueue: vi.fn(),
-        clearQueue: vi.fn(),
-        joinVoiceChannel: vi.fn(),
-        createAudioStream: vi.fn(),
-        startPlayback: vi.fn(),
-        destroyVoiceConnection: vi.fn(),
-      },
-    );
+    container.registerInstance<DiscordVoiceInterface>(DiscordVoiceService, {
+      createAudioPlayer: vi.fn(),
+      getState: vi.fn(),
+      stopAudioPlayer: vi.fn(),
+      destroyAudioPlayer: vi.fn(),
+      getAudioPlayer: vi.fn(),
+      getQueue: vi.fn(),
+      addToQueue: vi.fn(),
+      removeFromQueue: vi.fn(),
+      addToTopOfQueue: vi.fn(),
+      clearQueue: vi.fn(),
+      joinVoiceChannel: vi.fn(),
+      createAudioStream: vi.fn(),
+      startPlayback: vi.fn(),
+      destroyVoiceConnection: vi.fn(),
+    });
   });
 
   it("should return and reply early if the bot is not playing anything", async () => {
