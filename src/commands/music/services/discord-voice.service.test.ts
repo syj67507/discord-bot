@@ -8,7 +8,7 @@ import { Readable } from "stream";
 import { Track } from "../track";
 import { ChatInputCommandInteraction } from "discord.js";
 
-describe("AudioPlayerManager", () => {
+describe("DiscordVoiceManager", () => {
   const interaction = {
     options: {
       getString: vi.fn(),

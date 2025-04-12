@@ -24,7 +24,7 @@ import { DiscordVoiceInterface } from "./discord-voice.interface";
  */
 @singleton() // singleton because we want to keep track of one single queue and audio player
 export class DiscordVoiceService implements DiscordVoiceInterface {
-  audioPlayer: AudioPlayer | undefined;
+  private audioPlayer: AudioPlayer | undefined;
   private queue: Track[] = [];
   constructor(@inject(LoggerProvider) readonly logger: LoggerProvider) {
     this.logger.setName(DiscordVoiceService.name);
