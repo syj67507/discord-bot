@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DiscordVoiceManager } from "./discord-voice.manager";
-import { LoggerProvider } from "../../providers/logger.provider";
+import { DiscordVoiceService } from "./discord-voice.service";
+import { LoggerProvider } from "../../../providers/logger.provider";
 import { createAudioResource, StreamType } from "@discordjs/voice";
 import { Readable } from "stream";
-import { Track } from "./track";
+import { Track } from "../track";
 import { ChatInputCommandInteraction } from "discord.js";
 
 describe("AudioPlayerManager", () => {
@@ -21,14 +21,14 @@ describe("AudioPlayerManager", () => {
 
     // Creating a new instance of the manager so that we have a unique instance for each test
     container.registerInstance(
-      DiscordVoiceManager,
-      new DiscordVoiceManager(container.resolve(LoggerProvider)),
+      DiscordVoiceService,
+      new DiscordVoiceService(container.resolve(LoggerProvider)),
     );
   });
 
   describe("audio player", () => {
     it("should create an audio player successfully", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
 
       audioPlayerManager.createAudioPlayer(interaction);
 
@@ -36,7 +36,7 @@ describe("AudioPlayerManager", () => {
     });
 
     it("should stop an audio player successfully", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
 
       audioPlayerManager.createAudioPlayer(interaction);
       audioPlayerManager.stopAudioPlayer();
@@ -45,7 +45,7 @@ describe("AudioPlayerManager", () => {
     });
 
     it("should destroy an audio player successfully", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
 
       audioPlayerManager.createAudioPlayer(interaction);
       audioPlayerManager.stopAudioPlayer();
@@ -55,7 +55,7 @@ describe("AudioPlayerManager", () => {
     });
 
     it("should get an audio player successfully if created", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
 
       audioPlayerManager.createAudioPlayer(interaction);
 
@@ -63,7 +63,7 @@ describe("AudioPlayerManager", () => {
     });
 
     it("should return undefined if an audio player was not created", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
 
       audioPlayerManager.getAudioPlayer();
 
@@ -83,7 +83,7 @@ describe("AudioPlayerManager", () => {
     }
 
     it("should start with an empty queue", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
 
       const result = audioPlayerManager.getQueue();
 
@@ -91,7 +91,7 @@ describe("AudioPlayerManager", () => {
     });
 
     it("should add an audio resource to the queue successfully", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(0);
 
@@ -103,7 +103,7 @@ describe("AudioPlayerManager", () => {
     });
 
     it("should remove an audio resource from the queue successfully", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
       audioPlayerManager.addToQueue(createMockTrack());
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(1);
@@ -115,7 +115,7 @@ describe("AudioPlayerManager", () => {
     });
 
     it("should add an audio resource to the top of the queue successfully", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
       const before = audioPlayerManager.getQueue().length;
       expect(before).toEqual(0);
 
@@ -135,7 +135,7 @@ describe("AudioPlayerManager", () => {
     });
 
     it("should add an audio resource to the top of the queue successfully", () => {
-      const audioPlayerManager = container.resolve(DiscordVoiceManager);
+      const audioPlayerManager = container.resolve(DiscordVoiceService);
       const audioResource = createMockTrack();
       const audioResource2 = createMockTrack();
       const audioResource3 = createMockTrack();

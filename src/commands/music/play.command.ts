@@ -6,10 +6,10 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { inject, injectable } from "tsyringe";
-import { DiscordVoiceManager } from "./discord-voice.manager";
+import { DiscordVoiceService } from "./services/discord-voice.service";
 import { BaseCommand } from "../base.command";
 import { LoggerProvider } from "../../providers/logger.provider";
-import { YouTubeClient } from "./youtube.client";
+import { YouTubeService } from "./services/youtube.service";
 import { Track } from "./track";
 import { AudioPlayerStatus } from "@discordjs/voice";
 
@@ -17,9 +17,9 @@ import { AudioPlayerStatus } from "@discordjs/voice";
 export class PlayCommand extends BaseCommand {
   constructor(
     @inject(LoggerProvider) private readonly logger: LoggerProvider,
-    @inject(DiscordVoiceManager)
-    private readonly discordVoiceManager: DiscordVoiceManager,
-    @inject(YouTubeClient) private readonly youtubeClient: YouTubeClient,
+    @inject(DiscordVoiceService)
+    private readonly discordVoiceService: DiscordVoiceService,
+    @inject(YouTubeService) private readonly youtubeService: YouTubeService,
   ) {
     super();
     this.logger.setName(PlayCommand.name);
@@ -48,7 +48,7 @@ export class PlayCommand extends BaseCommand {
     }
 
     // finds the results from YouTube and cleans them up to show 10 results
-    const searchResults = await this.youtubeClient.search(focusedValue, {
+    const searchResults = await this.youtubeService.search(focusedValue, {
       count: 10,
     });
 
@@ -78,35 +78,35 @@ export class PlayCommand extends BaseCommand {
     this.logger.log(`Options: input: ${input}`);
 
     try {
-      await this.discordVoiceManager.joinVoiceChannel(interaction);
+      await this.discordVoiceService.joinVoiceChannel(interaction);
     } catch (error) {
       this.logger.error((error as Error).message);
       return await interaction.reply("Unable to join the voice channel.");
     }
 
-    if (!this.discordVoiceManager.getAudioPlayer()) {
+    if (!this.discordVoiceService.getAudioPlayer()) {
       this.logger.log(
         "Audio player has not been created, creating audio player...",
       );
-      this.discordVoiceManager.createAudioPlayer(interaction);
+      this.discordVoiceService.createAudioPlayer(interaction);
     }
 
     this.logger.debug("Searching YouTube to create a track...");
-    const searchResult = await this.youtubeClient.search(input);
-    const stream = this.youtubeClient.getAudioStream(searchResult[0].url);
+    const searchResult = await this.youtubeService.search(input);
+    const stream = this.youtubeService.getAudioStream(searchResult[0].url);
     const track = new Track({
       title: searchResult[0].title,
       url: searchResult[0].url,
       duration: searchResult[0].timestamp,
       author: searchResult[0].author.name,
-      audioResource: this.discordVoiceManager.createAudioStream(stream),
+      audioResource: this.discordVoiceService.createAudioStream(stream),
     });
 
-    this.logger.log(
-      "Bot is already playing music, adding to the queue and exiting early",
-    );
-    if (this.discordVoiceManager.getState() === AudioPlayerStatus.Playing) {
-      this.discordVoiceManager.addToQueue(track);
+    if (this.discordVoiceService.getState() === AudioPlayerStatus.Playing) {
+      this.logger.log(
+        "Bot is already playing music, adding to the queue and exiting early",
+      );
+      this.discordVoiceService.addToQueue(track);
       return await interaction.reply({
         embeds: [
           {
@@ -121,7 +121,7 @@ export class PlayCommand extends BaseCommand {
     }
 
     this.logger.log("Starting playback of audio resource");
-    this.discordVoiceManager.startPlayback(interaction, track);
+    this.discordVoiceService.startPlayback(interaction, track);
 
     this.logger.log("Finished play command.");
     return await interaction.reply({

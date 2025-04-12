@@ -6,15 +6,11 @@ import {
 } from "discord.js";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 import { PlayCommand } from "./play.command";
-import { YouTubeClient } from "./youtube.client";
+import { YouTubeService } from "./services/youtube.service";
 import yts from "yt-search";
-import { DiscordVoiceManager } from "./discord-voice.manager";
-import { PassThrough } from "stream";
-import {
-  AudioPlayerStatus,
-  createAudioResource,
-  StreamType,
-} from "@discordjs/voice";
+import { DiscordVoiceService } from "./services/discord-voice.service";
+import { AudioPlayerStatus } from "@discordjs/voice";
+import { DiscordVoiceInterface } from "./services/discord-voice.interface";
 
 describe("PlayCommand", () => {
   const autocompleteInteraction = {
@@ -23,27 +19,16 @@ describe("PlayCommand", () => {
       getFocused: vi.fn(),
     },
   } as unknown as AutocompleteInteraction;
+
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetAllMocks();
     vi.restoreAllMocks();
     vi.resetModules();
 
-    // registering a mock of the YouTubeClient before each test
-    container.registerInstance(YouTubeClient, {
-      search: vi.fn(),
-      isValidYouTubeUrl: vi.fn(),
-      getAudioStream: vi.fn(),
-    });
-  });
-
-  describe("autocomplete", () => {
-    test("the autocomplete function", async () => {
-      const playCommand = container.resolve(PlayCommand);
-      const youtubeClient = container.resolve(YouTubeClient);
-      const respondSpy = vi.spyOn(autocompleteInteraction, "respond");
-
-      vi.spyOn(youtubeClient, "search").mockImplementation(async () => {
+    // registering a mock of the YouTubeClient before each test, must be done this way due to resolving dependency injection
+    container.registerInstance(YouTubeService, {
+      search: vi.fn().mockImplementation(() => {
         const result: yts.VideoSearchResult = {
           type: "video",
           videoId: "",
@@ -66,7 +51,34 @@ describe("PlayCommand", () => {
           },
         };
         return [result];
-      });
+      }),
+      getAudioStream: vi.fn(),
+    });
+
+    // Mock the discord voice manager, must be done this way due to resolving dependency injection
+    container.registerInstance<DiscordVoiceInterface>(DiscordVoiceService, {
+      createAudioPlayer: vi.fn(),
+      getState: vi.fn(),
+      stopAudioPlayer: vi.fn(),
+      destroyAudioPlayer: vi.fn(),
+      getAudioPlayer: vi.fn(),
+      getQueue: vi.fn(),
+      addToQueue: vi.fn(),
+      removeFromQueue: vi.fn(),
+      addToTopOfQueue: vi.fn(),
+      clearQueue: vi.fn(),
+      joinVoiceChannel: vi.fn(),
+      createAudioStream: vi.fn(),
+      startPlayback: vi.fn(),
+      destroyVoiceConnection: vi.fn(),
+    });
+  });
+
+  describe("autocomplete", () => {
+    test("the autocomplete function should respond with an option", async () => {
+      const playCommand = container.resolve(PlayCommand);
+      const respondSpy = vi.spyOn(autocompleteInteraction, "respond");
+
       vi.spyOn(
         autocompleteInteraction.options,
         "getFocused",
@@ -84,12 +96,13 @@ describe("PlayCommand", () => {
       ]);
     });
 
-    test("the autocomplete function with a really long title", async () => {
+    test("the autocomplete function should parse a really long title and respond with an option", async () => {
       const playCommand = container.resolve(PlayCommand);
-      const youtubeClient = container.resolve(YouTubeClient);
+      const youtubeService = container.resolve(YouTubeService);
       const respondSpy = vi.spyOn(autocompleteInteraction, "respond");
 
-      vi.spyOn(youtubeClient, "search").mockImplementation(async () => {
+      // overwriting mock to return a video with a really long title
+      vi.spyOn(youtubeService, "search").mockImplementation(async () => {
         const result: yts.VideoSearchResult = {
           type: "video",
           videoId: "",
@@ -113,6 +126,7 @@ describe("PlayCommand", () => {
         };
         return [result];
       });
+
       vi.spyOn(
         autocompleteInteraction.options,
         "getFocused",
@@ -130,7 +144,7 @@ describe("PlayCommand", () => {
       ]);
     });
 
-    test("the autocomplete function with no focused input from the user", async () => {
+    test("the autocomplete function should return no options with an empty user input", async () => {
       const playCommand = container.resolve(PlayCommand);
       const respondSpy = vi.spyOn(autocompleteInteraction, "respond");
 
@@ -169,15 +183,14 @@ describe("PlayCommand", () => {
 
     it("should reply to the user if the bot is unable to join the voice channel", async () => {
       const playCommand = container.resolve(PlayCommand);
-      const discordVoiceManager = container.resolve(DiscordVoiceManager);
+      const discordVoiceService = container.resolve(DiscordVoiceService);
+      const replySpy = vi.spyOn(interaction, "reply");
       vi.spyOn(interaction.options, "getString").mockReturnValue("mock input");
-      vi.spyOn(discordVoiceManager, "joinVoiceChannel").mockImplementation(
+      vi.spyOn(discordVoiceService, "joinVoiceChannel").mockImplementation(
         () => {
           throw new Error("mock error");
         },
       );
-
-      const replySpy = vi.spyOn(interaction, "reply");
 
       await playCommand.execute(interaction);
 
@@ -186,49 +199,8 @@ describe("PlayCommand", () => {
 
     it("should start playing music and reply to the user", async () => {
       const playCommand = container.resolve(PlayCommand);
-      const discordVoiceManager = container.resolve(DiscordVoiceManager);
-      const youtubeClient = container.resolve(YouTubeClient);
-      vi.spyOn(interaction.options, "getString").mockReturnValue("mock input");
-      vi.spyOn(discordVoiceManager, "joinVoiceChannel").mockImplementation(
-        async () => {},
-      );
-      vi.spyOn(youtubeClient, "search").mockImplementation(async () => {
-        const result: yts.VideoSearchResult = {
-          type: "video",
-          videoId: "",
-          url: "mock url",
-          title: "mock title".repeat(10),
-          description: "",
-          image: "",
-          thumbnail: undefined,
-          seconds: 0,
-          timestamp: "12:34",
-          duration: {
-            seconds: 0,
-            timestamp: "",
-          },
-          ago: "",
-          views: 0,
-          author: {
-            name: "mock author",
-            url: "",
-          },
-        };
-        return [result];
-      });
-      const stream = new PassThrough();
-      vi.spyOn(youtubeClient, "getAudioStream").mockImplementation(() => {
-        return stream;
-      });
-      vi.spyOn(discordVoiceManager, "createAudioStream").mockImplementation(
-        () => {
-          return createAudioResource(stream, {
-            inputType: StreamType.WebmOpus,
-          });
-        },
-      );
-
       const replySpy = vi.spyOn(interaction, "reply");
+      vi.spyOn(interaction.options, "getString").mockReturnValue("mock input");
 
       await playCommand.execute(interaction);
 
@@ -237,53 +209,14 @@ describe("PlayCommand", () => {
 
     it("should recognize that music is already playing and add the track to the queue", async () => {
       const playCommand = container.resolve(PlayCommand);
-      const discordVoiceManager = container.resolve(DiscordVoiceManager);
-      const youtubeClient = container.resolve(YouTubeClient);
+      const discordVoiceService = container.resolve(DiscordVoiceService);
       vi.spyOn(interaction.options, "getString").mockReturnValue("mock input");
-      vi.spyOn(discordVoiceManager, "joinVoiceChannel").mockImplementation(
-        async () => {},
-      );
-      vi.spyOn(youtubeClient, "search").mockImplementation(async () => {
-        const result: yts.VideoSearchResult = {
-          type: "video",
-          videoId: "",
-          url: "mock url",
-          title: "mock title".repeat(10),
-          description: "",
-          image: "",
-          thumbnail: undefined,
-          seconds: 0,
-          timestamp: "12:34",
-          duration: {
-            seconds: 0,
-            timestamp: "",
-          },
-          ago: "",
-          views: 0,
-          author: {
-            name: "mock author",
-            url: "",
-          },
-        };
-        return [result];
-      });
-      const stream = new PassThrough();
-      vi.spyOn(youtubeClient, "getAudioStream").mockImplementation(() => {
-        return stream;
-      });
-      vi.spyOn(discordVoiceManager, "createAudioStream").mockImplementation(
-        () => {
-          return createAudioResource(stream, {
-            inputType: StreamType.WebmOpus,
-          });
-        },
-      );
-      vi.spyOn(discordVoiceManager, "getState").mockReturnValue(
+      vi.spyOn(discordVoiceService, "getState").mockReturnValue(
         AudioPlayerStatus.Playing,
       );
 
       const replySpy = vi.spyOn(interaction, "reply");
-      const addToQueueSpy = vi.spyOn(discordVoiceManager, "addToQueue");
+      const addToQueueSpy = vi.spyOn(discordVoiceService, "addToQueue");
 
       await playCommand.execute(interaction);
 

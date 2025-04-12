@@ -12,7 +12,7 @@ export interface FetchAutocompleteOptions {
  * A client to hold all YouTube related API calls in one place.
  */
 @injectable()
-export class YouTubeClient {
+export class YouTubeService {
   constructor() {}
 
   /**
@@ -30,13 +30,6 @@ export class YouTubeClient {
 
     const searchResults = await yts(input);
     return searchResults.videos.slice(0, count);
-  }
-
-  isValidYouTubeUrl(url: string): boolean {
-    const youtubeRegex =
-      /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}$/gm;
-
-    return youtubeRegex.test(url);
   }
 
   getAudioStream(url: string): Readable {

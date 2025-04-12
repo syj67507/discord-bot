@@ -7,12 +7,14 @@ import {
   joinVoiceChannel as djsJoinVoiceChannel,
   createAudioResource as djsCreateAudioStream,
   AudioResource,
+  getVoiceConnection,
 } from "@discordjs/voice";
 import { inject, singleton } from "tsyringe";
-import { LoggerProvider } from "../../providers/logger.provider";
-import { Track } from "./track";
+import { LoggerProvider } from "../../../providers/logger.provider";
+import { Track } from "../track";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import Stream from "stream";
+import { DiscordVoiceInterface } from "./discord-voice.interface";
 
 /**
  * A manager to help maintain and wrap voice related functionality for discord bots.
@@ -20,12 +22,12 @@ import Stream from "stream";
  * The decision was made to wrap the discord voice calls instead of using them directly for
  * ease of maintaining unit tests and for dependency injection
  */
-@singleton()
-export class DiscordVoiceManager {
-  private audioPlayer: AudioPlayer | undefined;
+@singleton() // singleton because we want to keep track of one single queue and audio player
+export class DiscordVoiceService implements DiscordVoiceInterface {
+  audioPlayer: AudioPlayer | undefined;
   private queue: Track[] = [];
-  constructor(@inject(LoggerProvider) private readonly logger: LoggerProvider) {
-    this.logger.setName(DiscordVoiceManager.name);
+  constructor(@inject(LoggerProvider) readonly logger: LoggerProvider) {
+    this.logger.setName(DiscordVoiceService.name);
   }
 
   /**
@@ -222,6 +224,13 @@ export class DiscordVoiceManager {
       await interaction.channel.send({
         embeds: [replyEmbed],
       });
+    }
+  }
+
+  destroyVoiceConnection(guildId: string): void {
+    const voiceConnection = getVoiceConnection(guildId);
+    if (voiceConnection) {
+      voiceConnection.destroy();
     }
   }
 }

@@ -16,7 +16,7 @@ export function setupAutocompleteHandler(client: Client) {
       useValue: new ContextProvider(),
     });
     const logger = executionContainer.resolve(LoggerProvider);
-    logger.setName("AutoCompleteInteraction");
+    logger.setName("Autocomplete");
 
     logger.debug("Resolving command and executing autocomplete...");
     const Command: typeof BaseCommand = commands.get(interaction.commandName);

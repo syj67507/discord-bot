@@ -18,7 +18,7 @@ export function setupSlashCommandHandler(client: Client) {
       useValue: new ContextProvider(),
     });
     const logger = executionContainer.resolve(LoggerProvider);
-    logger.setName("System");
+    logger.setName("SlashCommand");
 
     logger.debug("Fetching command definition from interaction...");
     const Command: typeof BaseCommand = commands.get(interaction.commandName);

@@ -7,15 +7,14 @@ import {
   InteractionResponse,
   SlashCommandBuilder,
 } from "discord.js";
-import { getVoiceConnection } from "@discordjs/voice";
-import { DiscordVoiceManager } from "./discord-voice.manager";
+import { DiscordVoiceService } from "./services/discord-voice.service";
 
 @injectable()
 export class StopCommand extends BaseCommand {
   constructor(
     @inject(LoggerProvider) private readonly logger: LoggerProvider,
-    @inject(DiscordVoiceManager)
-    private readonly audioPlayerManager: DiscordVoiceManager,
+    @inject(DiscordVoiceService)
+    private readonly discordVoiceService: DiscordVoiceService,
   ) {
     super();
   }
@@ -31,25 +30,12 @@ export class StopCommand extends BaseCommand {
     if (!interaction.guildId) {
       return interaction.reply("How did you get here?");
     }
-    const connection = getVoiceConnection(interaction.guildId);
-    connection?.destroy();
 
-    this.audioPlayerManager.stopAudioPlayer();
-    this.audioPlayerManager.destroyAudioPlayer();
-    this.audioPlayerManager.clearQueue();
+    this.discordVoiceService.destroyVoiceConnection(interaction.guildId);
+    this.discordVoiceService.stopAudioPlayer();
+    this.discordVoiceService.destroyAudioPlayer();
+    this.discordVoiceService.clearQueue();
 
-    // await interaction.reply({
-    //   embeds: [
-    //     new EmbedBuilder()
-    //       .setColor("Aqua")
-    //       .setAuthor({ name: "🛑 Stopped playback. 🛑" })
-    //       .setTitle(`${interaction.user} has stopped the music.`)
-    //       .addFields({
-    //         name: "\u200B",
-    //         value: "Start the music back up by using the play command!",
-    //       }),
-    //   ],
-    // });
     return await interaction.reply(
       `${interaction.user} has stopped the music.`,
     );
