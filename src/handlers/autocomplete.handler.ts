@@ -1,5 +1,4 @@
 import { Client, Events } from "discord.js";
-import { ContextProvider } from "../providers/context.provider";
 import { container } from "tsyringe";
 import { LoggerProvider } from "../providers/logger.provider";
 import { BaseCommand } from "../commands/base.command";
@@ -12,11 +11,8 @@ export function setupAutocompleteHandler(client: Client) {
     }
 
     const executionContainer = container.createChildContainer();
-    executionContainer.register(ContextProvider, {
-      useValue: new ContextProvider(),
-    });
     const logger = executionContainer.resolve(LoggerProvider);
-    logger.setName("Autocomplete");
+    logger.setName("AutocompleteHandler");
 
     logger.debug("Resolving command and executing autocomplete...");
     const Command: typeof BaseCommand = commands.get(interaction.commandName);

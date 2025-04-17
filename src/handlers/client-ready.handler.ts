@@ -5,7 +5,7 @@ import { LoggerProvider } from "../providers/logger.provider";
 export function setupClientReadyHandler(client: Client) {
   client.on(Events.ClientReady, () => {
     const logger = container.resolve(LoggerProvider);
-    logger.setName("Startup");
+    logger.setName("ClientReadyHandler");
     logger.log("Client is online");
   });
 }

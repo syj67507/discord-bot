@@ -1,10 +1,10 @@
-import { injectable } from "tsyringe";
+import { scoped, Lifecycle } from "tsyringe";
 import { v4 as uuidv4 } from "uuid";
 
-@injectable()
+@scoped(Lifecycle.ContainerScoped)
 export class ContextProvider {
   correlationId: string;
   constructor() {
-    this.correlationId = uuidv4();
+    this.correlationId = uuidv4().replace(/-/g, "");
   }
 }

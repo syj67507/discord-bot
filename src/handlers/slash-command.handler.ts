@@ -1,7 +1,6 @@
 import { Client, Events } from "discord.js";
 import { commands } from "../commands";
 import { BaseCommand } from "../commands/base.command";
-import { ContextProvider } from "../providers/context.provider";
 import { LoggerProvider } from "../providers/logger.provider";
 import { container } from "tsyringe";
 
@@ -14,11 +13,8 @@ export function setupSlashCommandHandler(client: Client) {
 
     // Setting up execution container and system logger
     const executionContainer = container.createChildContainer();
-    executionContainer.register<ContextProvider>(ContextProvider, {
-      useValue: new ContextProvider(),
-    });
     const logger = executionContainer.resolve(LoggerProvider);
-    logger.setName("SlashCommand");
+    logger.setName("SlashCommandHandler");
 
     logger.debug("Fetching command definition from interaction...");
     const Command: typeof BaseCommand = commands.get(interaction.commandName);
