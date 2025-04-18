@@ -7,6 +7,8 @@ export const config = {
   token: process.env.DISCORD_TOKEN ?? "TOKEN_NOT_SET",
   clientId: process.env.DISCORD_CLIENT_ID ?? "CLIENT_ID_NOT_SET",
   guildId: process.env.DISCORD_GUILD_ID ?? "GUILD_ID_NOT_SET",
+  spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
+  spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET,
 
   // local development
   reloadCommands: true,
