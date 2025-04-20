@@ -4,9 +4,9 @@ import {
   AudioResource,
 } from "@discordjs/voice";
 import { ChatInputCommandInteraction } from "discord.js";
-import { Track } from "../track";
 import "stream";
 import { Readable } from "stream";
+import { Track } from "../commands/music/track";
 
 /**
  * A manager to help maintain and wrap voice related functionality for discord bots.

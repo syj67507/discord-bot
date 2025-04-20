@@ -1,7 +1,7 @@
 import { inject, singleton } from "tsyringe";
 import axios, { AxiosResponse } from "axios";
-import { LoggerProvider } from "../../providers/logger.provider";
-import { config } from "../../config";
+import { LoggerProvider } from "./logger.provider";
+import { config } from "../config";
 
 @singleton()
 export class SpotifyService {

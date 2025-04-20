@@ -2,8 +2,8 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import { BaseCommand } from "../base.command";
 import { inject, injectable } from "tsyringe";
 import { LoggerProvider } from "../../providers/logger.provider";
-import { SpotifyService } from "../../providers/spotify/spotify.service";
-import { YouTubeService } from "../music/services/youtube.service";
+import { SpotifyService } from "../../providers/spotify.service";
+import { YouTubeService } from "../../providers/youtube.service";
 
 @injectable()
 export class PingCommand extends BaseCommand {

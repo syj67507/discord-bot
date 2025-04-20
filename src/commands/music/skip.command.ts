@@ -4,10 +4,10 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { inject, injectable } from "tsyringe";
-import { DiscordVoiceService } from "./services/discord-voice.service";
 import { BaseCommand } from "../base.command";
 import { LoggerProvider } from "../../providers/logger.provider";
 import { AudioPlayerStatus } from "@discordjs/voice";
+import { DiscordVoiceService } from "../../providers/discord-voice.service";
 
 @injectable()
 export class SkipCommand extends BaseCommand {

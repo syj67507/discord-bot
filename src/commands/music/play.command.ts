@@ -6,13 +6,13 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { inject, injectable } from "tsyringe";
-import { DiscordVoiceService } from "./services/discord-voice.service";
 import { BaseCommand } from "../base.command";
 import { LoggerProvider } from "../../providers/logger.provider";
-import { YouTubeService } from "./services/youtube.service";
 import { Track } from "./track";
 import { AudioPlayerStatus } from "@discordjs/voice";
-import { SpotifyService } from "../../providers/spotify/spotify.service";
+import { SpotifyService } from "../../providers/spotify.service";
+import { DiscordVoiceService } from "../../providers/discord-voice.service";
+import { YouTubeService } from "../../providers/youtube.service";
 
 @injectable()
 export class PlayCommand extends BaseCommand {

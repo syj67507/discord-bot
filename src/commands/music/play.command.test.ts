@@ -6,11 +6,11 @@ import {
 } from "discord.js";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 import { PlayCommand } from "./play.command";
-import { YouTubeService } from "./services/youtube.service";
 import yts from "yt-search";
-import { DiscordVoiceService } from "./services/discord-voice.service";
 import { AudioPlayerStatus } from "@discordjs/voice";
-import { DiscordVoiceInterface } from "./services/discord-voice.interface";
+import { DiscordVoiceInterface } from "../../providers/discord-voice.interface";
+import { DiscordVoiceService } from "../../providers/discord-voice.service";
+import { YouTubeService } from "../../providers/youtube.service";
 
 describe("PlayCommand", () => {
   const autocompleteInteraction = {

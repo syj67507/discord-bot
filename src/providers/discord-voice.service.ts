@@ -10,11 +10,11 @@ import {
   getVoiceConnection,
 } from "@discordjs/voice";
 import { inject, singleton } from "tsyringe";
-import { LoggerProvider } from "../../../providers/logger.provider";
-import { Track } from "../track";
 import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import Stream from "stream";
 import { DiscordVoiceInterface } from "./discord-voice.interface";
+import { Track } from "../commands/music/track";
+import { LoggerProvider } from "./logger.provider";
 
 /**
  * A manager to help maintain and wrap voice related functionality for discord bots.

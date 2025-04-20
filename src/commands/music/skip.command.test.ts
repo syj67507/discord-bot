@@ -3,11 +3,11 @@ import { container } from "tsyringe";
 import { ChatInputCommandInteraction } from "discord.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SkipCommand } from "./skip.command";
-import { DiscordVoiceService } from "./services/discord-voice.service";
 import { AudioPlayerStatus } from "@discordjs/voice";
-import { DiscordVoiceInterface } from "./services/discord-voice.interface";
-import { YouTubeService } from "./services/youtube.service";
 import yts from "yt-search";
+import { DiscordVoiceInterface } from "../../providers/discord-voice.interface";
+import { DiscordVoiceService } from "../../providers/discord-voice.service";
+import { YouTubeService } from "../../providers/youtube.service";
 
 describe("SkipCommand", () => {
   const interaction = {

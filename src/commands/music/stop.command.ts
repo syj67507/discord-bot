@@ -7,7 +7,7 @@ import {
   InteractionResponse,
   SlashCommandBuilder,
 } from "discord.js";
-import { DiscordVoiceService } from "./services/discord-voice.service";
+import { DiscordVoiceService } from "../../providers/discord-voice.service";
 
 @injectable()
 export class StopCommand extends BaseCommand {
