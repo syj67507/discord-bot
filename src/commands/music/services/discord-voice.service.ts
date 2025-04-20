@@ -50,9 +50,8 @@ export class DiscordVoiceService implements DiscordVoiceInterface {
     // This sets up the loop so that when a song finishes, it automatically
     // plays the next song
     this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
-      const nextTrack = this.removeFromQueue();
-      if (nextTrack) {
-        this.startPlayback(interaction, nextTrack);
+      if (this.queue.length > 0) {
+        this.startPlayback(interaction);
         return;
       }
 
@@ -196,13 +195,19 @@ export class DiscordVoiceService implements DiscordVoiceInterface {
    * @param track the track to play
    * @returns
    */
-  async startPlayback(interaction: ChatInputCommandInteraction, track: Track) {
+  async startPlayback(interaction: ChatInputCommandInteraction) {
     if (!this.audioPlayer) {
       this.logger.error("Unable to play: Audio player is not defined");
       return;
     }
     if (!interaction.guildId) {
       this.logger.error("Unable to play: interaction.guildId is not defined");
+      return;
+    }
+
+    const track = this.removeFromQueue();
+    if (track === undefined) {
+      this.logger.error("Unable to play: There is nothing in the queue");
       return;
     }
 
@@ -217,7 +222,8 @@ export class DiscordVoiceService implements DiscordVoiceInterface {
       .setColor("Aqua")
       .setAuthor({ name: "🎶 Playing now! 🎶" })
       .setTitle(`[${track.duration}] ${track.title}`)
-      .setURL(`${track.url}`)
+      .setURL(track.url)
+      .setImage(track.image)
       .addFields({ name: "\u200B", value: track.author });
 
     if (interaction.channel?.isSendable()) {

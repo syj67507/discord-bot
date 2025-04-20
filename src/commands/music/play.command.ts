@@ -101,14 +101,16 @@ export class PlayCommand extends BaseCommand {
       duration: searchResult[0].timestamp,
       author: searchResult[0].author.name,
       audioResource: this.discordVoiceService.createAudioStream(stream),
+      image: searchResult[0].image,
     });
 
+    this.logger.log("Adding to the queue...");
+    this.discordVoiceService.addToQueue(track);
+
     if (this.discordVoiceService.getState() === AudioPlayerStatus.Playing) {
-      this.logger.log(
-        "Bot is already playing music, adding to the queue and exiting early",
-      );
-      this.discordVoiceService.addToQueue(track);
+      this.logger.log("Bot is already playing music, returning early");
       return await interaction.reply({
+        flags: "Ephemeral",
         embeds: [
           {
             color: 0xffffff,
@@ -116,13 +118,16 @@ export class PlayCommand extends BaseCommand {
             author: { name: "⏭️ Adding to the queue! ⏭️" },
             url: track.url,
             fields: [{ name: "\u200B", value: track.author }],
+            image: {
+              url: track.image,
+            },
           },
         ],
       });
     }
 
     this.logger.log("Starting playback of audio resource");
-    this.discordVoiceService.startPlayback(interaction, track);
+    this.discordVoiceService.startPlayback(interaction);
 
     this.logger.log("Finished play command.");
     return await interaction.reply({

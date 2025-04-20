@@ -41,8 +41,8 @@ export class SkipCommand extends BaseCommand {
       return await interaction.reply("Unable to join the voice channel.");
     }
 
-    const nextTrack = this.discordVoiceService.removeFromQueue();
-    if (!nextTrack) {
+    const hasNextTrack = this.discordVoiceService.getQueue().length;
+    if (!hasNextTrack) {
       this.logger.log(
         "Nothing else is left in the queue, stopping the playback.",
       );
@@ -54,7 +54,7 @@ export class SkipCommand extends BaseCommand {
     }
 
     // we can assume that there is another resource to skip to
-    this.discordVoiceService.startPlayback(interaction, nextTrack);
+    this.discordVoiceService.startPlayback(interaction);
 
     this.logger.log("Finished skip command.");
     return await interaction.reply("Skipped");

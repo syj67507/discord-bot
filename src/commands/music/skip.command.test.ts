@@ -5,8 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SkipCommand } from "./skip.command";
 import { DiscordVoiceService } from "./services/discord-voice.service";
 import { AudioPlayerStatus } from "@discordjs/voice";
-import { Track } from "./track";
 import { DiscordVoiceInterface } from "./services/discord-voice.interface";
+import { YouTubeService } from "./services/youtube.service";
+import yts from "yt-search";
 
 describe("SkipCommand", () => {
   const interaction = {
@@ -30,6 +31,35 @@ describe("SkipCommand", () => {
     vi.resetAllMocks();
     vi.restoreAllMocks();
     vi.resetModules();
+
+    // registering a mock of the YouTubeClient before each test, must be done this way due to resolving dependency injection
+    container.registerInstance(YouTubeService, {
+      search: vi.fn().mockImplementation(() => {
+        const result: yts.VideoSearchResult = {
+          type: "video",
+          videoId: "",
+          url: "mock url",
+          title: "mock title",
+          description: "",
+          image: "",
+          thumbnail: undefined,
+          seconds: 0,
+          timestamp: "12:34",
+          duration: {
+            seconds: 0,
+            timestamp: "",
+          },
+          ago: "",
+          views: 0,
+          author: {
+            name: "mock author",
+            url: "",
+          },
+        };
+        return [result];
+      }),
+      getAudioStream: vi.fn(),
+    });
 
     // Mock the discord voice manager, must be done this way due to resolving dependency injection
     container.registerInstance<DiscordVoiceInterface>(DiscordVoiceService, {
@@ -63,19 +93,6 @@ describe("SkipCommand", () => {
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
 
-  it("should return and reply early if the bot is not playing anything", async () => {
-    const skipCommand = container.resolve(SkipCommand);
-    const discordVoiceService = container.resolve(DiscordVoiceService);
-    const replySpy = vi.spyOn(interaction, "reply");
-    vi.spyOn(discordVoiceService, "getState").mockReturnValue(
-      AudioPlayerStatus.Playing,
-    );
-
-    await skipCommand.execute(interaction);
-
-    expect(replySpy).toHaveBeenCalledTimes(1);
-  });
-
   it("should return and reply early if the bot fails to join the voice channel", async () => {
     const skipCommand = container.resolve(SkipCommand);
     const discordVoiceService = container.resolve(DiscordVoiceService);
@@ -92,7 +109,23 @@ describe("SkipCommand", () => {
     expect(replySpy).toHaveBeenCalledTimes(1);
   });
 
-  it("should return and reply early if the bot fails to join the voice channel", async () => {
+  it("should stop the playback if there is nothing left in the queue", async () => {
+    const skipCommand = container.resolve(SkipCommand);
+    const discordVoiceService = container.resolve(DiscordVoiceService);
+    const replySpy = vi.spyOn(interaction, "reply");
+    const stopSpy = vi.spyOn(discordVoiceService, "stopAudioPlayer");
+    vi.spyOn(discordVoiceService, "getState").mockReturnValue(
+      AudioPlayerStatus.Playing,
+    );
+    vi.spyOn(discordVoiceService, "getQueue").mockReturnValue([]);
+
+    await skipCommand.execute(interaction);
+
+    expect(replySpy).toHaveBeenCalledTimes(1);
+    expect(stopSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("should start the playback if there is a song to skip to", async () => {
     const skipCommand = container.resolve(SkipCommand);
     const discordVoiceService = container.resolve(DiscordVoiceService);
     const replySpy = vi.spyOn(interaction, "reply");
@@ -100,15 +133,16 @@ describe("SkipCommand", () => {
     vi.spyOn(discordVoiceService, "getState").mockReturnValue(
       AudioPlayerStatus.Playing,
     );
-    vi.spyOn(discordVoiceService, "removeFromQueue").mockReturnValue(
-      new Track({
-        title: "mock title",
-        author: "mock author",
-        duration: "12:34",
+    vi.spyOn(discordVoiceService, "getQueue").mockReturnValue([
+      {
+        title: "",
+        duration: "",
+        url: "",
+        author: "",
         audioResource: discordVoiceService.createAudioStream(""),
-        url: "mock url",
-      }),
-    );
+        image: "",
+      },
+    ]);
 
     await skipCommand.execute(interaction);
 
