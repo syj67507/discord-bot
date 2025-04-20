@@ -11,8 +11,11 @@ export class LoggerProvider {
     private readonly executionContext: ContextProvider,
   ) {}
 
-  private generatePrefixContextString() {
-    return `[${new Date().toISOString()}] [${this.executionContext.correlationId}] | ${this.loggerName.padEnd(18) || "Unknown".padEnd(21)} |`;
+  private generatePrefixContextString(level: string) {
+    const time = new Date().toISOString();
+    const correlationId = this.executionContext.correlationId;
+    const paddedName = this.loggerName.padEnd(19);
+    return `[${time}] [${correlationId}] [${level.padEnd(5)}] | ${paddedName} |`;
   }
 
   setName(name: string) {
@@ -23,7 +26,7 @@ export class LoggerProvider {
     console.log(
       styleText(
         "green",
-        [this.generatePrefixContextString(), ...messages].join(" "),
+        [this.generatePrefixContextString("INFO"), ...messages].join(" "),
       ),
     );
   }
@@ -32,7 +35,7 @@ export class LoggerProvider {
     console.error(
       styleText(
         "red",
-        [this.generatePrefixContextString(), ...messages].join(" "),
+        [this.generatePrefixContextString("ERROR"), ...messages].join(" "),
       ),
     );
   }
@@ -41,7 +44,7 @@ export class LoggerProvider {
     console.warn(
       styleText(
         "yellow",
-        [this.generatePrefixContextString(), ...messages].join(" "),
+        [this.generatePrefixContextString("WARN"), ...messages].join(" "),
       ),
     );
   }
@@ -50,7 +53,7 @@ export class LoggerProvider {
     console.debug(
       styleText(
         "blue",
-        [this.generatePrefixContextString(), ...messages].join(" "),
+        [this.generatePrefixContextString("DEBUG"), ...messages].join(" "),
       ),
     );
   }

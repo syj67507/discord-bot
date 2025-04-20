@@ -1,7 +1,7 @@
 import { inject, singleton } from "tsyringe";
-import { config } from "../../../config";
 import axios, { AxiosResponse } from "axios";
-import { LoggerProvider } from "../../../providers/logger.provider";
+import { LoggerProvider } from "../../providers/logger.provider";
+import { config } from "../../config";
 
 @singleton()
 export class SpotifyService {
@@ -142,56 +142,49 @@ export class SpotifyService {
   /**
    * Fetches the track
    * @param trackUrl the url of the track
-   * @returns a track
+   * @returns a search string to pass to youtube
    */
-  async getTrack(trackUrl: string) {
+  async getTrackSearchString(trackUrl: string): Promise<string> {
     const trackId = this.getId(trackUrl);
     const response: SpotifyApi.TrackObjectFull = await this.fulfillRequest(
       `https://api.spotify.com/v1/tracks/${trackId}`,
     );
-    return {
-      album: response.album.name,
-      artist: response.artists.map((artist) => artist.name).join(", "),
-      title: response.name,
-    };
+    return `${response.name} ${response.artists.map((artist) => artist.name).join(", ")} ${response.album.name}`;
   }
 
   /**
    * Fetches all the tracks in a given playlist
    * @param albumUrl The url of the playlist
-   * @returns A list of tracks
+   * @returns A list search strings for each track to pass to youtube
    */
-  async getPlaylistTracks(playlistUrl: string) {
+  async getPlaylistSearchStrings(playlistUrl: string): Promise<string[]> {
     const playlistId = this.getId(playlistUrl);
 
     const endpoint = `https://api.spotify.com/v1/playlists/${playlistId}/tracks`;
     const response: SpotifyApi.PlaylistTrackResponse =
       await this.fulfillRequest(endpoint);
-    const spotifyTracks = response.items
+    const searchStrings = response.items
       .map((item) => item.track)
-      .map((track) => ({
-        title: track?.name,
-        artist: track?.artists.map((artist) => artist.name).join(", "),
-        album: track?.album.name,
-      }));
-    return spotifyTracks;
+      .map((track) => {
+        return `${track?.name} ${track?.artists.map((artist) => artist.name).join(", ")} ${track?.album.name}`;
+      });
+    return searchStrings;
   }
 
   /**
    * Fetches all the tracks in a given album
    * @param albumUrl The url of the album
-   * @returns A list of tracks
+   * @returns A list of search strings for each track to pass to youtube
    */
-  async getAlbumTracks(albumUrl: string) {
+  async getAlbumSearchStrings(albumUrl: string): Promise<string[]> {
     const albumId = this.getId(albumUrl);
     const endpoint = `https://api.spotify.com/v1/albums/${albumId}/tracks`;
     this.logger.log(`Fetching ${endpoint}`);
     const response: SpotifyApi.AlbumTracksResponse =
       await this.fulfillRequest(endpoint);
-    const spotifyTracks = response.items.map((track) => ({
-      title: track?.name,
-      artist: track?.artists.map((artist) => artist.name).join(", "),
-    }));
-    return spotifyTracks;
+    const searchStrings = response.items.map((track) => {
+      return `${track?.name} ${track?.artists.map((artist) => artist.name).join(", ")}`;
+    });
+    return searchStrings;
   }
 }

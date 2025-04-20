@@ -12,6 +12,7 @@ import { LoggerProvider } from "../../providers/logger.provider";
 import { YouTubeService } from "./services/youtube.service";
 import { Track } from "./track";
 import { AudioPlayerStatus } from "@discordjs/voice";
+import { SpotifyService } from "../../providers/spotify/spotify.service";
 
 @injectable()
 export class PlayCommand extends BaseCommand {
@@ -20,6 +21,7 @@ export class PlayCommand extends BaseCommand {
     @inject(DiscordVoiceService)
     private readonly discordVoiceService: DiscordVoiceService,
     @inject(YouTubeService) private readonly youtubeService: YouTubeService,
+    @inject(SpotifyService) private readonly spotifyService: SpotifyService,
   ) {
     super();
     this.logger.setName(PlayCommand.name);
@@ -31,9 +33,7 @@ export class PlayCommand extends BaseCommand {
     .addStringOption((option) =>
       option
         .setName("input")
-        .setDescription(
-          "A url or search input for the video to play from YouTube",
-        )
+        .setDescription("YouTube Link, Spotify Link, or search input")
         .setRequired(true)
         .setAutocomplete(true),
     )
@@ -92,7 +92,8 @@ export class PlayCommand extends BaseCommand {
     }
 
     this.logger.debug("Searching YouTube to create a track...");
-    const searchResult = await this.youtubeService.search(input);
+    const searchInput = await this.parseSearchString(input);
+    const searchResult = await this.youtubeService.search(searchInput[0]);
     const stream = this.youtubeService.getAudioStream(searchResult[0].url);
     const track = new Track({
       title: searchResult[0].title,
@@ -127,5 +128,29 @@ export class PlayCommand extends BaseCommand {
     return await interaction.reply({
       content: `${interaction.user} has started playback!`,
     });
+  }
+
+  /**
+   * Parses the input string to determine what to pass to the youtube service search
+   * function. It will check if the input is a valid link for spotify, and fetch
+   * the song's details to pass a search string to youtube
+   *
+   * All kinds of inputs will be returned back
+   * @param input the input given by the user
+   * @returns a list of search strings to pass to the youtube service
+   */
+  async parseSearchString(input: string) {
+    if (this.spotifyService.isValidTrackUrl(input)) {
+      return [await this.spotifyService.getTrackSearchString(input)];
+    }
+    if (this.spotifyService.isValidPlaylistUrl(input)) {
+      return await this.spotifyService.getPlaylistSearchStrings(input);
+    }
+    if (this.spotifyService.isValidAlbumUrl(input)) {
+      return await this.spotifyService.getAlbumSearchStrings(input);
+    }
+
+    // if it is not a spotify link, then it is either a youtube link or a regular search string
+    return [input];
   }
 }
