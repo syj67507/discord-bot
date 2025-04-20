@@ -2,9 +2,9 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { ChatInputCommandInteraction } from "discord.js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DiscordVoiceService } from "./services/discord-voice.service";
-import { DiscordVoiceInterface } from "./services/discord-voice.interface";
 import { StopCommand } from "./stop.command";
+import { DiscordVoiceInterface } from "../../providers/discord-voice.interface";
+import { DiscordVoiceService } from "../../providers/discord-voice.service";
 
 describe("SkipCommand", () => {
   const interaction = {

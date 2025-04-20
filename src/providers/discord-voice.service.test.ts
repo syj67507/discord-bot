@@ -2,11 +2,11 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DiscordVoiceService } from "./discord-voice.service";
-import { LoggerProvider } from "../../../providers/logger.provider";
 import { createAudioResource, StreamType } from "@discordjs/voice";
 import { Readable } from "stream";
-import { Track } from "../track";
 import { ChatInputCommandInteraction } from "discord.js";
+import { Track } from "../commands/music/track";
+import { LoggerProvider } from "./logger.provider";
 
 describe("DiscordVoiceManager", () => {
   const interaction = {
@@ -79,6 +79,7 @@ describe("DiscordVoiceManager", () => {
         audioResource: createAudioResource(new Readable(), {
           inputType: StreamType.WebmOpus,
         }),
+        image: "test image",
       });
     }
 
