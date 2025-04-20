@@ -2,7 +2,6 @@
  * @fileoverview
  * This file is going to the main entrypoint to the discord application
  */
-import "reflect-metadata";
 import { Client, GatewayIntentBits } from "discord.js";
 import { config } from "./config";
 import { setupAutocompleteHandler } from "./handlers/autocomplete.handler";

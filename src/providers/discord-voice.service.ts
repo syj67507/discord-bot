@@ -50,7 +50,7 @@ export class DiscordVoiceService implements DiscordVoiceInterface {
     // This sets up the loop so that when a song finishes, it automatically
     // plays the next song
     this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
-      if (this.queue.length > 0) {
+      if (this.getQueue().length > 0) {
         this.startPlayback(interaction);
         return;
       }
