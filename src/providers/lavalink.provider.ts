@@ -18,7 +18,7 @@ export class LavalinkProvider {
       nodes: [
         {
           authorization: config.lavalinkPassword,
-          host: "localhost",
+          host: config.lavalinkHost,
           port: 2333,
         },
       ],
