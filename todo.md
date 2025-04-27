@@ -1,0 +1,6 @@
+- [x] organize lavalink configurations
+- [x] make lavalink bootstrapped with container / singleton
+- [x] should make a bootstrap file
+- [ ] should make new play / skip / and stop commands
+- [x] write scripts for starting up lavalink locally
+- [ ] test without http in application.yml

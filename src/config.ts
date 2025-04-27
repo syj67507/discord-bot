@@ -10,9 +10,10 @@ export const config = {
   guildId: process.env.DISCORD_GUILD_ID ?? "GUILD_ID_NOT_SET",
   spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
   spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+  lavalinkPassword: process.env.LAVALINK_PASSWORD ?? "",
 
   // local development
-  reloadCommands: false,
+  reloadCommands: true,
   structuredLogs: true,
   colorizeStructuredLogs: false, // must have structured logs on, useful for local development, not intended for deployed environments
 };

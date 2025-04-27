@@ -21,6 +21,7 @@
     "axios": "^1.8.4",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
+    "lavalink-client": "^2.5.0",
     "reflect-metadata": "^0.2.2",
     "tsyringe": "^4.8.0",
     "uuid": "^11.1.0",

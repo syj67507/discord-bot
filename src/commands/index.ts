@@ -1,7 +1,9 @@
+import { LavaCommand } from "./misc/lava.play.command";
+import { LavaStopCommand } from "./misc/lava.stop.command";
 import { PingCommand } from "./misc/ping.command";
-import { PlayCommand } from "./music/play.command";
-import { SkipCommand } from "./music/skip.command";
-import { StopCommand } from "./music/stop.command";
+// import { PlayCommand } from "./music/play.command";
+// import { SkipCommand } from "./music/skip.command";
+// import { StopCommand } from "./music/stop.command";
 
 /**
  * A map holding all commands defined for this application
@@ -17,6 +19,8 @@ import { StopCommand } from "./music/stop.command";
 export const commands = new Map<string, any>();
 
 commands.set(PingCommand.registrationData.name, PingCommand);
-commands.set(PlayCommand.registrationData.name, PlayCommand);
-commands.set(StopCommand.registrationData.name, StopCommand);
-commands.set(SkipCommand.registrationData.name, SkipCommand);
+// commands.set(PlayCommand.registrationData.name, PlayCommand);
+// commands.set(StopCommand.registrationData.name, StopCommand);
+// commands.set(SkipCommand.registrationData.name, SkipCommand);
+commands.set(LavaCommand.registrationData.name, LavaCommand);
+commands.set(LavaStopCommand.registrationData.name, LavaStopCommand);
