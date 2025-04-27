@@ -36,8 +36,9 @@ export class LavaStopCommand extends BaseCommand {
       .getPlayer(interaction.guildId)
       ?.stopPlaying();
 
-    return await interaction.reply(
-      `${interaction.user} has stopped the music.`,
-    );
+    return await interaction.reply({
+      flags: "Ephemeral",
+      content: `Playback has been stopped.`,
+    });
   }
 }

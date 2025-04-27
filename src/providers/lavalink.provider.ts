@@ -1,5 +1,5 @@
 import { Client } from "discord.js";
-import { LavalinkManager, SearchPlatform } from "lavalink-client";
+import { LavalinkManager } from "lavalink-client";
 import { config } from "../config";
 import { inject, singleton } from "tsyringe";
 import { LoggerProvider } from "./logger.provider";
@@ -30,18 +30,34 @@ export class LavalinkProvider {
       },
     });
     this.lavalinkManager.nodeManager.on("error", (node, error, payload) => {
-      this.logger.error(
-        `${JSON.stringify(node)}, ${error}, ${JSON.stringify(payload)}`,
-      );
+      this.logger.error(`${node}`);
+      this.logger.error(`${error}`);
+      this.logger.error(`${payload}`);
     });
+    this.connectDiscordHandlers();
+    this.setupPlayerHandlers();
+  }
 
+  /**
+   * Used for initialization
+   *
+   * Connects the discord client's event handlers to forward information to the lavalink manager
+   */
+  private connectDiscordHandlers() {
     this.discordClient.on("raw", (d) => this.lavalinkManager.sendRawData(d));
     this.discordClient.on("ready", () => {
       this.lavalinkManager.init({
         id: config.clientId,
       });
     });
+  }
 
+  /**
+   * Used for initialization
+   *
+   * Sets up handlers for various states during playback, mainly for sending messages to the text channel
+   */
+  private setupPlayerHandlers() {
     this.lavalinkManager.on("trackStart", (player, track) => {
       if (!track) {
         this.logger.warn(`Starting track but unable to fetch track info`);
@@ -53,7 +69,7 @@ export class LavalinkProvider {
         );
         return;
       }
-      const textChannel = discordClient.channels.cache.get(
+      const textChannel = this.discordClient.channels.cache.get(
         player.textChannelId,
       );
       if (!textChannel) {
@@ -108,7 +124,7 @@ export class LavalinkProvider {
           player.disconnect();
 
           if (player.textChannelId) {
-            const channel = discordClient.channels.cache.get(
+            const channel = this.discordClient.channels.cache.get(
               player.textChannelId,
             );
 
@@ -143,6 +159,12 @@ export class LavalinkProvider {
     return this.lavalinkManager;
   }
 
+  /**
+   * Returns a string in the format of [mm:ss] based on the input
+   *
+   * @param durationInMS duration in milliseconds
+   * @returns a string in the format of [mm:ss]
+   */
   parseDuration(durationInMS: number | undefined): string {
     if (durationInMS === undefined) {
       return `[--:--]`;
