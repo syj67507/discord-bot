@@ -114,7 +114,7 @@ export class LavalinkProvider {
     this.lavalinkManager.on("queueEnd", (player) => {
       // disconnect and destroy the player for clean up if nothing has been played for at least a minute
       this.logger.debug("Setting timeout to disconnect player");
-      const timeoutDelay = 10000;
+      const timeoutDelay = config.leaveChannelTimeout;
       setTimeout(() => {
         if (player.playing === false && player.queue.tracks.length === 0) {
           this.logger.log(
@@ -135,7 +135,9 @@ export class LavalinkProvider {
                 embeds: [
                   {
                     color: 0xffffff,
-                    author: { name: `😞 Finished Playback!` },
+                    author: {
+                      name: `😴 Left the voice channel, idle for more than 10 seconds`,
+                    },
                     fields: [
                       {
                         name: "\u200B",
@@ -143,7 +145,7 @@ export class LavalinkProvider {
                       },
                     ],
                     thumbnail: {
-                      url: "https://media.discordapp.net/attachments/749330283081236536/1366085600083574935/oni.png?ex=680fa9db&is=680e585b&hm=79978efee83505e688e05d386f92c8bc7da9ddf04b4f3934d27ccc66191225e8&=&format=webp&quality=lossless&width=1460&height=1460",
+                      url: "https://media.discordapp.net/attachments/768569245990518816/1366091889367060541/raw.png?ex=680fafb7&is=680e5e37&hm=877b1a3f3de59e1f1f5e346e60733168b90c581d63598c959dadabcfaba31e3a&=&format=webp&quality=lossless&width=1822&height=1822",
                     },
                   },
                 ],

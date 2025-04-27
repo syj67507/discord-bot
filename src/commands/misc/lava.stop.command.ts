@@ -31,14 +31,26 @@ export class LavaStopCommand extends BaseCommand {
       return interaction.reply("How did you get here?");
     }
 
-    await this.lavalink
-      .getManager()
-      .getPlayer(interaction.guildId)
-      ?.stopPlaying();
+    const player = this.lavalink.getManager().getPlayer(interaction.guildId);
+
+    await player?.stopPlaying();
 
     return await interaction.reply({
-      flags: "Ephemeral",
-      content: `Playback has been stopped.`,
+      embeds: [
+        {
+          color: 0xffffff,
+          author: { name: `😞 Finished Playback!` },
+          fields: [
+            {
+              name: "\u200B",
+              value: `Tracks left in queue: ${player?.queue.tracks.length}`,
+            },
+          ],
+          thumbnail: {
+            url: "https://media.discordapp.net/attachments/749330283081236536/1366085600083574935/oni.png?ex=680fa9db&is=680e585b&hm=79978efee83505e688e05d386f92c8bc7da9ddf04b4f3934d27ccc66191225e8&=&format=webp&quality=lossless&width=1460&height=1460",
+          },
+        },
+      ],
     });
   }
 }

@@ -1,4 +1,5 @@
 import { LavaCommand } from "./misc/lava.play.command";
+import { LavaSkipCommand } from "./misc/lava.skip.command";
 import { LavaStopCommand } from "./misc/lava.stop.command";
 import { PingCommand } from "./misc/ping.command";
 // import { PlayCommand } from "./music/play.command";
@@ -24,3 +25,4 @@ commands.set(PingCommand.registrationData.name, PingCommand);
 // commands.set(SkipCommand.registrationData.name, SkipCommand);
 commands.set(LavaCommand.registrationData.name, LavaCommand);
 commands.set(LavaStopCommand.registrationData.name, LavaStopCommand);
+commands.set(LavaSkipCommand.registrationData.name, LavaSkipCommand);
