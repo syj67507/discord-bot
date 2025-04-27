@@ -11,8 +11,11 @@ export async function registerCommands() {
   // Construct and prepare an instance of the REST module
   const rest = new REST().setToken(config.token);
   const commandsData: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [];
-  commands.forEach((command: typeof BaseCommand) => {
-    commandsData.push(command.registrationData.toJSON());
+  commands.forEach((command: typeof BaseCommand, key: string) => {
+    const payload = command.registrationData.toJSON();
+    payload.name = key; // the key acts as the name of the command (or the 'alias')
+
+    commandsData.push(payload);
   });
 
   try {

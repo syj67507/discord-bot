@@ -23,6 +23,8 @@ commands.set(PingCommand.registrationData.name, PingCommand);
 // commands.set(PlayCommand.registrationData.name, PlayCommand);
 // commands.set(StopCommand.registrationData.name, StopCommand);
 // commands.set(SkipCommand.registrationData.name, SkipCommand);
-commands.set(LavaCommand.registrationData.name, LavaCommand);
-commands.set(LavaStopCommand.registrationData.name, LavaStopCommand);
-commands.set(LavaSkipCommand.registrationData.name, LavaSkipCommand);
+
+commands.set("play", LavaCommand);
+commands.set("stop", LavaStopCommand);
+commands.set("skip", LavaSkipCommand);
+commands.set("next", LavaSkipCommand); // possible to set an alias like this
