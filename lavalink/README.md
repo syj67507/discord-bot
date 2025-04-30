@@ -4,15 +4,19 @@ This project is using lavalink as the tool that handles searching and playback o
 
 This folder contains the lavalink configurations and the following command is how you can spin up the lavalink server locally through docker.
 
+## Local Usage
+
+When running this locally, you will want to make sure that the port that the discord bot is connecting to for lavalink is available on a port other than 443. Lavalink will be running on port 443 inside the container, but should be mapped to a different port on the host machine.
+
+The following command maps the host machines port 2333 to port 443 that lavalink is exposing its service to inside the container.
 ```
-docker run -d \
-    -p 2333:2333 \
-    -e _JAVA_OPTIONS="-Xmx512M" \
-    -e LAVALINK_PASSWORD="<enter lavalink password>" \
-    -e LAVALINK_PLUGIN_YOUTUBE_REFRESH_TOKEN="<enter oauth token>" \
-    -e LAVALINK_PLUGIN_SPOTIFY_CLIENT_ID="<enter spotify client id>" \
-    -e LAVALINK_PLUGIN_SPOTIFY_CLIENT_SECRET="<enter spotify client secret>" \
-    -v ./lavalink/application.yml:/opt/Lavalink/application.yml \
-    --name lavalink \
-    ghcr.io/lavalink-devs/lavalink:efed40d-alpine
+docker run -p 2333:443 --env-file lavalink/lavalink.env ghcr.io/lavalink-devs/lavalink:efed40d-alpine
 ```
+
+You should then configure the port that the discord bot uses to connect to lavalink to 2333.
+
+## Remote Usage / Deployment notes
+
+Railway exposes its domain on https, so the lavalink port of 443 inside the container should be mapped to the port that Railway exposes with 443.
+
+The discord bot should then be configured to connect to lavalink with a port of 443, the port that railway is mapping to the port that lavalink is exposed to from within the container.

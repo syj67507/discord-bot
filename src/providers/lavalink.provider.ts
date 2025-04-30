@@ -19,7 +19,8 @@ export class LavalinkProvider {
         {
           authorization: config.lavalinkPassword,
           host: config.lavalinkHost,
-          port: 2333,
+          port: config.lavalinkPort,
+          secure: config.lavalinkPort === 443,
         },
       ],
       sendToShard: (guildId, payload) =>
@@ -30,7 +31,7 @@ export class LavalinkProvider {
       },
     });
     this.lavalinkManager.nodeManager.on("error", (node, error, payload) => {
-      this.logger.error(`${node}`);
+      console.error(node);
       this.logger.error(`${error}`);
       this.logger.error(`${payload}`);
     });
@@ -44,6 +45,7 @@ export class LavalinkProvider {
    * Connects the discord client's event handlers to forward information to the lavalink manager
    */
   private connectDiscordHandlers() {
+    this.logger.log("Connecting to discord handlers");
     this.discordClient.on("raw", (d) => this.lavalinkManager.sendRawData(d));
     this.discordClient.on("ready", () => {
       this.lavalinkManager.init({
@@ -58,6 +60,7 @@ export class LavalinkProvider {
    * Sets up handlers for various states during playback, mainly for sending messages to the text channel
    */
   private setupPlayerHandlers() {
+    this.logger.log("Setting up player handlers");
     this.lavalinkManager.on("trackStart", (player, track) => {
       if (!track) {
         this.logger.warn(`Starting track but unable to fetch track info`);

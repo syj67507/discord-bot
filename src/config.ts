@@ -15,7 +15,8 @@ export const config = {
   lavalinkPassword: process.env.LAVALINK_PASSWORD ?? "",
 
   // lavalink
-  lavalinkHost: process.env.LAVALINK_HOST ?? "0.0.0.0",
+  lavalinkHost: process.env.LAVALINK_HOST ?? "not.set",
+  lavalinkPort: parseInt(process.env.LAVALINK_PORT ?? "not.set"),
   leaveChannelTimeout: 60000, // in milliseconds
 
   // local development
