@@ -123,8 +123,8 @@ export class LavalinkProvider {
           this.logger.log(
             `Player is finished, no songs are left in the queue and ${timeoutDelay} has passed.`,
           );
-          this.logger.log("Disconnecting player");
-          player.disconnect();
+          this.logger.log("Destroying player");
+          player.destroy();
 
           if (player.textChannelId) {
             const channel = this.discordClient.channels.cache.get(
