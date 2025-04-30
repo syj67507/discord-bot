@@ -139,7 +139,7 @@ export class LavalinkProvider {
                   {
                     color: 0xffffff,
                     author: {
-                      name: `😴 Left the voice channel, idle for more than 10 seconds`,
+                      name: `😴 Left the voice channel, idle for more than ${timeoutDelay / 1000} seconds`,
                     },
                     fields: [
                       {
